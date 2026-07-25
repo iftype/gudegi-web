@@ -21,8 +21,12 @@ export function formatElapsed(value: number) {
     : `${minutes}:${String(rest).padStart(2, "0")}`;
 }
 
+export function resolveTimelineOrigin(startedAt: number, firstBucketStart?: number) {
+  return firstBucketStart === undefined ? startedAt : Math.min(startedAt, firstBucketStart);
+}
+
 export function formatDuration(startedAt: number, endedAt: number | null) {
-  const minutes = Math.floor(((endedAt ?? Date.now()) - startedAt) / 60_000);
+  const minutes = Math.max(0, Math.floor(((endedAt ?? Date.now()) - startedAt) / 60_000));
   if (minutes < 60) return `${minutes}분`;
   return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`;
 }
