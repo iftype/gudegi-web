@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Clock3, ExternalLink, Info, MessageCircle, Search, TriangleAlert } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { FormEvent, PointerEvent as ReactPointerEvent, useMemo, useRef, useState } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { FormEvent, KeyboardEvent, PointerEvent as ReactPointerEvent, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { formatCount, formatDate, formatDuration, formatElapsed, resolveTimelineOrigin } from "@/lib/format";
 import type { TimelineBucket } from "@/lib/types";
@@ -87,7 +86,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
           </div>
         </div>
         <div className="timeline-legend-row">
-          <p className="panel-description">아래 구간 칸을 선택하세요. 마우스나 손가락으로 좌우로 끌어서 이동할 수 있습니다.</p>
+          <p className="panel-description">차트 아래의 탐색 영역을 마우스로 훑거나 손가락으로 끌면 측정선이 해당 구간을 가리킵니다.</p>
           <div className="legend"><span><i /> 일반</span><span><i className="burst" /> 급증</span></div>
         </div>
         <div className="timeline-workspace">
@@ -147,91 +146,106 @@ function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, onSe
   selectedBucket: number | null;
   onSelect: (bucket: number) => void;
 }) {
-  const parentRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef({ startX: 0, startScroll: 0, moved: false });
+  const scrubberRef = useRef<HTMLDivElement>(null);
   const max = useMemo(() => Math.max(...buckets.map((bucket) => bucket.totalCount), 1), [buckets]);
-  const virtualizer = useVirtualizer({
-    horizontal: true,
-    count: buckets.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 58,
-    overscan: 12
-  });
+  const selectedIndex = Math.max(0, buckets.findIndex((bucket) => bucket.bucketStart === selectedBucket));
+  const selected = buckets[selectedIndex] ?? buckets[0];
+  const selectionPosition = buckets.length > 0
+    ? ((selectedIndex + 0.5) / buckets.length) * 100
+    : 0;
 
-  function startDrag(event: ReactPointerEvent<HTMLDivElement>) {
+  function selectAt(clientX: number) {
+    const scrubber = scrubberRef.current;
+    if (!scrubber || buckets.length === 0) return;
+    const bounds = scrubber.getBoundingClientRect();
+    const position = Math.min(Math.max(clientX - bounds.left, 0), bounds.width);
+    const index = Math.min(
+      buckets.length - 1,
+      Math.floor((position / Math.max(bounds.width, 1)) * buckets.length)
+    );
+    onSelect(buckets[index].bucketStart);
+  }
+
+  function startScrub(event: ReactPointerEvent<HTMLDivElement>) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    dragRef.current = {
-      startX: event.clientX,
-      startScroll: event.currentTarget.scrollLeft,
-      moved: false
-    };
     event.currentTarget.setPointerCapture(event.pointerId);
-    event.currentTarget.dataset.dragging = "true";
+    event.currentTarget.dataset.scrubbing = "true";
+    selectAt(event.clientX);
   }
 
-  function moveDrag(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
-    const distance = event.clientX - dragRef.current.startX;
-    if (Math.abs(distance) > 4) dragRef.current.moved = true;
-    event.currentTarget.scrollLeft = dragRef.current.startScroll - distance;
+  function moveScrub(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "mouse" || event.currentTarget.hasPointerCapture(event.pointerId)) {
+      selectAt(event.clientX);
+    }
   }
 
-  function endDrag(event: ReactPointerEvent<HTMLDivElement>) {
+  function endScrub(event: ReactPointerEvent<HTMLDivElement>) {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-    delete event.currentTarget.dataset.dragging;
-    setTimeout(() => {
-      dragRef.current.moved = false;
-    }, 0);
+    delete event.currentTarget.dataset.scrubbing;
   }
 
-  const virtualItems = virtualizer.getVirtualItems();
+  function moveWithKeyboard(event: KeyboardEvent<HTMLDivElement>) {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    let nextIndex = selectedIndex;
+    if (event.key === "ArrowLeft") nextIndex = Math.max(0, selectedIndex - 1);
+    if (event.key === "ArrowRight") nextIndex = Math.min(buckets.length - 1, selectedIndex + 1);
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = buckets.length - 1;
+    onSelect(buckets[nextIndex].bucketStart);
+  }
+
+  const selectedElapsed = selected ? formatElapsed(selected.bucketStart - startedAt) : "0:00";
   return (
-    <div
-      className="timeline-scroll"
-      ref={parentRef}
-      onPointerDown={startDrag}
-      onPointerMove={moveDrag}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
-    >
-      <div className="timeline-bars" style={{ width: virtualizer.getTotalSize() }}>
-        {virtualItems.map((virtualItem) => {
-          const bucket = buckets[virtualItem.index];
-          if (!bucket) return null;
+    <div className="timeline-chart">
+      <div className="timeline-bars">
+        {buckets.map((bucket, index) => {
           const height = Math.max(4, (bucket.totalCount / max) * 100);
           return (
             <i
               key={bucket.bucketStart}
-              className={`${bucket.isBurst ? "burst" : ""} ${selectedBucket === bucket.bucketStart ? "selected" : ""}`}
-              style={{ left: virtualItem.start + 8, width: 42, height: `${height}%` }}
+              className={bucket.isBurst ? "burst" : ""}
+              style={{
+                left: `${(index / buckets.length) * 100}%`,
+                width: `${Math.max(100 / buckets.length, 0.12)}%`,
+                height: `${height}%`
+              }}
             />
           );
         })}
+        <span className="timeline-measure-line" style={{ left: `${selectionPosition}%` }}>
+          <strong>{selectedElapsed}</strong>
+        </span>
       </div>
-      <div className="timeline-segments" style={{ width: virtualizer.getTotalSize() }}>
-        {virtualItems.map((virtualItem) => {
-          const bucket = buckets[virtualItem.index];
-          if (!bucket) return null;
-          const elapsed = formatElapsed(bucket.bucketStart - startedAt);
-          return (
-            <button
-              key={bucket.bucketStart}
-              className={`${bucket.isBurst ? "burst" : ""} ${selectedBucket === bucket.bucketStart ? "selected" : ""}`}
-              style={{ left: virtualItem.start + 3 }}
-              onMouseEnter={() => onSelect(bucket.bucketStart)}
-              onFocus={() => onSelect(bucket.bucketStart)}
-              onClick={() => {
-                if (!dragRef.current.moved) onSelect(bucket.bucketStart);
-              }}
-              aria-label={`${elapsed}부터 ${resolution === 60 ? "1분" : "5분"}, 채팅 ${bucket.totalCount}개${bucket.isBurst ? ", 급증 구간" : ""}`}
-            >
-              <span>{elapsed}</span>
-              <strong>{formatCount(bucket.totalCount)}</strong>
-            </button>
-          );
-        })}
+      <div
+        ref={scrubberRef}
+        className="timeline-scrubber"
+        role="slider"
+        tabIndex={0}
+        aria-label="채팅 타임라인 탐색"
+        aria-valuemin={0}
+        aria-valuemax={Math.max(0, buckets.length - 1)}
+        aria-valuenow={selectedIndex}
+        aria-valuetext={`${selectedElapsed}부터 ${resolution === 60 ? "1분" : "5분"}, 채팅 ${selected?.totalCount ?? 0}개`}
+        onPointerDown={startScrub}
+        onPointerMove={moveScrub}
+        onPointerUp={endScrub}
+        onPointerCancel={endScrub}
+        onKeyDown={moveWithKeyboard}
+      >
+        <div className="scrubber-fill" style={{ width: `${selectionPosition}%` }} />
+        <span className="scrubber-handle" style={{ left: `${selectionPosition}%` }} />
+        <div className="scrubber-value">
+          <span>{selectedElapsed}</span>
+          <strong>{formatCount(selected?.totalCount ?? 0)}개</strong>
+          {selected?.isBurst && <em>급증</em>}
+        </div>
+      </div>
+      <div className="timeline-axis" aria-hidden>
+        <span>{formatElapsed(buckets[0].bucketStart - startedAt)}</span>
+        <span>{formatElapsed(buckets[buckets.length - 1].bucketStart - startedAt + resolution * 1000)}</span>
       </div>
     </div>
   );
