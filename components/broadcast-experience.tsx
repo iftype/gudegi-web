@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FormEvent, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { api } from "@/lib/api";
-import { formatCount, formatDate, formatDuration, formatElapsed } from "@/lib/format";
+import { formatCount, formatDate, formatDuration, formatElapsed, resolveTimelineOrigin } from "@/lib/format";
 import type { TimelineBucket } from "@/lib/types";
 
 export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
@@ -35,6 +35,9 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
     enabled: submittedQuery.length >= 2
   });
   const item = broadcast.data?.data;
+  const timelineOrigin = item
+    ? resolveTimelineOrigin(item.startedAt, timeline.data?.data[0]?.bucketStart)
+    : 0;
 
   if (broadcast.isLoading) return <main className="detail-loading">타임라인을 불러오고 있습니다.</main>;
   if (broadcast.isError || !item) {
@@ -75,7 +78,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
         {timeline.data?.data.length ? (
           <ReactionTimeline
             buckets={timeline.data.data}
-            startedAt={item.startedAt}
+            startedAt={timelineOrigin}
             selectedBucket={selectedBucket}
             onSelect={setSelectedBucket}
           />
@@ -86,7 +89,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
           loading={messages.isLoading}
           messages={messages.data?.data ?? []}
           selectedBucket={selectedBucket}
-          startedAt={item.startedAt}
+          startedAt={timelineOrigin}
         />
       </section>
 
@@ -99,10 +102,10 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
         </form>
         <div className="sample-notice"><Info size={15} /> 전체 채팅이 아닌 보존된 익명 표본만 검색합니다. 90일이 지난 채팅 문장은 자동 삭제됩니다.</div>
         {search.isFetching && <div className="search-empty">검색 중입니다.</div>}
-        {search.data && <div className="search-results">
+          {search.data && <div className="search-results">
           {search.data.data.length ? search.data.data.map((message) => (
             <button key={message.id} onClick={() => setSelectedBucket(message.bucketStart)}>
-              <span>{formatElapsed(message.bucketStart - item.startedAt)}</span>
+              <span>{formatElapsed(message.bucketStart - timelineOrigin)}</span>
               <p>{message.content}</p>
               {message.occurrences > 1 && <strong>{message.occurrences}회</strong>}
             </button>
