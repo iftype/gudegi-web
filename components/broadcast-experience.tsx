@@ -12,7 +12,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
   const [selectedBucket, setSelectedBucket] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
-  const [resolution, setResolution] = useState<60 | 300>(300);
+  const [resolution, setResolution] = useState<60 | 600>(60);
   const broadcast = useQuery({
     queryKey: ["broadcast", broadcastId],
     queryFn: ({ signal }) => api.broadcast(broadcastId, signal),
@@ -91,10 +91,10 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
               setSelectedBucket(null);
               setResolution(60);
             }}>1분</button>
-            <button className={resolution === 300 ? "active" : ""} onClick={() => {
+            <button className={resolution === 600 ? "active" : ""} onClick={() => {
               setSelectedBucket(null);
-              setResolution(300);
-            }}>5분</button>
+              setResolution(600);
+            }}>10분</button>
           </div>
         </div>
         <div className="timeline-legend-row">
@@ -161,7 +161,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
 function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, highlightedBuckets, onSelect }: {
   buckets: TimelineBucket[];
   startedAt: number;
-  resolution: 60 | 300;
+  resolution: 60 | 600;
   selectedBucket: number | null;
   highlightedBuckets: Set<number>;
   onSelect: (bucket: number) => void;
@@ -248,7 +248,7 @@ function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, high
         aria-valuemin={0}
         aria-valuemax={Math.max(0, buckets.length - 1)}
         aria-valuenow={selectedIndex}
-        aria-valuetext={`${selectedElapsed}부터 ${resolution === 60 ? "1분" : "5분"}, 채팅 ${selected?.totalCount ?? 0}개`}
+        aria-valuetext={`${selectedElapsed}부터 ${resolution === 60 ? "1분" : "10분"}, 채팅 ${selected?.totalCount ?? 0}개`}
         onPointerDown={startScrub}
         onPointerMove={moveScrub}
         onPointerUp={endScrub}
