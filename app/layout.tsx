@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 import { Activity } from "lucide-react";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <p>치지직 공식 서비스가 아니며, 표시되는 채팅은 익명 표본입니다.</p>
           </footer>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
