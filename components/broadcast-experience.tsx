@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Clock3, ExternalLink, Info, MessageCircle, Search, TriangleAlert } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Check, ChevronLeft, ChevronRight, Clock3, Copy, ExternalLink, Info, MessageCircle, Search, TriangleAlert } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { FormEvent, KeyboardEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
@@ -13,6 +13,8 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [resolution, setResolution] = useState<60 | 600>(60);
+  const [burstThreshold, setBurstThreshold] = useState(1);
+  const [timestampsCopied, setTimestampsCopied] = useState(false);
   const broadcast = useQuery({
     queryKey: ["broadcast", broadcastId],
     queryFn: ({ signal }) => api.broadcast(broadcastId, signal),
@@ -48,6 +50,18 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
     }
     return matches;
   }, [resolution, search.data, submittedQuery]);
+  const burstBuckets = useMemo(
+    () => (timelineBuckets ?? []).filter((bucket) => bucket.burstScore >= burstThreshold),
+    [burstThreshold, timelineBuckets]
+  );
+  const burstBucketStarts = useMemo(
+    () => new Set(burstBuckets.map((bucket) => bucket.bucketStart)),
+    [burstBuckets]
+  );
+  const maxBurstThreshold = useMemo(
+    () => Math.max(3, Math.ceil(Math.max(...(timelineBuckets ?? []).map((bucket) => bucket.burstScore), 1) * 10) / 10),
+    [timelineBuckets]
+  );
   const item = broadcast.data?.data;
   const timelineOrigin = item
     ? resolveTimelineOrigin(item.startedAt, timeline.data?.data[0]?.bucketStart)
@@ -61,6 +75,25 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
   function submitSearch(event: FormEvent) {
     event.preventDefault();
     setSubmittedQuery(searchQuery.trim());
+  }
+
+  function moveToBurst(direction: -1 | 1) {
+    if (burstBuckets.length === 0) return;
+    const current = resolvedSelectedBucket ?? burstBuckets[0].bucketStart;
+    const target = direction === 1
+      ? burstBuckets.find((bucket) => bucket.bucketStart > current) ?? burstBuckets[0]
+      : [...burstBuckets].reverse().find((bucket) => bucket.bucketStart < current) ?? burstBuckets[burstBuckets.length - 1];
+    setSelectedBucket(target.bucketStart);
+  }
+
+  async function copyBurstTimestamps() {
+    if (burstBuckets.length === 0) return;
+    const timestamps = burstBuckets
+      .map((bucket) => formatElapsed(bucket.bucketStart - timelineOrigin))
+      .join("\n");
+    await navigator.clipboard.writeText(timestamps);
+    setTimestampsCopied(true);
+    window.setTimeout(() => setTimestampsCopied(false), 1600);
   }
 
   return (
@@ -77,7 +110,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
 
       <section className="detail-stats">
         <article><span>수집 채팅</span><strong>{formatCount(Number(item.chatCount))}</strong><small>전체 메시지 수</small></article>
-        <article><span>급증 구간</span><strong>{item.burstCount}</strong><small>평소 대비 강한 반응</small></article>
+        <article><span>급증 구간</span><strong>{burstBuckets.length}</strong><small>현재 {burstThreshold.toFixed(1)}× 기준</small></article>
         <article><span>방송 길이</span><strong>{formatDuration(item.startedAt, item.endedAt)}</strong><small>{item.status === "live" ? "현재까지" : "수집 기준"}</small></article>
       </section>
 
@@ -97,8 +130,53 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
             }}>10분</button>
           </div>
         </div>
+        <div className="timeline-tools">
+          <form onSubmit={submitSearch} className="search-form timeline-search">
+            <Search aria-hidden />
+            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="타임라인에서 채팅 찾기" minLength={2} maxLength={50} aria-label="대표 채팅 검색어" />
+            <button>검색</button>
+          </form>
+          <div className="burst-controls">
+            <div className="burst-threshold">
+              <label htmlFor="burst-threshold">급증 기준 <strong>{burstThreshold.toFixed(1)}×</strong></label>
+              <input
+                id="burst-threshold"
+                type="range"
+                min="0.5"
+                max={maxBurstThreshold}
+                step="0.1"
+                value={burstThreshold}
+                onChange={(event) => setBurstThreshold(Number(event.target.value))}
+              />
+              <input
+                aria-label="급증 기준 배수"
+                type="number"
+                min="0.5"
+                max={maxBurstThreshold}
+                step="0.1"
+                value={burstThreshold}
+                onChange={(event) => setBurstThreshold(Math.min(maxBurstThreshold, Math.max(0.5, Number(event.target.value) || 0.5)))}
+              />
+            </div>
+            <div className="burst-actions">
+              <button onClick={() => moveToBurst(-1)} disabled={burstBuckets.length === 0} aria-label="이전 급증 구간"><ChevronLeft /></button>
+              <span>{burstBuckets.length}개</span>
+              <button onClick={() => moveToBurst(1)} disabled={burstBuckets.length === 0} aria-label="다음 급증 구간"><ChevronRight /></button>
+              <button className="copy-bursts" onClick={copyBurstTimestamps} disabled={burstBuckets.length === 0}>
+                {timestampsCopied ? <Check /> : <Copy />}{timestampsCopied ? "복사됨" : "타임스탬프 복사"}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="sample-notice timeline-sample-notice"><Info size={15} /> 검색은 전체 채팅이 아닌 보존된 익명 표본을 대상으로 합니다. 급증 기준은 수집기의 동적 기준 대비 배수입니다.</div>
+        {search.isFetching && <div className="search-inline-state">검색 중입니다.</div>}
+        {!search.isFetching && highlightedBuckets.size > 0 && (
+          <div className="search-highlight-status">
+            <i /> 타임라인에서 일치하는 {highlightedBuckets.size}개 구간을 밝게 표시했습니다.
+          </div>
+        )}
         <div className="timeline-legend-row">
-          <p className="panel-description">차트 아래의 탐색 영역을 마우스로 훑거나 손가락으로 끌면 측정선이 해당 구간을 가리킵니다.</p>
+          <p className="panel-description">차트 아래 탐색 영역을 클릭하거나 드래그·터치하면 측정선이 해당 구간으로 이동합니다.</p>
           <div className="legend"><span><i /> 일반</span><span><i className="burst" /> 급증</span>{highlightedBuckets.size > 0 && <span><i className="search-match" /> 검색 일치</span>}</div>
         </div>
         <div className="timeline-workspace">
@@ -111,6 +189,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
                 resolution={resolution}
                 selectedBucket={resolvedSelectedBucket}
                 highlightedBuckets={highlightedBuckets}
+                burstBuckets={burstBucketStarts}
                 onSelect={setSelectedBucket}
               />
             ) : (
@@ -125,23 +204,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
             startedAt={timelineOrigin}
           />
         </div>
-      </section>
-
-      <section className="search-panel">
-        <div className="panel-title"><div><span className="kicker">SAMPLED SEARCH</span><h2>대표 채팅 검색</h2></div></div>
-        <form onSubmit={submitSearch} className="search-form">
-          <Search aria-hidden />
-          <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="두 글자 이상의 반응이나 문구를 검색하세요" minLength={2} maxLength={50} aria-label="대표 채팅 검색어" />
-          <button>검색</button>
-        </form>
-        <div className="sample-notice"><Info size={15} /> 전체 채팅이 아닌 보존된 익명 표본만 검색합니다. 90일이 지난 채팅 문장은 자동 삭제됩니다.</div>
-        {search.isFetching && <div className="search-empty">검색 중입니다.</div>}
-        {!search.isFetching && highlightedBuckets.size > 0 && (
-          <div className="search-highlight-status">
-            <i /> 타임라인에서 일치하는 {highlightedBuckets.size}개 구간을 밝게 표시했습니다.
-          </div>
-        )}
-          {search.data && <div className="search-results">
+        {search.data && <div className="search-results timeline-search-results">
           {search.data.data.length ? search.data.data.map((message) => (
             <button key={message.id} onClick={() => {
               const resolutionMs = resolution * 1000;
@@ -158,12 +221,13 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
   );
 }
 
-function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, highlightedBuckets, onSelect }: {
+function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, highlightedBuckets, burstBuckets, onSelect }: {
   buckets: TimelineBucket[];
   startedAt: number;
   resolution: 60 | 600;
   selectedBucket: number | null;
   highlightedBuckets: Set<number>;
+  burstBuckets: Set<number>;
   onSelect: (bucket: number) => void;
 }) {
   const scrubberRef = useRef<HTMLDivElement>(null);
@@ -194,7 +258,7 @@ function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, high
   }
 
   function moveScrub(event: ReactPointerEvent<HTMLDivElement>) {
-    if (event.pointerType === "mouse" || event.currentTarget.hasPointerCapture(event.pointerId)) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       selectAt(event.clientX);
     }
   }
@@ -226,7 +290,7 @@ function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, high
           return (
             <i
               key={bucket.bucketStart}
-              className={`${bucket.isBurst ? "burst" : ""} ${highlightedBuckets.has(bucket.bucketStart) ? "search-match" : ""}`}
+              className={`${burstBuckets.has(bucket.bucketStart) ? "burst" : ""} ${highlightedBuckets.has(bucket.bucketStart) ? "search-match" : ""}`}
               style={{
                 left: `${(index / buckets.length) * 100}%`,
                 width: `${Math.max(100 / buckets.length, 0.12)}%`,
@@ -260,7 +324,7 @@ function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, high
         <div className="scrubber-value">
           <span>{selectedElapsed}</span>
           <strong>{formatCount(selected?.totalCount ?? 0)}개</strong>
-          {selected?.isBurst && <em>급증</em>}
+          {selected && burstBuckets.has(selected.bucketStart) && <em>급증</em>}
         </div>
       </div>
       <div className="timeline-axis" aria-hidden>
