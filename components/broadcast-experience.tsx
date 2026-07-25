@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Clock3, ExternalLink, Info, MessageCircle, Search, TriangleAlert } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { FormEvent, KeyboardEvent, PointerEvent as ReactPointerEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { formatCount, formatDate, formatDuration, formatElapsed, resolveTimelineOrigin } from "@/lib/format";
 import type { TimelineBucket } from "@/lib/types";
@@ -26,16 +26,28 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
   const timelineBuckets = timeline.data?.data;
   const defaultBucket = timelineBuckets?.[0]?.bucketStart;
   const resolvedSelectedBucket = selectedBucket ?? defaultBucket ?? null;
+  const messagesBucket = useDebouncedValue(resolvedSelectedBucket, 180);
   const messages = useQuery({
-    queryKey: ["messages", broadcastId, resolvedSelectedBucket, resolution],
-    queryFn: ({ signal }) => api.messages(broadcastId, resolvedSelectedBucket!, resolution, signal),
-    enabled: resolvedSelectedBucket !== null
+    queryKey: ["messages", broadcastId, messagesBucket, resolution],
+    queryFn: ({ signal }) => api.messages(broadcastId, messagesBucket!, resolution, signal),
+    enabled: messagesBucket !== null,
+    placeholderData: (previousData) => previousData,
+    staleTime: 5 * 60_000
   });
   const search = useQuery({
     queryKey: ["search", broadcastId, submittedQuery],
     queryFn: ({ signal }) => api.search(broadcastId, submittedQuery, signal),
     enabled: submittedQuery.length >= 2
   });
+  const highlightedBuckets = useMemo(() => {
+    const matches = new Set<number>();
+    if (submittedQuery.length < 2) return matches;
+    const resolutionMs = resolution * 1000;
+    for (const message of search.data?.data ?? []) {
+      matches.add(Math.floor(message.bucketStart / resolutionMs) * resolutionMs);
+    }
+    return matches;
+  }, [resolution, search.data, submittedQuery]);
   const item = broadcast.data?.data;
   const timelineOrigin = item
     ? resolveTimelineOrigin(item.startedAt, timeline.data?.data[0]?.bucketStart)
@@ -87,7 +99,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
         </div>
         <div className="timeline-legend-row">
           <p className="panel-description">차트 아래의 탐색 영역을 마우스로 훑거나 손가락으로 끌면 측정선이 해당 구간을 가리킵니다.</p>
-          <div className="legend"><span><i /> 일반</span><span><i className="burst" /> 급증</span></div>
+          <div className="legend"><span><i /> 일반</span><span><i className="burst" /> 급증</span>{highlightedBuckets.size > 0 && <span><i className="search-match" /> 검색 일치</span>}</div>
         </div>
         <div className="timeline-workspace">
           <div className="timeline-main">
@@ -98,6 +110,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
                 startedAt={timelineOrigin}
                 resolution={resolution}
                 selectedBucket={resolvedSelectedBucket}
+                highlightedBuckets={highlightedBuckets}
                 onSelect={setSelectedBucket}
               />
             ) : (
@@ -105,9 +118,10 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
             )}
           </div>
           <MessagePanel
-            loading={messages.isLoading}
+            loading={messages.isLoading && !messages.data}
+            refreshing={messages.isFetching && Boolean(messages.data)}
             messages={messages.data?.data ?? []}
-            selectedBucket={resolvedSelectedBucket}
+            selectedBucket={messagesBucket}
             startedAt={timelineOrigin}
           />
         </div>
@@ -122,6 +136,11 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
         </form>
         <div className="sample-notice"><Info size={15} /> 전체 채팅이 아닌 보존된 익명 표본만 검색합니다. 90일이 지난 채팅 문장은 자동 삭제됩니다.</div>
         {search.isFetching && <div className="search-empty">검색 중입니다.</div>}
+        {!search.isFetching && highlightedBuckets.size > 0 && (
+          <div className="search-highlight-status">
+            <i /> 타임라인에서 일치하는 {highlightedBuckets.size}개 구간을 밝게 표시했습니다.
+          </div>
+        )}
           {search.data && <div className="search-results">
           {search.data.data.length ? search.data.data.map((message) => (
             <button key={message.id} onClick={() => {
@@ -139,11 +158,12 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
   );
 }
 
-function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, onSelect }: {
+function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, highlightedBuckets, onSelect }: {
   buckets: TimelineBucket[];
   startedAt: number;
   resolution: 60 | 300;
   selectedBucket: number | null;
+  highlightedBuckets: Set<number>;
   onSelect: (bucket: number) => void;
 }) {
   const scrubberRef = useRef<HTMLDivElement>(null);
@@ -206,7 +226,7 @@ function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, onSe
           return (
             <i
               key={bucket.bucketStart}
-              className={bucket.isBurst ? "burst" : ""}
+              className={`${bucket.isBurst ? "burst" : ""} ${highlightedBuckets.has(bucket.bucketStart) ? "search-match" : ""}`}
               style={{
                 left: `${(index / buckets.length) * 100}%`,
                 width: `${Math.max(100 / buckets.length, 0.12)}%`,
@@ -251,15 +271,19 @@ function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, onSe
   );
 }
 
-function MessagePanel({ messages, selectedBucket, startedAt, loading }: {
+function MessagePanel({ messages, selectedBucket, startedAt, loading, refreshing }: {
   messages: Awaited<ReturnType<typeof api.messages>>["data"];
   selectedBucket: number | null;
   startedAt: number;
   loading: boolean;
+  refreshing: boolean;
 }) {
   return (
     <div className="message-panel">
-      <div className="message-panel-header"><span>{selectedBucket === null ? "구간을 선택하세요" : `${formatElapsed(selectedBucket - startedAt)} 대표 반응`}</span>{messages.length > 0 && <small>{messages.length}개 표본</small>}</div>
+      <div className="message-panel-header">
+        <span>{selectedBucket === null ? "구간을 선택하세요" : `${formatElapsed(selectedBucket - startedAt)} 대표 반응`}</span>
+        <small>{refreshing ? "갱신 중" : messages.length > 0 ? `${messages.length}개 표본` : ""}</small>
+      </div>
       {loading ? <p className="message-placeholder">대표 채팅을 불러오는 중입니다.</p> : messages.length ? (
         <div className="message-list">{messages.map((message) => (
           <div key={message.id} className={message.reason === "keyword" ? "keyword" : ""}>
@@ -270,4 +294,15 @@ function MessagePanel({ messages, selectedBucket, startedAt, loading }: {
       ) : <p className="message-placeholder">{selectedBucket === null ? "막대를 선택하면 이곳에 채팅 표본이 나타납니다." : "이 구간에 보존된 대표 채팅이 없습니다."}</p>}
     </div>
   );
+}
+
+function useDebouncedValue<T>(value: T, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedValue(value), delay);
+    return () => window.clearTimeout(timeout);
+  }, [delay, value]);
+
+  return debouncedValue;
 }
