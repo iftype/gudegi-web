@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Clock3, ExternalLink, Info, MessageCircle, Search, TriangleAlert } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, PointerEvent as ReactPointerEvent, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { api } from "@/lib/api";
 import { formatCount, formatDate, formatDuration, formatElapsed, resolveTimelineOrigin } from "@/lib/format";
@@ -13,7 +13,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
   const [selectedBucket, setSelectedBucket] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
-  const resolution = 10;
+  const [resolution, setResolution] = useState<60 | 300>(300);
   const broadcast = useQuery({
     queryKey: ["broadcast", broadcastId],
     queryFn: ({ signal }) => api.broadcast(broadcastId, signal),
@@ -24,10 +24,13 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
     queryFn: ({ signal }) => api.timeline(broadcastId, resolution, signal),
     refetchInterval: broadcast.data?.data.status === "live" ? 15_000 : false
   });
+  const timelineBuckets = timeline.data?.data;
+  const defaultBucket = timelineBuckets?.[0]?.bucketStart;
+  const resolvedSelectedBucket = selectedBucket ?? defaultBucket ?? null;
   const messages = useQuery({
-    queryKey: ["messages", broadcastId, selectedBucket, resolution],
-    queryFn: ({ signal }) => api.messages(broadcastId, selectedBucket!, resolution, signal),
-    enabled: selectedBucket !== null
+    queryKey: ["messages", broadcastId, resolvedSelectedBucket, resolution],
+    queryFn: ({ signal }) => api.messages(broadcastId, resolvedSelectedBucket!, resolution, signal),
+    enabled: resolvedSelectedBucket !== null
   });
   const search = useQuery({
     queryKey: ["search", broadcastId, submittedQuery],
@@ -72,25 +75,43 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
       <section className="timeline-panel">
         <div className="panel-title">
           <div><span className="kicker">REACTION DENSITY</span><h2>채팅 반응 타임라인</h2></div>
+          <div className="timeline-controls" aria-label="타임라인 구간 단위">
+            <button className={resolution === 60 ? "active" : ""} onClick={() => {
+              setSelectedBucket(null);
+              setResolution(60);
+            }}>1분</button>
+            <button className={resolution === 300 ? "active" : ""} onClick={() => {
+              setSelectedBucket(null);
+              setResolution(300);
+            }}>5분</button>
+          </div>
+        </div>
+        <div className="timeline-legend-row">
+          <p className="panel-description">아래 구간 칸을 선택하세요. 마우스나 손가락으로 좌우로 끌어서 이동할 수 있습니다.</p>
           <div className="legend"><span><i /> 일반</span><span><i className="burst" /> 급증</span></div>
         </div>
-        <p className="panel-description">막대에 마우스를 올리거나 탭하면 해당 구간의 익명 대표 채팅을 볼 수 있습니다.</p>
-        {timeline.data?.data.length ? (
-          <ReactionTimeline
-            buckets={timeline.data.data}
+        <div className="timeline-workspace">
+          <div className="timeline-main">
+            {timeline.data?.data.length ? (
+              <ReactionTimeline
+                key={resolution}
+                buckets={timeline.data.data}
+                startedAt={timelineOrigin}
+                resolution={resolution}
+                selectedBucket={resolvedSelectedBucket}
+                onSelect={setSelectedBucket}
+              />
+            ) : (
+              <div className="timeline-empty">아직 집계된 채팅 구간이 없습니다.</div>
+            )}
+          </div>
+          <MessagePanel
+            loading={messages.isLoading}
+            messages={messages.data?.data ?? []}
+            selectedBucket={resolvedSelectedBucket}
             startedAt={timelineOrigin}
-            selectedBucket={selectedBucket}
-            onSelect={setSelectedBucket}
           />
-        ) : (
-          <div className="timeline-empty">아직 집계된 채팅 구간이 없습니다.</div>
-        )}
-        <MessagePanel
-          loading={messages.isLoading}
-          messages={messages.data?.data ?? []}
-          selectedBucket={selectedBucket}
-          startedAt={timelineOrigin}
-        />
+        </div>
       </section>
 
       <section className="search-panel">
@@ -104,7 +125,10 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
         {search.isFetching && <div className="search-empty">검색 중입니다.</div>}
           {search.data && <div className="search-results">
           {search.data.data.length ? search.data.data.map((message) => (
-            <button key={message.id} onClick={() => setSelectedBucket(message.bucketStart)}>
+            <button key={message.id} onClick={() => {
+              const resolutionMs = resolution * 1000;
+              setSelectedBucket(Math.floor(message.bucketStart / resolutionMs) * resolutionMs);
+            }}>
               <span>{formatElapsed(message.bucketStart - timelineOrigin)}</span>
               <p>{message.content}</p>
               {message.occurrences > 1 && <strong>{message.occurrences}회</strong>}
@@ -116,43 +140,99 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
   );
 }
 
-function ReactionTimeline({ buckets, startedAt, selectedBucket, onSelect }: {
+function ReactionTimeline({ buckets, startedAt, resolution, selectedBucket, onSelect }: {
   buckets: TimelineBucket[];
   startedAt: number;
+  resolution: 60 | 300;
   selectedBucket: number | null;
   onSelect: (bucket: number) => void;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({ startX: 0, startScroll: 0, moved: false });
   const max = useMemo(() => Math.max(...buckets.map((bucket) => bucket.totalCount), 1), [buckets]);
   const virtualizer = useVirtualizer({
     horizontal: true,
     count: buckets.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 18,
-    overscan: 30
+    estimateSize: () => 58,
+    overscan: 12
   });
 
+  function startDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    dragRef.current = {
+      startX: event.clientX,
+      startScroll: event.currentTarget.scrollLeft,
+      moved: false
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.dataset.dragging = "true";
+  }
+
+  function moveDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    const distance = event.clientX - dragRef.current.startX;
+    if (Math.abs(distance) > 4) dragRef.current.moved = true;
+    event.currentTarget.scrollLeft = dragRef.current.startScroll - distance;
+  }
+
+  function endDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    delete event.currentTarget.dataset.dragging;
+    setTimeout(() => {
+      dragRef.current.moved = false;
+    }, 0);
+  }
+
+  const virtualItems = virtualizer.getVirtualItems();
   return (
-    <div className="timeline-scroll" ref={parentRef}>
+    <div
+      className="timeline-scroll"
+      ref={parentRef}
+      onPointerDown={startDrag}
+      onPointerMove={moveDrag}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+    >
       <div className="timeline-bars" style={{ width: virtualizer.getTotalSize() }}>
-        {virtualizer.getVirtualItems().map((virtualItem) => {
+        {virtualItems.map((virtualItem) => {
           const bucket = buckets[virtualItem.index];
           if (!bucket) return null;
           const height = Math.max(4, (bucket.totalCount / max) * 100);
           return (
-            <button
+            <i
               key={bucket.bucketStart}
               className={`${bucket.isBurst ? "burst" : ""} ${selectedBucket === bucket.bucketStart ? "selected" : ""}`}
-              style={{ left: virtualItem.start, height: `${height}%` }}
-              onMouseEnter={() => onSelect(bucket.bucketStart)}
-              onFocus={() => onSelect(bucket.bucketStart)}
-              onClick={() => onSelect(bucket.bucketStart)}
-              aria-label={`${formatElapsed(bucket.bucketStart - startedAt)}, 채팅 ${bucket.totalCount}개${bucket.isBurst ? ", 급증 구간" : ""}`}
+              style={{ left: virtualItem.start + 8, width: 42, height: `${height}%` }}
             />
           );
         })}
       </div>
-      <div className="timeline-times"><span>{formatElapsed((buckets[0]?.bucketStart ?? startedAt) - startedAt)}</span><span>{formatElapsed((buckets.at(-1)?.bucketStart ?? startedAt) - startedAt)}</span></div>
+      <div className="timeline-segments" style={{ width: virtualizer.getTotalSize() }}>
+        {virtualItems.map((virtualItem) => {
+          const bucket = buckets[virtualItem.index];
+          if (!bucket) return null;
+          const elapsed = formatElapsed(bucket.bucketStart - startedAt);
+          return (
+            <button
+              key={bucket.bucketStart}
+              className={`${bucket.isBurst ? "burst" : ""} ${selectedBucket === bucket.bucketStart ? "selected" : ""}`}
+              style={{ left: virtualItem.start + 3 }}
+              onMouseEnter={() => onSelect(bucket.bucketStart)}
+              onFocus={() => onSelect(bucket.bucketStart)}
+              onClick={() => {
+                if (!dragRef.current.moved) onSelect(bucket.bucketStart);
+              }}
+              aria-label={`${elapsed}부터 ${resolution === 60 ? "1분" : "5분"}, 채팅 ${bucket.totalCount}개${bucket.isBurst ? ", 급증 구간" : ""}`}
+            >
+              <span>{elapsed}</span>
+              <strong>{formatCount(bucket.totalCount)}</strong>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -167,7 +247,7 @@ function MessagePanel({ messages, selectedBucket, startedAt, loading }: {
     <div className="message-panel">
       <div className="message-panel-header"><span>{selectedBucket === null ? "구간을 선택하세요" : `${formatElapsed(selectedBucket - startedAt)} 대표 반응`}</span>{messages.length > 0 && <small>{messages.length}개 표본</small>}</div>
       {loading ? <p className="message-placeholder">대표 채팅을 불러오는 중입니다.</p> : messages.length ? (
-        <div className="message-cloud">{messages.map((message) => (
+        <div className="message-list">{messages.map((message) => (
           <div key={message.id} className={message.reason === "keyword" ? "keyword" : ""}>
             <MessageCircle size={13} /><span>{message.content}</span>
             {message.occurrences > 1 && <strong>{message.occurrences}×</strong>}
