@@ -11,13 +11,14 @@
   margin: 0 auto;
   overflow: hidden;
   color: #edf6f0;
-  background:
-    radial-gradient(circle at 85% -10%, #174829 0, transparent 30%),
-    var(--app-bg);
+  background: #080a09;
   border-inline: 1px solid #1d3026;
 }
 
 .app button, .app input { font: inherit; }
+.app button, .app a { -webkit-tap-highlight-color: transparent; transition: transform 140ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+.app button:active, .app a:active { transform: scale(.975); }
+.app button:focus-visible, .app a:focus-visible, .app input:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .appHeader {
   height: calc(58px + env(safe-area-inset-top));
   display: flex;
@@ -26,7 +27,7 @@
   padding: 0 17px 12px;
   border-bottom: 1px solid #1e3026;
 }
-.logo { display: flex; align-items: center; gap: 8px; color: var(--app-green); font: 700 13px "DM Mono", monospace; letter-spacing: -.06em; }
+.logo { display: flex; align-items: center; gap: 8px; color: #fff; font: 800 13px var(--font-app), sans-serif; letter-spacing: -.04em; }
 .logo svg { width: 19px; }
 .headerActions { display: flex; align-items: center; gap: 6px; }
 .headerActions button {
@@ -113,23 +114,22 @@
 .homeView {
   min-height: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
   gap: 9px;
 }
 .statusCard {
   min-height: 0;
   display: grid;
-  grid-template-rows: auto auto auto auto;
+  grid-template-rows: auto auto auto auto auto;
   align-content: space-between;
   gap: 10px;
   padding: 15px;
   overflow: hidden;
-  background: linear-gradient(155deg, #16251c, #0d1812);
+  background: #101412;
   border: 1px solid #2d4035;
   border-radius: 22px;
-  box-shadow: 0 18px 50px #0003;
 }
-.liveCard { background: radial-gradient(circle at 100% 0, #1f6237 0, transparent 45%), linear-gradient(155deg, #17281e, #0d1812); border-color: #386848; }
+.liveCard { background: #111914; border-color: #386848; }
 .statusTop { display: flex; align-items: center; justify-content: space-between; }
 .statusTop > span { display: inline-flex; align-items: center; gap: 5px; color: #83978b; font: 500 8px "DM Mono", monospace; letter-spacing: .1em; }
 .liveCard .statusTop > span { color: var(--app-green); }
@@ -139,12 +139,35 @@
 .largeAvatar { width: 54px; height: 54px; flex: 0 0 auto; font-size: 20px; }
 .statusMain h1 { margin: 0; font-size: 22px; letter-spacing: -.05em; }
 .statusMain p { margin: 4px 0 0; color: #87998f; font-size: 9px; }
-.liveMetadata { min-height: 0; display: grid; grid-template-columns: .8fr 1.2fr; gap: 7px; }
-.liveMetadata > div { min-width: 0; padding: 10px; background: #07110c75; border: 1px solid #283b31; border-radius: 12px; }
-.liveMetadata span { display: block; margin-bottom: 6px; color: #6f8278; font-size: 7px; }
-.liveMetadata strong { display: block; overflow: hidden; font-size: 10px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.categoryFocus { min-width: 0; padding: 11px 13px; background: #080b09; border: 1px solid #2d4437; border-radius: 13px; }
+.categoryFocus span { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; color: #78a88b; font-size: 9px; font-weight: 700; }
+.categoryFocus span svg { width: 11px; }
+.categoryFocus strong { display: block; overflow: hidden; color: #fff; font-size: clamp(17px, 5vw, 23px); line-height: 1.25; letter-spacing: -.04em; text-overflow: ellipsis; white-space: nowrap; }
+.titleFocus { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; }
+.titleFocus span { color: #6f8278; font-size: 8px; font-weight: 700; }
+.titleFocus strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .statusCard > a { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; color: #0b1a10; background: var(--app-green); border-radius: 10px; font-size: 10px; font-weight: 800; }
 .statusCard > a svg { width: 13px; }
+.homeAlertCta {
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  color: #090c0a;
+  background: #fff;
+  border: 1px solid #fff;
+  border-radius: 15px;
+  text-align: left;
+}
+.homeAlertCta > span { display: grid; place-items: center; width: 34px; height: 34px; color: #07110c; background: var(--app-green); border-radius: 50%; }
+.homeAlertCta svg { width: 17px; }
+.homeAlertCta > div { display: grid; gap: 2px; }
+.homeAlertCta strong { font-size: 11px; }
+.homeAlertCta small { color: #5f6963; font-size: 8px; }
+.homeAlertActive { color: #fff; background: #11251a; border-color: #2b7445; }
+.homeAlertActive small { color: #91a99b; }
 .quickGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .quickGrid button { min-height: 72px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 9px; padding: 10px; color: #dce8e0; background: #101d16; border: 1px solid #283b31; border-radius: 15px; text-align: left; }
 .quickGrid button > span { grid-row: 1 / 3; display: grid; place-items: center; width: 34px; height: 34px; color: #8ba297; background: #1d3026; border-radius: 11px; }
@@ -156,18 +179,19 @@
 .serviceNote svg { width: 11px; }
 
 .bottomNav {
-  height: calc(62px + env(safe-area-inset-bottom));
+  height: 58px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  padding: 6px 22px env(safe-area-inset-bottom);
-  background: #0b1710ed;
-  border-top: 1px solid #26382f;
-  backdrop-filter: blur(18px);
+  margin: 0 12px calc(10px + env(safe-area-inset-bottom));
+  padding: 5px 18px;
+  background: #111512;
+  border: 1px solid #2c3630;
+  border-radius: 19px;
 }
 .bottomNav button { position: relative; display: grid; place-items: center; align-content: center; gap: 3px; color: #64766c; background: transparent; border: 0; font-size: 8px; }
 .bottomNav svg { width: 18px; }
 .bottomNav .navActive { color: var(--app-green); }
-.bottomNav button > i { position: absolute; top: 6px; left: calc(50% + 7px); width: 6px; height: 6px; background: #ffb15f; border-radius: 50%; }
+.bottomNav button > i { position: absolute; top: 5px; left: calc(50% + 7px); width: 6px; height: 6px; background: #ffb15f; border-radius: 50%; }
 
 .alertView { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto auto; gap: 9px; }
 .alertView > header span { color: var(--app-green); font: 500 8px "DM Mono", monospace; letter-spacing: .13em; }
@@ -202,7 +226,8 @@
 .installGate p { margin: 3px 0 0; color: #a98f6a; font-size: 7px; }
 .installGate.installed { color: #a6eaba; background: #10291a; border-color: #285b39; }
 .installGate.installed > span { background: #1b4b2d; }
-.alertAction { min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 7px; color: #06120a; background: var(--app-green); border: 0; border-radius: 13px; font-size: 10px; font-weight: 800; }
+.alertAction { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; color: #06120a; background: var(--app-green); border: 0; border-radius: 13px; font-size: 11px; font-weight: 800; }
+.alertAction:disabled, .homeAlertCta:disabled { cursor: wait; opacity: .75; }
 .alertAction svg { width: 15px; }
 .alertMessage { min-height: 12px; margin: 0; color: #778a7f; font-size: 7px; text-align: center; }
 
@@ -237,24 +262,26 @@
 .pickerTools { display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 0 17px 10px; }
 .pickerTools label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 7px; padding: 0 10px; background: #14221a; border: 1px solid #304238; border-radius: 11px; }
 .pickerTools label svg { width: 14px; color: #75887e; }
-.pickerTools input { min-width: 0; height: 39px; color: #e8f2eb; background: transparent; border: 0; outline: 0; font-size: 10px; }
+.pickerTools input { min-width: 0; height: 43px; color: #e8f2eb; background: transparent; border: 0; outline: 0; font-size: 16px; }
 .pickerTools > button { display: flex; align-items: center; gap: 4px; padding: 0 11px; color: #7f9187; background: #14221a; border: 1px solid #304238; border-radius: 11px; font: 500 8px "DM Mono", monospace; }
 .pickerTools > button svg { width: 12px; }
 .pickerTools .filterActive { color: #07110c; background: var(--app-green); border-color: var(--app-green); }
 .streamerChoices { display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 6px; padding: 4px 12px calc(18px + env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; }
-.streamerChoices > button { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 9px; color: #dce8e0; background: #111f17; border: 1px solid #293c31; border-radius: 13px; text-align: left; }
+.streamerChoices > button { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 9px; color: #dce8e0; background: #111f17; border: 1px solid #293c31; border-radius: 13px; text-align: left; content-visibility: auto; contain-intrinsic-size: 58px; }
 .streamerChoices .streamerSelected { border-color: var(--app-green); background: #13291b; }
 .choiceAvatar { width: 36px; height: 36px; font-size: 12px; }
 .choiceName { min-width: 0; display: grid; gap: 3px; }
 .choiceName strong, .choiceName small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .choiceName strong { font-size: 10px; }
 .choiceName small { color: #6f8378; font: 400 7px "DM Mono", monospace; }
+.choiceName em { width: fit-content; max-width: 100%; overflow: hidden; padding: 3px 6px; color: #7f9187; background: #222a25; border-radius: 5px; font-size: 7px; font-style: normal; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.choiceName .choiceCategoryLive { color: #08130c; background: var(--app-green); }
 .choiceCheck { display: grid; place-items: center; width: 18px; height: 18px; color: #07110c; background: var(--app-green); border-radius: 50%; }
 .choiceCheck:empty { background: #25372e; }
 .choiceCheck svg { width: 11px; }
 .noResult { grid-column: 1 / -1; padding: 35px; color: #72847a; font-size: 10px; text-align: center; }
 
-.guideSheet { grid-template-rows: auto auto auto auto minmax(0, 1fr) auto; }
+.guideSheet { grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto; }
 .platformTabs { display: grid; grid-template-columns: 1fr 1fr; margin: 0 17px 10px; padding: 3px; background: #111f17; border: 1px solid #293c32; border-radius: 12px; }
 .platformTabs button { height: 34px; color: #71857a; background: transparent; border: 0; border-radius: 9px; font-size: 10px; font-weight: 700; }
 .platformTabs .platformActive { color: #07110c; background: var(--app-green); }
@@ -262,12 +289,31 @@
 .guideNotice > svg { width: 20px; }
 .guideNotice strong { font-size: 9px; }
 .guideNotice p { margin: 3px 0 0; color: #ad916d; font-size: 7px; line-height: 1.45; }
-.guideSteps { display: grid; gap: 6px; margin: 0; padding: 0 17px 10px; overflow-y: auto; list-style: none; }
-.guideSteps li { display: grid; grid-template-columns: 20px 32px 1fr; align-items: center; gap: 8px; padding: 9px; background: #111f17; border: 1px solid #293c32; border-radius: 13px; }
-.guideSteps li > span { color: var(--app-green); font: 500 9px "DM Mono", monospace; }
-.guideSteps li > svg { width: 15px; color: #90a79b; }
-.guideSteps strong { display: block; font-size: 9px; }
-.guideSteps p { margin: 3px 0 0; color: #708379; font-size: 7px; line-height: 1.45; }
+.guideCarousel { min-height: 0; display: grid; grid-template-columns: minmax(0, 210px) minmax(0, 1fr); align-items: center; gap: 16px; padding: 0 17px; touch-action: pan-y; user-select: none; }
+.guideScreenshot { aspect-ratio: 9 / 14.5; overflow: hidden; color: #111; background: #f5f5f3; border: 5px solid #222; border-radius: 24px; animation: guide-in 180ms ease-out both; }
+.shotStatus, .shotBrowser { display: flex; align-items: center; justify-content: space-between; }
+.shotStatus { height: 22px; padding: 0 11px; font-size: 6px; font-weight: 800; }
+.shotBrowser { height: 27px; padding: 0 10px; color: #444; background: #e8e9e6; font-size: 7px; font-weight: 700; }
+.shotBrowser svg { width: 10px; }
+.shotApp { height: calc(100% - 105px); display: grid; place-items: center; align-content: center; gap: 7px; padding: 12px; text-align: center; }
+.shotApp .shotLogo { display: grid; place-items: center; width: 36px; height: 36px; color: #07110c; background: var(--app-green); border-radius: 12px; font-size: 18px; font-weight: 900; }
+.shotApp small { color: #768078; font-size: 6px; letter-spacing: .12em; }
+.shotApp strong { font-size: 13px; line-height: 1.35; letter-spacing: -.05em; }
+.shotAction { min-height: 56px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin: 0 8px 8px; padding: 8px; color: #fff; background: #101412; border-radius: 12px; }
+.shotAction > svg { width: 14px; color: var(--app-green); }
+.shotAction div { display: grid; gap: 2px; }
+.shotAction strong { font-size: 7px; }
+.shotAction small { color: #8e9a92; font-size: 5px; }
+.guideCaption span { color: var(--app-green); font: 700 9px ui-monospace, monospace; letter-spacing: .1em; }
+.guideCaption h3 { margin: 9px 0 7px; font-size: 19px; letter-spacing: -.045em; }
+.guideCaption p { margin: 0; color: #8b9d93; font-size: 10px; line-height: 1.65; word-break: keep-all; }
+.guideControls { display: grid; grid-template-columns: 36px 1fr 36px; align-items: center; gap: 10px; padding: 10px 17px; }
+.guideControls > button { display: grid; place-items: center; height: 34px; color: #a5b2aa; background: #172019; border: 1px solid #304038; border-radius: 10px; }
+.guideControls > button:disabled { opacity: .25; }
+.guideControls > button svg { width: 15px; }
+.guideControls > div { display: flex; justify-content: center; gap: 6px; }
+.guideControls > div button { width: 7px; height: 7px; padding: 0; background: #465249; border: 0; border-radius: 50%; }
+.guideControls > div .guideDotActive { width: 20px; background: var(--app-green); border-radius: 99px; }
 .installNow { min-height: 45px; display: flex; align-items: center; justify-content: center; gap: 7px; margin: 0 17px calc(13px + env(safe-area-inset-bottom)); color: #06120a; background: var(--app-green); border: 0; border-radius: 13px; font-size: 10px; font-weight: 800; }
 .installNow svg { width: 15px; }
 
@@ -282,7 +328,7 @@
   padding: calc(28px + env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom));
   overflow: hidden;
 }
-.onboardingGlow { position: absolute; z-index: -1; top: -130px; right: -120px; width: 360px; height: 360px; background: #26c86524; border-radius: 50%; filter: blur(10px); }
+.onboardingGlow { display: none; }
 .onboardingBrand { display: flex; align-items: center; gap: 8px; color: var(--app-green); font: 700 13px "DM Mono", monospace; }
 .onboardingBrand svg { width: 20px; }
 .onboardingCopy { align-self: center; }
@@ -328,6 +374,8 @@
 .calendarLoading svg { width: 15px; animation: spin .8s linear infinite; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes guide-in { from { opacity: .55; transform: translateX(8px); } }
+.spinning { animation: spin .8s linear infinite; }
 
 @media (min-width: 700px) {
   .app { box-shadow: 0 0 80px #0008; }
@@ -340,11 +388,20 @@
   .statusCard { gap: 6px; padding: 11px; }
   .largeAvatar { width: 44px; height: 44px; }
   .statusMain h1 { font-size: 18px; }
+  .categoryFocus { padding-block: 7px; }
+  .categoryFocus strong { font-size: 16px; }
+  .homeAlertCta { min-height: 50px; }
   .quickGrid button { min-height: 60px; }
   .serviceNote { display: none; }
   .alertView { gap: 6px; }
   .alertOptions label { padding-block: 6px; }
   .installGate { padding-block: 6px; }
+}
+
+@media (max-width: 420px) {
+  .guideCarousel { grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 11px; }
+  .guideCaption h3 { font-size: 16px; }
+  .guideCaption p { font-size: 9px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

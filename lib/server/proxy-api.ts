@@ -8,12 +8,13 @@ type RouteContext = {
 export async function proxyApi(
   request: NextRequest,
   context: RouteContext,
-  apiPrefix: "admin" | "auth"
+  apiPrefix: "admin" | "auth" | null
 ) {
   const { path } = await context.params;
   const apiUrl = (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000")
     .replace(/\/$/, "");
-  const target = `${apiUrl}/v1/${apiPrefix}/${path.map(encodeURIComponent).join("/")}${request.nextUrl.search}`;
+  const prefix = apiPrefix ? `${apiPrefix}/` : "";
+  const target = `${apiUrl}/v1/${prefix}${path.map(encodeURIComponent).join("/")}${request.nextUrl.search}`;
   const headers = new Headers();
   for (const name of ["content-type", "cookie", "x-forwarded-for", "user-agent"]) {
     const value = request.headers.get(name);

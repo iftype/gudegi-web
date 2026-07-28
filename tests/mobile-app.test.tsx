@@ -77,9 +77,9 @@ describe("mobile-first entry and guidance", () => {
         onClose={() => undefined}
       />
     );
-    expect(screen.getByText("Chrome으로 서비스 열기")).toBeInTheDocument();
+    expect(screen.getByText("Chrome 메뉴 열기")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "iPhone" }));
-    expect(screen.getByText("Safari로 서비스 열기")).toBeInTheDocument();
+    expect(screen.getByText("Safari에서 공유 열기")).toBeInTheDocument();
     expect(screen.getByText(/PWA 설치 후/)).toBeInTheDocument();
   });
 });

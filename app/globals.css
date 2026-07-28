@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Gothic+A1:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -7,11 +6,13 @@
   --color-signal: #00e676;
   --color-forest: #0b4c2c;
   --color-night: #101b15;
-  --font-sans: "Gothic A1", sans-serif;
-  --font-mono: "DM Mono", monospace;
+  --font-sans: var(--font-app);
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
 }
 
 :root {
+  --font-app: "Pretendard Variable", Pretendard, "SUIT Variable", "Noto Sans KR",
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --bg: #f2f0e9;
   --ink: #121713;
   --muted: #69716c;
@@ -25,7 +26,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; color: var(--ink); background: var(--bg); font-family: "Gothic A1", sans-serif; font-synthesis: none; }
+body { margin: 0; color: var(--ink); background: var(--bg); font-family: var(--font-app); font-synthesis: none; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 body:has(.standalone-route) { overflow: hidden; background: #07110c; }
 body:has(.standalone-route) .site-header,
 body:has(.standalone-route) .site-footer { display: none; }
@@ -48,6 +49,7 @@ body:has(.standalone-route) .site-footer { display: none; }
 @keyframes state-spin { to { transform: rotate(360deg); } }
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { font-size: 16px !important; }
 button { cursor: pointer; }
 img { display: block; width: 100%; height: 100%; object-fit: cover; }
 main { min-height: calc(100vh - 220px); }

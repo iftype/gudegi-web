@@ -6,7 +6,7 @@
   --admin-green: #46f28b;
   min-height: 100vh;
   color: #eaf3ee;
-  background: radial-gradient(circle at 15% 0%, #163627 0, transparent 34rem), var(--admin-bg);
+  background: var(--admin-bg);
 }
 
 .shell { width: 100%; padding: 40px max(18px, calc((100% - 1180px) / 2)) 80px; }
@@ -64,9 +64,15 @@
   border: 1px solid #34443b;
   border-radius: 10px;
   outline: none;
+  font-size: 16px;
 }
 .shell input:focus, .loginCard input:focus { border-color: var(--admin-green); box-shadow: 0 0 0 3px #46f28b22; }
 .inlineForm input { width: min(330px, 45vw); }
+.pushTestForm { display: grid; grid-template-columns: minmax(180px, .7fr) minmax(260px, 1.3fr) auto; align-items: end; gap: 10px; margin-top: 20px; }
+.pushTestForm label { min-width: 0; display: grid; gap: 7px; color: #9bada3; font-size: 11px; }
+.pushTestForm input { width: 100%; }
+.pushTestForm button { min-height: 44px; }
+.pushTestResult { margin: 12px 0 0; color: #9db0a5; font-size: 12px; }
 .error { margin: 16px 0; padding: 12px; color: #ffc0b3; background: #521d1644; border: 1px solid #a14a3c; border-radius: 10px; font-size: 12px; }
 .errorText { color: #ff9e8d !important; }
 .incidentList { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
@@ -102,6 +108,7 @@
 @media (max-width: 900px) {
   .metrics, .freshnessGrid { grid-template-columns: repeat(2, 1fr); }
   .incidentList { grid-template-columns: repeat(2, 1fr); }
+  .pushTestForm { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {

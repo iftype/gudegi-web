@@ -14,6 +14,7 @@ import {
   MemoryStick,
   Radio,
   RefreshCw,
+  Send,
   Server,
   Smartphone,
   Users
@@ -162,7 +163,8 @@ async function adminApi<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { "content-type": "application/json", ...init?.headers }
   });
   if (!response.ok) {
-    throw new Error(response.status === 401 ? "unauthorized" : "request_failed");
+    const payload = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(response.status === 401 ? "unauthorized" : payload?.error ?? "request_failed");
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
@@ -258,6 +260,8 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [error, setError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [testSending, setTestSending] = useState(false);
+  const [testResult, setTestResult] = useState("");
 
   const load = useCallback(async (manual = false) => {
     if (manual) setRefreshing(true);
@@ -416,6 +420,48 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
             <small>최근 1시간 실패 {collector?.failuresLastHour ?? 0}회</small>
           </article>
         </div>
+      </section>
+
+      <section className={styles.panel}>
+        <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>PUSH DELIVERY TEST</span><h2>테스트 메시지 보내기</h2></div>
+          <span className={styles.pill}>가장 최근에 연결한 기기 1대</span>
+        </div>
+        <form className={styles.pushTestForm} onSubmit={async (event) => {
+          event.preventDefault();
+          setTestSending(true);
+          setTestResult("전송 중…");
+          const form = new FormData(event.currentTarget);
+          try {
+            const result = await adminApi<{ data: { sent: number } }>("/push/test", {
+              method: "POST",
+              body: JSON.stringify({
+                title: form.get("title"),
+                body: form.get("body"),
+                url: "/"
+              })
+            });
+            setTestResult(`${result.data.sent}대에 테스트 알림을 보냈습니다.`);
+          } catch (caught) {
+            const code = caught instanceof Error ? caught.message : "";
+            setTestResult(code === "no_push_subscription"
+              ? "연결된 기기가 없습니다. 휴대폰에서 먼저 알림을 켜 주세요."
+              : "테스트 알림 전송에 실패했습니다. 만료 구독과 VAPID 설정을 확인하세요.");
+          } finally {
+            setTestSending(false);
+          }
+        }}>
+          <label>
+            <span>제목</span>
+            <input name="title" defaultValue="TRACKLINE 테스트" maxLength={80} required />
+          </label>
+          <label>
+            <span>메시지</span>
+            <input name="body" defaultValue="카테고리 변경 알림이 정상적으로 연결되었습니다." maxLength={180} required />
+          </label>
+          <button disabled={testSending}><Send size={15} />{testSending ? "전송 중…" : "테스트 보내기"}</button>
+        </form>
+        {testResult && <p className={styles.pushTestResult} role="status">{testResult}</p>}
       </section>
 
       <section className={styles.panel}>

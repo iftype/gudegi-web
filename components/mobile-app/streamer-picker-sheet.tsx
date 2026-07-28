@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Radio, Search, X } from "lucide-react";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { Streamer } from "@/lib/types";
 import styles from "./mobile-app.module.css";
@@ -53,13 +54,16 @@ export function StreamerPickerSheet({
               >
                 <span className={styles.choiceAvatar}>
                   {streamer.channelImageUrl
-                    ? <img src={streamer.channelImageUrl} alt="" />
+                    ? <Image src={streamer.channelImageUrl} alt="" width={36} height={36} loading="lazy" />
                     : streamer.channelName.slice(0, 1)}
                   {streamer.isLive && <i />}
                 </span>
                 <span className={styles.choiceName}>
                   <strong>{streamer.channelName}</strong>
                   <small>#{streamer.trackingRank ?? "-"} · {(streamer.followerCount ?? 0).toLocaleString()}명</small>
+                  <em className={streamer.isLive ? styles.choiceCategoryLive : ""}>
+                    {streamer.isLive ? streamer.currentCategory || "카테고리 확인 중" : "오프라인"}
+                  </em>
                 </span>
                 <span className={styles.choiceCheck}>{selected && <Check />}</span>
               </button>

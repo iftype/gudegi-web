@@ -19,8 +19,8 @@ import {
   Smartphone
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { api } from "@/lib/api";
 import { authApi, type AppUser } from "@/lib/auth-api";
 import { trackEvent } from "@/lib/analytics";
 import type { Streamer } from "@/lib/types";
@@ -73,13 +73,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   const selectedPreference = preferences.preferences.find(
     (preference) => preference.channelId === selectedStreamer?.channelId
   );
-  const broadcast = useQuery({
-    queryKey: ["mobile-active-broadcast", selectedStreamer?.activeBroadcastId],
-    queryFn: ({ signal }) => api.broadcast(selectedStreamer!.activeBroadcastId!, signal),
-    enabled: Boolean(selectedStreamer?.activeBroadcastId),
-    refetchInterval: selectedStreamer?.isLive ? 30_000 : false
-  });
-
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const mode = window.localStorage.getItem("trackline-entry-mode");
@@ -166,7 +159,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
         }}>
           <span className={styles.selectedAvatar}>
             {selectedStreamer.channelImageUrl
-              ? <img src={selectedStreamer.channelImageUrl} alt="" />
+              ? <Image src={selectedStreamer.channelImageUrl} alt="" width={41} height={41} priority />
               : selectedStreamer.channelName.slice(0, 1)}
             {selectedStreamer.isLive && <i />}
           </span>
@@ -190,7 +183,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
               <div className={styles.statusMain}>
                 <span className={styles.largeAvatar}>
                   {selectedStreamer.channelImageUrl
-                    ? <img src={selectedStreamer.channelImageUrl} alt="" />
+                    ? <Image src={selectedStreamer.channelImageUrl} alt="" width={54} height={54} priority />
                     : selectedStreamer.channelName.slice(0, 1)}
                 </span>
                 <div>
@@ -198,19 +191,51 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
                   <p>{(selectedStreamer.followerCount ?? 0).toLocaleString()} 팔로워</p>
                 </div>
               </div>
-              <div className={styles.liveMetadata}>
-                <div><span>현재 카테고리</span><strong>{broadcast.data?.data.category ?? (selectedStreamer.isLive ? "확인 중" : "방송 전")}</strong></div>
-                <div><span>현재 방제</span><strong>{broadcast.data?.data.title ?? (selectedStreamer.isLive ? "불러오는 중" : "방송을 시작하면 표시됩니다")}</strong></div>
+              <div className={styles.categoryFocus}>
+                <span><Radio /> 지금 카테고리</span>
+                <strong>{selectedStreamer.currentCategory ?? (selectedStreamer.isLive ? "확인 중" : "현재 오프라인")}</strong>
+              </div>
+              <div className={styles.titleFocus}>
+                <span>현재 방제</span>
+                <strong>{selectedStreamer.currentTitle ?? (selectedStreamer.isLive ? "불러오는 중" : "방송을 시작하면 표시됩니다")}</strong>
               </div>
               <a href={`https://chzzk.naver.com/${selectedStreamer.channelId}`} target="_blank" rel="noreferrer">
                 치지직에서 보기 <ExternalLink />
               </a>
             </section>
+            <button
+              className={`${styles.homeAlertCta} ${push.active ? styles.homeAlertActive : ""}`}
+              disabled={push.connecting}
+              onClick={() => {
+                if (!pwa.installed) {
+                  setGuideOpen(true);
+                  return;
+                }
+                if (!selectedPreference?.enabled) {
+                  preferences.updatePreference(selectedStreamer.channelId, "enabled", true);
+                  preferences.updatePreference(selectedStreamer.channelId, "categoryChanged", true);
+                  preferences.updatePreference(selectedStreamer.channelId, "titleChanged", true);
+                }
+                void (push.active ? push.disable() : push.enable(selectedStreamer.channelId));
+              }}
+            >
+              <span>{push.connecting ? <RefreshCw className={styles.spinning} /> : push.active ? <BellRing /> : <Bell />}</span>
+              <div>
+                <strong>{push.connecting
+                  ? "알림 연결 중…"
+                  : push.active
+                    ? `${selectedStreamer.channelName} 알림 사용 중`
+                    : pwa.installed
+                      ? `${selectedStreamer.channelName} 알림 켜기`
+                      : "앱 설치하고 변경 알림 받기"}</strong>
+                <small>{push.active ? "누르면 이 기기 알림을 끕니다" : "카테고리·방제 변경을 바로 알려드려요"}</small>
+              </div>
+            </button>
             <section className={styles.quickGrid}>
-              <button onClick={() => setTab("alerts")}>
-                <span className={push.active ? styles.quickActive : ""}><BellRing /></span>
-                <strong>{push.active ? "알림 사용 중" : "알림 설정"}</strong>
-                <small>{selectedPreference?.enabled ? "변경 항목 선택됨" : "스트리머를 선택하세요"}</small>
+              <button onClick={() => setPickerOpen(true)}>
+                <span className={styles.quickActive}><Radio /></span>
+                <strong>스트리머 변경</strong>
+                <small>상위 50명에서 선택</small>
               </button>
               <button onClick={() => setTab("calendar")}>
                 <span><CalendarDays /></span>
@@ -261,6 +286,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             </div>
             <button
               className={styles.alertAction}
+              disabled={push.connecting}
               onClick={() => {
                 if (!pwa.installed) {
                   setGuideOpen(true);
@@ -269,8 +295,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
                 void (push.active ? push.disable() : push.enable());
               }}
             >
-              {push.active ? <Bell /> : pwa.installed ? <BellRing /> : <Smartphone />}
-              {push.active ? "이 기기 알림 끄기" : pwa.installed ? "이 기기 알림 켜기" : "설치 방법 보기"}
+              {push.connecting ? <RefreshCw className={styles.spinning} /> : push.active ? <Bell /> : pwa.installed ? <BellRing /> : <Smartphone />}
+              {push.connecting ? "알림 연결 중…" : push.active ? "이 기기 알림 끄기" : pwa.installed ? "이 기기 알림 켜기" : "설치 방법 보기"}
             </button>
             <p className={styles.alertMessage}>{push.message || (
               preferences.saveState === "saving"

@@ -12,6 +12,8 @@ export type Streamer = {
   rankingSource?: string | null;
   rankingSnapshotAt?: number | null;
   profileCheckedAt?: number | null;
+  currentTitle?: string | null;
+  currentCategory?: string | null;
 };
 
 export type Broadcast = {

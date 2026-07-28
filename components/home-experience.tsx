@@ -9,7 +9,10 @@ export function HomeExperience() {
   const streamers = useQuery({
     queryKey: ["streamers"],
     queryFn: ({ signal }) => api.streamers(signal),
-    refetchInterval: 30_000
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    staleTime: 20_000
   });
 
   if (streamers.isLoading) {

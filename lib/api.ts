@@ -6,10 +6,10 @@ import type {
 } from "./types";
 import type { AnalyticsEventName } from "./analytics";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:4000";
+const API_URL = "/api/public";
 
 async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, { signal, cache: "no-store" });
+  const response = await fetch(`${API_URL}${path.replace(/^\/v1/, "")}`, { signal, cache: "no-store" });
   if (!response.ok) {
     throw new Error(response.status === 404 ? "not_found" : "api_unavailable");
   }
@@ -17,7 +17,7 @@ async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
 }
 
 async function mutate<T>(path: string, init: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${API_URL}${path.replace(/^\/v1/, "")}`, {
     ...init,
     headers: { "content-type": "application/json", ...init.headers }
   });
