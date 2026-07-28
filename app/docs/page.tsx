@@ -5,10 +5,10 @@ import styles from "./docs.module.css";
 
 export const metadata: Metadata = {
   title: "팀 프로젝트 기획서",
-  description: "TRACKLINE 팀 프로젝트 기획과 가설 검증 결과",
+  description: "구데기 팀 프로젝트 기획과 가설 검증 결과",
   robots: { index: true, follow: true },
   openGraph: {
-    title: "TRACKLINE 팀 프로젝트 기획서",
+    title: "구데기 팀 프로젝트 기획서",
     description: "원하는 방송 콘텐츠가 시작될 때 알려주고, 다시보기의 해당 구간까지 연결합니다.",
     type: "article"
   }
@@ -53,7 +53,7 @@ export default function DocsPage() {
       <article className={styles.document}>
         <header className={styles.hero}>
           <p className={styles.eyebrow}>TEAM PROJECT PROPOSAL · 2026.07.28</p>
-          <h1>TRACKLINE</h1>
+          <h1>구데기</h1>
           <p className={styles.subtitle}>
             원하는 콘텐츠가 시작될 때 알려주고,
             <br />

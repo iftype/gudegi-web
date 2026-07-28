@@ -453,7 +453,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         }}>
           <label>
             <span>제목</span>
-            <input name="title" defaultValue="TRACKLINE 테스트" maxLength={80} required />
+            <input name="title" defaultValue="구데기 테스트" maxLength={80} required />
           </label>
           <label>
             <span>메시지</span>

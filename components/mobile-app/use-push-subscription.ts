@@ -14,6 +14,7 @@ export function usePushSubscription(preferences: PushPreference[]) {
   );
   const [message, setMessage] = useState("");
   const [connecting, setConnecting] = useState(false);
+  const [testing, setTesting] = useState(false);
   const pushConfig = useQuery({
     queryKey: ["push-config"],
     queryFn: ({ signal }) => api.pushConfig(signal),
@@ -79,7 +80,7 @@ export function usePushSubscription(preferences: PushPreference[]) {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         trackEvent("notification_permission_denied");
-        setMessage("알림 권한이 꺼져 있습니다. 휴대폰 설정에서 TRACKLINE 알림을 허용해 주세요.");
+        setMessage("알림 권한이 꺼져 있습니다. 휴대폰 설정에서 구데기 알림을 허용해 주세요.");
         return false;
       }
       stage = "서비스 워커 연결";
@@ -128,12 +129,33 @@ export function usePushSubscription(preferences: PushPreference[]) {
     }
   }
 
+  async function test() {
+    if (!subscriptionId) {
+      setMessage("먼저 이 기기의 알림을 켜 주세요.");
+      return false;
+    }
+    setTesting(true);
+    setMessage("테스트 알림을 보내고 있습니다…");
+    try {
+      await api.testPushSubscription(subscriptionId);
+      setMessage("테스트 알림을 보냈습니다. 잠시 후 알림과 로그를 확인해 주세요.");
+      return true;
+    } catch {
+      setMessage("테스트 전송에 실패했습니다. 알림을 껐다가 다시 연결해 주세요.");
+      return false;
+    } finally {
+      setTesting(false);
+    }
+  }
+
   return {
     active: Boolean(subscriptionId),
     connecting,
+    testing,
     message,
     enable,
-    disable
+    disable,
+    test
   };
 }
 

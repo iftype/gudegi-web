@@ -6,6 +6,10 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
+});
+
 self.addEventListener("push", (event) => {
   let payload = {};
   try {
@@ -13,20 +17,34 @@ self.addEventListener("push", (event) => {
   } catch {
     payload = { body: event.data ? event.data.text() : "방송 정보가 변경되었습니다." };
   }
-  const title = payload.title || "TRACKLINE 변경 알림";
+  const title = payload.title || "구데기 변경 알림";
   const channelId = typeof payload.channelId === "string" && /^[a-f0-9]{32}$/i.test(payload.channelId)
     ? payload.channelId
     : null;
   const targetPath = channelId
     ? `/open/chzzk/${encodeURIComponent(channelId)}?source=push`
     : payload.url || "/";
-  event.waitUntil(self.registration.showNotification(title, {
-    body: payload.body || "방송 정보가 변경되었습니다.",
-    icon: "/icon-192.png",
-    badge: "/icon-192.png",
-    tag: payload.tag || "trackline-notification",
-    data: { url: targetPath }
-  }));
+  const body = payload.body || "방송 정보가 변경되었습니다.";
+  const logId = typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
+  event.waitUntil(Promise.all([
+    saveNotificationLog({
+      id: `${Date.now()}-${logId}`,
+      title,
+      body,
+      url: targetPath,
+      receivedAt: Date.now()
+    }).catch(() => undefined),
+    self.registration.showNotification(title, {
+      body,
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      tag: payload.tag || "gudegi-notification",
+      data: { url: targetPath }
+    }),
+    notifyOpenClients()
+  ]));
 });
 
 self.addEventListener("notificationclick", (event) => {
@@ -47,3 +65,42 @@ self.addEventListener("notificationclick", (event) => {
     await self.clients.openWindow(targetUrl);
   })());
 });
+
+function openLogDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("gudegi-push", 1);
+    request.onupgradeneeded = () => {
+      const database = request.result;
+      if (!database.objectStoreNames.contains("notifications")) {
+        database.createObjectStore("notifications", { keyPath: "id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveNotificationLog(entry) {
+  const database = await openLogDatabase();
+  try {
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction("notifications", "readwrite");
+      const store = transaction.objectStore("notifications");
+      store.put(entry);
+      const allKeys = store.getAllKeys();
+      allKeys.onsuccess = () => {
+        const overflow = allKeys.result.length - 50;
+        if (overflow > 0) allKeys.result.slice(0, overflow).forEach((key) => store.delete(key));
+      };
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  } finally {
+    database.close();
+  }
+}
+
+async function notifyOpenClients() {
+  const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  windows.forEach((client) => client.postMessage({ type: "GUDEGI_PUSH_RECEIVED" }));
+}

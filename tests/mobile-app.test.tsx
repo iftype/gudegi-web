@@ -1,11 +1,14 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GuideSheet } from "@/components/mobile-app/guide-sheet";
 import { OnboardingGate } from "@/components/mobile-app/onboarding-gate";
-import { StreamerPickerSheet } from "@/components/mobile-app/streamer-picker-sheet";
+import { StreamersTab } from "@/components/mobile-app/streamers-tab";
+import { api } from "@/lib/api";
 import type { Streamer } from "@/lib/types";
 
 afterEach(() => {
+  cleanup();
   vi.restoreAllMocks();
   window.localStorage.clear();
 });
@@ -48,23 +51,47 @@ describe("mobile-first entry and guidance", () => {
     expect(onGuest).toHaveBeenCalledOnce();
   });
 
-  it("uses a searchable choice dialog instead of a select element", () => {
+  it("selects live or all streamers inline without a modal", async () => {
     const onSelect = vi.fn();
-    render(
-      <StreamerPickerSheet
-        streamers={streamers}
-        selectedChannelId={streamers[0]!.channelId}
-        onSelect={onSelect}
-        onClose={() => undefined}
-      />
-    );
-    const dialog = screen.getByRole("dialog", { name: "스트리머 선택" });
-    expect(within(dialog).queryByRole("combobox")).not.toBeInTheDocument();
-    fireEvent.change(within(dialog).getByPlaceholderText("스트리머 검색"), {
-      target: { value: "오프라인" }
+    vi.spyOn(api, "streamerBroadcasts").mockResolvedValue({ data: [] });
+    vi.spyOn(api, "monthlyStreamer").mockResolvedValue({
+      data: {
+        month: "2026-07",
+        timezone: "Asia/Seoul",
+        broadcasts: [],
+        categoryDurations: [],
+        totalDurationMs: 0,
+        dayStatuses: [{ date: "2026-07-29", status: "broadcast" }]
+      }
     });
-    fireEvent.click(within(dialog).getByRole("button", { name: /오프라인 스트리머/ }));
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <StreamersTab
+          streamers={streamers}
+          selected={streamers[0]!}
+          preference={{
+            channelId: streamers[0]!.channelId,
+            enabled: true,
+            categoryChanged: true,
+            titleChanged: true
+          }}
+          onSelect={onSelect}
+          onChange={() => undefined}
+        />
+      </QueryClientProvider>
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "오프라인 스트리머" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "전체" }));
+    fireEvent.click(screen.getByRole("button", { name: "오프라인 스트리머" }));
     expect(onSelect).toHaveBeenCalledWith(streamers[1]!.channelId);
+    expect(await screen.findByText("방송일 1일 · 다시보기 0개")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "알림" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "카테고리" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "방제" })).toBeInTheDocument();
   });
 
   it("shows different Android and iPhone installation steps", () => {

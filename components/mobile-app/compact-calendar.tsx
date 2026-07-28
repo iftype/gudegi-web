@@ -55,6 +55,16 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
     }
     return grouped;
   }, [monthly.data]);
+  const statusByDay = useMemo(() => new Map(
+    (monthly.data?.data.dayStatuses ?? []).map((item) => [
+      Number(item.date.slice(8, 10)),
+      item.status
+    ])
+  ), [monthly.data]);
+  const broadcastDayCount = useMemo(
+    () => [...statusByDay.values()].filter((status) => status === "broadcast").length,
+    [statusByDay]
+  );
 
   return (
     <section className={styles.calendarView}>
@@ -73,9 +83,10 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
           {["일", "월", "화", "수", "목", "금", "토"].map((day) => <span className={styles.weekday} key={day}>{day}</span>)}
           {cells.map((day, index) => {
             const count = day ? broadcastsByDay.get(day) ?? 0 : 0;
+            const hasBroadcast = Boolean(day && (count > 0 || statusByDay.get(day) === "broadcast"));
             return (
-              <div className={!day ? styles.outsideDay : count ? styles.broadcastDay : ""} key={index}>
-                {day && <><span>{day}</span>{count > 0 && <i>{count > 1 ? count : ""}</i>}</>}
+              <div className={!day ? styles.outsideDay : hasBroadcast ? styles.broadcastDay : ""} key={index}>
+                {day && <><span>{day}</span>{hasBroadcast && <i>{count > 1 ? count : ""}</i>}</>}
               </div>
             );
           })}
@@ -83,7 +94,7 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
       )}
       <footer>
         <span><i />방송 기록</span>
-        <strong>이번 달 {monthly.data?.data.broadcasts.length ?? 0}개</strong>
+        <strong>방송일 {broadcastDayCount}일 · 다시보기 {monthly.data?.data.broadcasts.length ?? 0}개</strong>
       </footer>
     </section>
   );

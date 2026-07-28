@@ -37,8 +37,8 @@ const guides = {
     {
       icon: BellRing,
       title: "앱에서 알림 켜기",
-      body: "홈 화면의 TRACKLINE을 열고 첫 화면의 알림 버튼을 누릅니다.",
-      browser: "TRACKLINE",
+      body: "홈 화면의 구데기를 열고 첫 화면의 알림 버튼을 누릅니다.",
+      browser: "구데기",
       action: "변경 알림 켜기",
       hint: "알림 허용을 선택"
     }
@@ -63,8 +63,8 @@ const guides = {
     {
       icon: BellRing,
       title: "앱에서 알림 켜기",
-      body: "설치된 TRACKLINE을 열고 첫 화면의 알림 버튼을 누릅니다.",
-      browser: "TRACKLINE",
+      body: "설치된 구데기를 열고 첫 화면의 알림 버튼을 누릅니다.",
+      browser: "구데기",
       action: "변경 알림 켜기",
       hint: "알림 허용을 선택"
     }
@@ -144,8 +144,8 @@ export function GuideSheet({
               <MoreVertical />
             </div>
             <div className={styles.shotApp}>
-              <div className={styles.shotLogo}>T</div>
-              <small>TRACKLINE</small>
+              <div className={styles.shotLogo}>ㄱ</div>
+              <small>구데기</small>
               <strong>카테고리 변경을<br />놓치지 마세요</strong>
             </div>
             <div className={styles.shotAction}>

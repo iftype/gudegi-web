@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, ArrowRight, Cloud, HardDrive, LogIn, ShieldCheck } from "lucide-react";
+import { ArrowRight, Cloud, HardDrive, LogIn, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { authApi, type AppUser } from "@/lib/auth-api";
 import { trackEvent } from "@/lib/analytics";
@@ -31,11 +31,11 @@ export function OnboardingGate({
   return (
     <div className={styles.onboarding}>
       <div className={styles.onboardingGlow} />
-      <div className={styles.onboardingBrand}><Activity /><span>TRACKLINE</span></div>
+      <div className={styles.onboardingBrand}><b>ㄱ</b><span>구데기</span></div>
       <div className={styles.onboardingCopy}>
         <span>CHZZK CHANGE ALERT</span>
         <h1>원하는 방송으로<br />바뀌는 순간 알려드려요.</h1>
-        <p>팔로워 상위 스트리머의 카테고리와 방제 변경을 휴대폰 알림으로 확인하세요.</p>
+        <p>원하는 스트리머의 카테고리와 방제 변경을 휴대폰 알림으로 확인하세요.</p>
       </div>
       <div className={styles.entryChoices}>
         <button className={styles.loginChoice} onClick={() => void login()} disabled={!oauthConfigured && Boolean(user)}>

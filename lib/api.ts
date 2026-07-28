@@ -61,6 +61,10 @@ export const api = {
     }),
   deletePushSubscription: (id: string) =>
     mutate<void>(`/v1/push/subscriptions/${id}`, { method: "DELETE" }),
+  testPushSubscription: (id: string) =>
+    mutate<{ data: { sent: number } }>(`/v1/push/subscriptions/${id}/test`, {
+      method: "POST"
+    }),
   trackAnalytics: (event: {
     anonymousId: string;
     eventName: AnalyticsEventName;

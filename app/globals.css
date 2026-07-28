@@ -27,7 +27,7 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; color: var(--ink); background: var(--bg); font-family: var(--font-app); font-synthesis: none; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-body:has(.standalone-route) { overflow: hidden; background: #07110c; }
+body:has(.standalone-route) { overflow: hidden; background: #050609; }
 body:has(.standalone-route) .site-header,
 body:has(.standalone-route) .site-footer { display: none; }
 .mobile-app-state {
@@ -38,13 +38,13 @@ body:has(.standalone-route) .site-footer { display: none; }
   gap: 10px;
   padding: 24px;
   color: #dce9e1;
-  background: #07110c;
+  background: #050609;
   text-align: center;
 }
-.mobile-app-state > svg { width: 28px; color: #55f08d; animation: state-spin .9s linear infinite; }
+.mobile-app-state > svg { width: 28px; color: #9bb4ff; animation: state-spin .9s linear infinite; }
 .mobile-app-state strong { font-size: 16px; }
 .mobile-app-state span { color: #71847a; font-size: 10px; }
-.mobile-app-state button { padding: 10px 14px; color: #07110c; background: #55f08d; border: 0; border-radius: 10px; font-size: 10px; font-weight: 800; }
+.mobile-app-state button { padding: 10px 14px; color: #07110c; background: #9bb4ff; border: 0; border-radius: 10px; font-size: 10px; font-weight: 800; }
 .mobile-app-state.error > svg { color: #f2aa82; animation: none; }
 @keyframes state-spin { to { transform: rotate(360deg); } }
 a { color: inherit; text-decoration: none; }

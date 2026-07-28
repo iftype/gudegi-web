@@ -23,7 +23,7 @@ export function LoginExperience() {
     attempted.current = true;
     setState("working");
     authApi.complete(code, oauthState).then(() => {
-      window.localStorage.setItem("trackline-entry-mode", "login");
+      window.localStorage.setItem("gudegi-entry-mode", "login");
       trackEvent("chzzk_login_completed");
       router.replace("/");
     }).catch(() => {
@@ -50,7 +50,7 @@ export function LoginExperience() {
   return (
     <main className={`${styles.shell} standalone-route`}>
       <section className={styles.card}>
-        <div className={styles.brand}><Activity /><span>TRACKLINE</span></div>
+        <div className={styles.brand}><Activity /><span>구데기</span></div>
         {processing ? (
           <>
             <LoaderCircle className={styles.spin} size={38} />
@@ -72,7 +72,7 @@ export function LoginExperience() {
         {(message || oauthError) && (
           <div className={styles.error}>{message || "치지직에서 로그인이 취소되었습니다."}</div>
         )}
-        <small>비밀번호는 TRACKLINE에 전달되지 않습니다.</small>
+        <small>비밀번호는 구데기에 전달되지 않습니다.</small>
       </section>
     </main>
   );

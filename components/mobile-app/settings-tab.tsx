@@ -1,0 +1,116 @@
+"use client";
+
+import {
+  Bell,
+  BellOff,
+  CheckCircle2,
+  CircleHelp,
+  ExternalLink,
+  LogIn,
+  LogOut,
+  MessageSquareText,
+  RefreshCw,
+  Send,
+  Smartphone,
+  Trash2
+} from "lucide-react";
+import type { AppUser } from "@/lib/auth-api";
+import type { PushLogEntry } from "@/lib/push-log";
+import styles from "./mobile-app.module.css";
+
+export function SettingsTab({
+  user,
+  installed,
+  pushActive,
+  pushBusy,
+  pushMessage,
+  logs,
+  onEnable,
+  onDisable,
+  onTest,
+  onGuide,
+  onLogin,
+  onLogout,
+  onClearLogs
+}: {
+  user: AppUser | null;
+  installed: boolean;
+  pushActive: boolean;
+  pushBusy: boolean;
+  pushMessage: string;
+  logs: PushLogEntry[];
+  onEnable: () => void;
+  onDisable: () => void;
+  onTest: () => void;
+  onGuide: () => void;
+  onLogin: () => void;
+  onLogout: () => void;
+  onClearLogs: () => void;
+}) {
+  return (
+    <section className={styles.tabScroll}>
+      <header className={styles.tabIntro}>
+        <span>DEVICE & ACCOUNT</span>
+        <h1>설정</h1>
+        <p>이 기기의 알림 상태를 확인하고 실제 푸시를 시험해 보세요.</p>
+      </header>
+
+      <article className={styles.deviceCard}>
+        <div className={styles.deviceHeading}>
+          <span>{pushActive ? <CheckCircle2 /> : <Smartphone />}</span>
+          <div>
+            <strong>{pushActive ? "알림 연결됨" : installed ? "알림 연결 대기" : "앱 설치 필요"}</strong>
+            <small>{pushActive ? "카테고리·방제 변경을 받을 수 있습니다." : "홈 화면 앱에서 알림을 연결해 주세요."}</small>
+          </div>
+        </div>
+        <div className={styles.deviceActions}>
+          <button
+            className={styles.primarySettingAction}
+            disabled={pushBusy}
+            onClick={pushActive ? onTest : installed ? onEnable : onGuide}
+          >
+            {pushBusy ? <RefreshCw className={styles.spinning} /> : pushActive ? <Send /> : <Bell />}
+            {pushBusy ? "처리 중" : pushActive ? "테스트 알림" : installed ? "알림 켜기" : "설치 방법"}
+          </button>
+          {pushActive && <button onClick={onDisable}><BellOff />알림 끄기</button>}
+        </div>
+        {pushMessage && <p className={styles.settingMessage}>{pushMessage}</p>}
+      </article>
+
+      <article className={styles.accountCard}>
+        <div>
+          <strong>{user ? user.channelName : "비로그인 사용 중"}</strong>
+          <small>{user ? "선택한 스트리머를 계정에 저장합니다." : "설정은 현재 브라우저에만 남습니다."}</small>
+        </div>
+        <button onClick={user ? onLogout : onLogin}>{user ? <LogOut /> : <LogIn />}{user ? "로그아웃" : "치지직 로그인"}</button>
+      </article>
+
+      <section className={styles.notificationLog}>
+        <header>
+          <div><MessageSquareText /><strong>받은 알림 로그</strong></div>
+          {logs.length > 0 && <button onClick={onClearLogs}><Trash2 />비우기</button>}
+        </header>
+        <div>
+          {logs.map((log) => (
+            <article key={log.id}>
+              <span>{new Intl.DateTimeFormat("ko-KR", {
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+              }).format(log.receivedAt)}</span>
+              <strong>{log.title}</strong>
+              <p>{log.body}</p>
+            </article>
+          ))}
+          {!logs.length && <p className={styles.emptyLog}>아직 이 기기로 받은 알림이 없습니다.</p>}
+        </div>
+      </section>
+
+      <div className={styles.settingLinks}>
+        <button onClick={onGuide}><CircleHelp />설치 및 사용 방법</button>
+        <a href="mailto:admin@iftype.store?subject=%EA%B5%AC%EB%8D%B0%EA%B8%B0%20%ED%94%BC%EB%93%9C%EB%B0%B1"><MessageSquareText />피드백 보내기<ExternalLink /></a>
+      </div>
+    </section>
+  );
+}

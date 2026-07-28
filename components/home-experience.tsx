@@ -19,7 +19,7 @@ export function HomeExperience() {
     return (
       <main className="mobile-app-state standalone-route">
         <RefreshCw />
-        <strong>TRACKLINE을 준비하고 있어요</strong>
+        <strong>구데기를 준비하고 있어요</strong>
         <span>스트리머 상태를 불러오는 중입니다.</span>
       </main>
     );
