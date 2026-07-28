@@ -168,7 +168,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
             </div>
           </div>
         </div>
-        <div className="sample-notice timeline-sample-notice"><Info size={15} /> 검색은 전체 채팅이 아닌 보존된 익명 표본을 대상으로 합니다. 급증 기준은 수집기의 동적 기준 대비 배수입니다.</div>
+        <div className="sample-notice timeline-sample-notice"><Info size={15} /> 검색은 5분마다 보존한 빈도 상위 10개 익명 채팅을 대상으로 합니다. 급증 기준은 수집기의 동적 기준 대비 배수입니다.</div>
         {search.isFetching && <div className="search-inline-state">검색 중입니다.</div>}
         {!search.isFetching && highlightedBuckets.size > 0 && (
           <div className="search-highlight-status">
@@ -345,17 +345,17 @@ function MessagePanel({ messages, selectedBucket, startedAt, loading, refreshing
   return (
     <div className="message-panel">
       <div className="message-panel-header">
-        <span>{selectedBucket === null ? "구간을 선택하세요" : `${formatElapsed(selectedBucket - startedAt)} 대표 반응`}</span>
-        <small>{refreshing ? "갱신 중" : messages.length > 0 ? `${messages.length}개 표본` : ""}</small>
+        <span>{selectedBucket === null ? "구간을 선택하세요" : `${formatElapsed(selectedBucket - startedAt)} 상위 반응`}</span>
+        <small>{refreshing ? "갱신 중" : messages.length > 0 ? `${messages.length}개` : ""}</small>
       </div>
-      {loading ? <p className="message-placeholder">대표 채팅을 불러오는 중입니다.</p> : messages.length ? (
+      {loading ? <p className="message-placeholder">상위 채팅을 불러오는 중입니다.</p> : messages.length ? (
         <div className="message-list">{messages.map((message) => (
           <div key={message.id} className={message.reason === "keyword" ? "keyword" : ""}>
             <MessageCircle size={13} /><span>{message.content}</span>
             {message.occurrences > 1 && <strong>{message.occurrences}×</strong>}
           </div>
         ))}</div>
-      ) : <p className="message-placeholder">{selectedBucket === null ? "막대를 선택하면 이곳에 채팅 표본이 나타납니다." : "이 구간에 보존된 대표 채팅이 없습니다."}</p>}
+      ) : <p className="message-placeholder">{selectedBucket === null ? "막대를 선택하면 이곳에 상위 채팅이 나타납니다." : "이 5분 구간에 보존된 상위 채팅이 없습니다."}</p>}
     </div>
   );
 }
