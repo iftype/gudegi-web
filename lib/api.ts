@@ -2,10 +2,9 @@ import type {
   Broadcast,
   MonthlyStreamer,
   PushPreference,
-  RepresentativeMessage,
-  Streamer,
-  TimelineBucket
+  Streamer
 } from "./types";
+import type { AnalyticsEventName } from "./analytics";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:4000";
 
@@ -40,18 +39,6 @@ export const api = {
       signal
     ),
   broadcast: (id: string, signal?: AbortSignal) => request<{ data: Broadcast }>(`/v1/broadcasts/${id}`, signal),
-  timeline: (id: string, resolution: number, signal?: AbortSignal) =>
-    request<{ data: TimelineBucket[] }>(`/v1/broadcasts/${id}/timeline?resolution=${resolution}`, signal),
-  messages: (id: string, bucket: number, resolution: number, signal?: AbortSignal) =>
-    request<{ data: RepresentativeMessage[] }>(
-      `/v1/broadcasts/${id}/messages?bucket=${bucket}&resolution=${resolution}`,
-      signal
-    ),
-  search: (id: string, query: string, signal?: AbortSignal) =>
-    request<{ data: RepresentativeMessage[]; sampled: boolean }>(
-      `/v1/broadcasts/${id}/search?q=${encodeURIComponent(query)}`,
-      signal
-    ),
   pushConfig: (signal?: AbortSignal) =>
     request<{ data: { enabled: boolean; publicKey: string } }>("/v1/push/config", signal),
   createPushSubscription: (subscription: PushSubscriptionJSON) =>
@@ -73,5 +60,16 @@ export const api = {
       })
     }),
   deletePushSubscription: (id: string) =>
-    mutate<void>(`/v1/push/subscriptions/${id}`, { method: "DELETE" })
+    mutate<void>(`/v1/push/subscriptions/${id}`, { method: "DELETE" }),
+  trackAnalytics: (event: {
+    anonymousId: string;
+    eventName: AnalyticsEventName;
+    source?: string;
+    channelId?: string;
+    path?: string;
+  }) => mutate<void>("/v1/analytics/events", {
+    method: "POST",
+    body: JSON.stringify(event),
+    keepalive: true
+  })
 };

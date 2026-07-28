@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "치지직 방송 타임라인",
-    short_name: "CHATLINE",
+    name: "치지직 방송 변경 알림",
+    short_name: "TRACKLINE",
     description: "스트리머 VOD 달력과 카테고리 변경 알림",
     start_url: "/",
     display: "standalone",

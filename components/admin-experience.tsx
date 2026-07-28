@@ -3,14 +3,17 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   Activity,
+  BellRing,
   Database,
   HardDrive,
+  History,
   LogOut,
   MemoryStick,
-  MessageCircle,
   Radio,
   RefreshCw,
-  Server
+  Server,
+  Smartphone,
+  Users
 } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
 
@@ -30,24 +33,30 @@ type Broadcast = {
   title: string;
   status: string;
   startedAt: number;
-  chatCount: number;
-  burstCount: number;
+  category: string | null;
+  changeCount: number;
 };
 
 type ActiveCollector = {
   channelId: string;
-  broadcastId: string;
-  bufferedTimelineBuckets: number;
-  bufferedMessageWindows: number;
-  lastMessageAt: number | null;
-  lastSnapshotAt: number | null;
-  gapOpen: boolean;
+  broadcastId: string | null;
 };
 
 type Overview = {
   streamers: Streamer[];
   broadcasts: Broadcast[];
-  keywordRules: Array<{ id: number; channelId: string; keyword: string }>;
+  analytics: {
+    since: number;
+    eventCount: number;
+    visitorCount: number;
+    returningVisitorCount: number;
+    events: Array<{
+      eventName: string;
+      eventCount: number;
+      visitorCount: number;
+    }>;
+    sources: Array<{ source: string; visitorCount: number }>;
+  };
   system: {
     generatedAt: number;
     uptimeSeconds: number;
@@ -63,13 +72,11 @@ type Overview = {
         streamerCount: number;
         broadcastCount: number;
         liveBroadcastCount: number;
-        timelineBucketCount: number;
-        messageCount: number;
-        messageWindowCount: number;
-        latestTimelineBucketAt: number | null;
-        latestMessageAt: number | null;
-        latestMessageWindowAt: number | null;
-        openGapCount: number;
+        metadataEventCount: number;
+        categoryChangeCount: number;
+        titleChangeCount: number;
+        latestMetadataEventAt: number | null;
+        pendingNotificationCount: number;
       };
       sqlite: {
         databaseBytes: number;
@@ -83,11 +90,14 @@ type Overview = {
     collector: {
       enabled: boolean;
       running: boolean;
+      checking: boolean;
       activeCount: number;
       maxActiveStreamers: number;
+      checkConcurrency: number;
       pollIntervalMs: number;
-      liveMessageSnapshotMs: number;
-      messageRetentionDays: number;
+      lastCycleStartedAt: number | null;
+      lastCycleCompletedAt: number | null;
+      lastCycleChecked: number;
       active: ActiveCollector[];
     } | null;
   };
@@ -133,6 +143,11 @@ function relativeTime(value: number | null, now: number) {
   return `${Math.floor(seconds / 3600)}시간 전`;
 }
 
+function formatRate(value: number, total: number) {
+  if (!total) return "0%";
+  return `${Math.round(value / total * 100)}%`;
+}
+
 function Login({ onSuccess }: { onSuccess: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -164,7 +179,7 @@ function Login({ onSuccess }: { onSuccess: () => void }) {
         <span className={styles.eyebrow}>PRIVATE CONTROL ROOM</span>
         <Server size={34} aria-hidden />
         <h1>수집 관제실</h1>
-        <p>서버 상태와 채팅 저장 흐름을 확인합니다.</p>
+        <p>서버 상태와 방송 정보 변경 흐름을 확인합니다.</p>
         <label>아이디<input name="username" defaultValue="admin" autoComplete="username" required /></label>
         <label>비밀번호<input name="password" type="password" autoComplete="current-password" required /></label>
         {error && <div className={styles.error}>{error}</div>}
@@ -210,7 +225,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
     return <main className={styles.loading}>{error || "서버 상태를 확인하고 있습니다."}</main>;
   }
 
-  const { system, streamers, broadcasts } = overview;
+  const { analytics, system, streamers, broadcasts } = overview;
   const now = system.generatedAt;
   const rows = system.database.rows;
   const collector = system.collector;
@@ -218,12 +233,15 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
   const sqliteBytes = system.database.sqlite.databaseBytes
     + system.database.sqlite.walBytes
     + system.database.sqlite.sharedMemoryBytes;
-  const latestMessageAge = rows.latestMessageAt ? now - rows.latestMessageAt : Number.POSITIVE_INFINITY;
+  const lastCycleAge = collector?.lastCycleCompletedAt
+    ? now - collector.lastCycleCompletedAt
+    : Number.POSITIVE_INFINITY;
   const collectionHealthy = Boolean(
     collector?.running
-    && rows.openGapCount === 0
-    && (collector.activeCount === 0 || latestMessageAge < 120_000)
+    && (collector.checking || lastCycleAge < collector.pollIntervalMs * 2)
   );
+  const analyticsVisitors = (eventName: string) =>
+    analytics.events.find((event) => event.eventName === eventName)?.visitorCount ?? 0;
 
   async function addStreamer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -267,7 +285,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
           <strong className={collectionHealthy ? styles.good : styles.warn}>
             {collectionHealthy ? "정상" : "확인 필요"}
           </strong>
-          <small>{collector?.activeCount ?? 0}/{collector?.maxActiveStreamers ?? 0}개 방송 연결</small>
+          <small>{collector?.activeCount ?? 0}개 LIVE · 최대 {collector?.maxActiveStreamers ?? 0}채널</small>
         </article>
         <article>
           <span><MemoryStick size={15} />서버 메모리</span>
@@ -288,35 +306,77 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
 
       <section className={styles.panel}>
         <div className={styles.panelHeading}>
-          <div><span className={styles.eyebrow}>DATA FRESHNESS</span><h2>저장 상태</h2></div>
-          <span className={styles.pill}>채팅 {collector?.messageRetentionDays ?? 0}일 보관 · 가동 {Math.floor(system.uptimeSeconds / 3600)}시간</span>
+          <div><span className={styles.eyebrow}>7 DAY FUNNEL</span><h2>커뮤니티 실험 지표</h2></div>
+          <span className={styles.pill}>익명 방문자 · 이벤트 {analytics.eventCount.toLocaleString()}건</span>
         </div>
         <div className={styles.freshnessGrid}>
-          <article><span>마지막 타임라인</span><strong>{relativeTime(rows.latestTimelineBucketAt, now)}</strong><small>{formatTime(rows.latestTimelineBucketAt)}</small></article>
-          <article><span>마지막 상위 채팅</span><strong>{relativeTime(rows.latestMessageAt, now)}</strong><small>{formatTime(rows.latestMessageAt)}</small></article>
-          <article><span>5분 채팅 구간</span><strong>{rows.messageWindowCount.toLocaleString()}</strong><small>문구 {rows.messageCount.toLocaleString()}개</small></article>
-          <article><span>연결 공백</span><strong className={rows.openGapCount ? styles.warn : styles.good}>{rows.openGapCount}</strong><small>현재 열려 있는 수집 공백</small></article>
+          <article>
+            <span><Users size={14} />방문자</span>
+            <strong>{analyticsVisitors("page_view").toLocaleString()}</strong>
+            <small>최근 7일 고유 기기</small>
+          </article>
+          <article>
+            <span><Smartphone size={14} />PWA 설치</span>
+            <strong>{formatRate(analyticsVisitors("pwa_installed"), analyticsVisitors("page_view"))}</strong>
+            <small>{analyticsVisitors("pwa_installed")}개 기기</small>
+          </article>
+          <article>
+            <span><BellRing size={14} />알림 설정</span>
+            <strong>{formatRate(analyticsVisitors("notification_enabled"), analyticsVisitors("page_view"))}</strong>
+            <small>{analyticsVisitors("notification_enabled")}개 기기</small>
+          </article>
+          <article>
+            <span><RefreshCw size={14} />재방문</span>
+            <strong>{formatRate(analytics.returningVisitorCount, analyticsVisitors("page_view"))}</strong>
+            <small>{analytics.returningVisitorCount}개 기기 · 서로 다른 날짜</small>
+          </article>
+        </div>
+        <div className={styles.tableWrap}>
+          <table>
+            <thead><tr><th>유입 출처</th><th>고유 방문자</th><th>전체 대비</th></tr></thead>
+            <tbody>
+              {analytics.sources.length ? analytics.sources.map((source) => (
+                <tr key={source.source}>
+                  <td><strong>{source.source}</strong></td>
+                  <td>{source.visitorCount.toLocaleString()}</td>
+                  <td>{formatRate(source.visitorCount, analyticsVisitors("page_view"))}</td>
+                </tr>
+              )) : <tr><td colSpan={3}>아직 수집된 방문 데이터가 없습니다.</td></tr>}
+            </tbody>
+          </table>
         </div>
       </section>
 
       <section className={styles.panel}>
         <div className={styles.panelHeading}>
-          <div><span className={styles.eyebrow}>LIVE COLLECTORS</span><h2>실시간 수집</h2></div>
-          <span className={styles.pill}>상위 채팅 {Math.round((collector?.liveMessageSnapshotMs ?? 0) / 1000)}초 갱신</span>
+          <div><span className={styles.eyebrow}>DATA FRESHNESS</span><h2>변경 기록 상태</h2></div>
+          <span className={styles.pill}>채팅 미수집 · 가동 {Math.floor(system.uptimeSeconds / 3600)}시간</span>
+        </div>
+        <div className={styles.freshnessGrid}>
+          <article><span>마지막 변경</span><strong>{relativeTime(rows.latestMetadataEventAt, now)}</strong><small>{formatTime(rows.latestMetadataEventAt)}</small></article>
+          <article><span>카테고리 변경</span><strong>{rows.categoryChangeCount.toLocaleString()}</strong><small>누적 감지 건수</small></article>
+          <article><span>방제 변경</span><strong>{rows.titleChangeCount.toLocaleString()}</strong><small>누적 감지 건수</small></article>
+          <article><span>대기 알림</span><strong className={rows.pendingNotificationCount ? styles.warn : styles.good}>{rows.pendingNotificationCount}</strong><small>아직 전송되지 않은 푸시</small></article>
+        </div>
+      </section>
+
+      <section className={styles.panel}>
+        <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>LIVE TRACKING</span><h2>현재 방송</h2></div>
+          <span className={styles.pill}>{Math.round((collector?.pollIntervalMs ?? 0) / 1000)}초 주기 · 동시 {collector?.checkConcurrency ?? 0}요청</span>
         </div>
         {collector?.active.length ? (
           <div className={styles.tableWrap}>
             <table>
-              <thead><tr><th>채널</th><th>최근 채팅</th><th>최근 저장</th><th>버퍼</th><th>연결</th></tr></thead>
+              <thead><tr><th>채널</th><th>방송 ID</th><th>최근 확인</th><th>상태</th></tr></thead>
               <tbody>{collector.active.map((active) => {
                 const streamer = streamers.find((item) => item.channelId === active.channelId);
                 return (
                   <tr key={active.channelId}>
-                    <td><strong>{streamer?.channelName ?? active.channelId}</strong><small>{active.broadcastId}</small></td>
-                    <td>{relativeTime(active.lastMessageAt, now)}</td>
-                    <td>{relativeTime(active.lastSnapshotAt, now)}</td>
-                    <td>{active.bufferedTimelineBuckets} / {active.bufferedMessageWindows}</td>
-                    <td><span className={`${styles.status} ${active.gapOpen ? styles.statusWarn : styles.statusLive}`}>{active.gapOpen ? "공백" : "연결됨"}</span></td>
+                    <td><strong>{streamer?.channelName ?? active.channelId}</strong><small>{active.channelId}</small></td>
+                    <td>{active.broadcastId ?? "대기"}</td>
+                    <td>{relativeTime(streamer?.lastCheckedAt ?? null, now)}</td>
+                    <td><span className={`${styles.status} ${styles.statusLive}`}>추적 중</span></td>
                   </tr>
                 );
               })}</tbody>
@@ -367,8 +427,8 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
               <p>{broadcast.channelName} · {formatTime(broadcast.startedAt)}</p>
             </div>
             <dl>
-              <div><dt><MessageCircle size={13} />채팅</dt><dd>{Number(broadcast.chatCount).toLocaleString()}</dd></div>
-              <div><dt><Radio size={13} />급증</dt><dd>{broadcast.burstCount}</dd></div>
+              <div><dt><Radio size={13} />카테고리</dt><dd>{broadcast.category || "미분류"}</dd></div>
+              <div><dt><History size={13} />변경</dt><dd>{broadcast.changeCount}</dd></div>
             </dl>
           </article>
         ))}</div>

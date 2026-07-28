@@ -20,9 +20,7 @@ export type Broadcast = {
   endedAt: number | null;
   vodUrl: string | null;
   status: "live" | "ended";
-  chatCount: number;
-  burstCount: number;
-  gaps?: Gap[];
+  changeCount: number;
   thumbnailUrl?: string | null;
   metadataEvents?: MetadataEvent[];
 };
@@ -69,29 +67,4 @@ export type PushPreference = {
   enabled: boolean;
   categoryChanged: boolean;
   titleChanged: boolean;
-};
-
-export type TimelineBucket = {
-  bucketStart: number;
-  totalCount: number;
-  distinctEstimate: number;
-  isBurst: boolean;
-  burstScore: number;
-  bucketId: number;
-};
-
-export type RepresentativeMessage = {
-  id: number;
-  content: string;
-  occurrences: number;
-  reason: "reservoir" | "repeated" | "keyword";
-  messageTime: number;
-  bucketStart: number;
-};
-
-export type Gap = {
-  id: number;
-  reason: string;
-  startedAt: number;
-  endedAt: number | null;
 };

@@ -22,6 +22,39 @@ afterEach(() => {
 });
 
 describe("VodCalendarExperience", () => {
+  it("does not request notification permission before a streamer is selected", async () => {
+    vi.spyOn(api, "monthlyStreamer").mockResolvedValue({
+      data: {
+        month: "2026-07",
+        timezone: "Asia/Seoul",
+        broadcasts: [],
+        categoryDurations: [],
+        totalDurationMs: 0,
+        dayStatuses: []
+      }
+    });
+    vi.spyOn(api, "pushConfig").mockResolvedValue({
+      data: { enabled: true, publicKey: "test-key" }
+    });
+    const createSubscription = vi.spyOn(api, "createPushSubscription");
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <VodCalendarExperience streamers={[streamer]} />
+      </QueryClientProvider>
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "알림 켜기" }));
+
+    expect(
+      screen.getByText("먼저 알림 받을 스트리머를 선택해 주세요.")
+    ).toBeInTheDocument();
+    expect(createSubscription).not.toHaveBeenCalled();
+  });
+
   it("shows three calendar partitions as two VODs plus a more button and opens the full day list", async () => {
     const broadcasts: CalendarBroadcast[] = Array.from({ length: 4 }, (_, index) => ({
       id: `broadcast-${index}`,

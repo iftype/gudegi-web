@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ArrowUpRight, Flame, MessageCircle } from "lucide-react";
+import { ArrowUpRight, History, Tag } from "lucide-react";
 import type { Broadcast } from "@/lib/types";
-import { formatCount, formatDate, formatDuration } from "@/lib/format";
+import { formatDate, formatDuration } from "@/lib/format";
 
 export function VirtualBroadcastList({ broadcasts }: { broadcasts: Broadcast[] }) {
   const parentRef = useRef<HTMLDivElement>(null);
@@ -36,8 +36,8 @@ export function VirtualBroadcastList({ broadcasts }: { broadcasts: Broadcast[] }
                 <h3>{broadcast.title}</h3>
                 <p>{broadcast.channelName} · {formatDuration(broadcast.startedAt, broadcast.endedAt)}</p>
               </div>
-              <div className="row-stat"><MessageCircle /><span>채팅</span><strong>{formatCount(Number(broadcast.chatCount))}</strong></div>
-              <div className="row-stat hot"><Flame /><span>급증</span><strong>{broadcast.burstCount}</strong></div>
+              <div className="row-stat"><Tag /><span>카테고리</span><strong>{broadcast.category || "미분류"}</strong></div>
+              <div className="row-stat hot"><History /><span>변경</span><strong>{broadcast.changeCount}</strong></div>
               <ArrowUpRight className="row-arrow" />
             </Link>
           );

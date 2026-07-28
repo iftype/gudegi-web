@@ -14,12 +14,21 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
+import { trackEvent } from "@/lib/analytics";
 import type { CalendarBroadcast, PushPreference, Streamer } from "@/lib/types";
 
 const KOREA_TIMEZONE = "Asia/Seoul";
 const CATEGORY_COLORS = ["#00e676", "#0b4c2c", "#ffb000", "#ff6b35", "#6f8f7e", "#8d70d6"];
-const STORAGE_ID = "chatline-push-subscription-id";
-const STORAGE_PREFERENCES = "chatline-push-preferences";
+const STORAGE_ID = "trackline-push-subscription-id";
+const STORAGE_PREFERENCES = "trackline-push-preferences";
+const LEGACY_STORAGE_ID = "chatline-push-subscription-id";
+const LEGACY_STORAGE_PREFERENCES = "chatline-push-preferences";
+
+function readStorage(primary: string, legacy: string) {
+  const value = window.localStorage.getItem(primary) ?? window.localStorage.getItem(legacy);
+  if (value && !window.localStorage.getItem(primary)) window.localStorage.setItem(primary, value);
+  return value;
+}
 
 function currentKoreaMonth() {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -68,21 +77,24 @@ function formatDuration(durationMs: number) {
 }
 
 export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) {
-  const visibleStreamers = useMemo(() => streamers.slice(0, 5), [streamers]);
+  const visibleStreamers = streamers;
   const [selectedChannelId, setSelectedChannelId] = useState("");
   const [month, setMonth] = useState(currentKoreaMonth);
   const [selectedDay, setSelectedDay] = useState<CalendarBroadcast[] | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !readStorage(STORAGE_ID, LEGACY_STORAGE_ID);
+  });
   const [storedPreferences, setStoredPreferences] = useState<PushPreference[]>(() => {
     if (typeof window === "undefined") return [];
     try {
-      return JSON.parse(window.localStorage.getItem(STORAGE_PREFERENCES) ?? "[]") as PushPreference[];
+      return JSON.parse(readStorage(STORAGE_PREFERENCES, LEGACY_STORAGE_PREFERENCES) ?? "[]") as PushPreference[];
     } catch {
       return [];
     }
   });
   const [subscriptionId, setSubscriptionId] = useState(() =>
-    typeof window === "undefined" ? "" : window.localStorage.getItem(STORAGE_ID) ?? ""
+    typeof window === "undefined" ? "" : readStorage(STORAGE_ID, LEGACY_STORAGE_ID) ?? ""
   );
   const [notificationState, setNotificationState] = useState("");
   const activeChannelId = selectedChannelId || visibleStreamers[0]?.channelId || "";
@@ -133,6 +145,8 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
     if (!subscriptionId) return;
     try {
       await api.savePushPreferences(subscriptionId, next);
+      const selected = next.find((item) => item.enabled);
+      trackEvent("notification_preference_saved", { channelId: selected?.channelId });
       setNotificationState("알림 설정을 저장했습니다.");
     } catch {
       setNotificationState("알림 설정을 저장하지 못했습니다.");
@@ -160,6 +174,15 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
   }
 
   async function enableNotifications() {
+    const enabledPreferences = preferences.filter(
+      (preference) =>
+        preference.enabled &&
+        (preference.categoryChanged || preference.titleChanged),
+    );
+    if (enabledPreferences.length === 0) {
+      setNotificationState("먼저 알림 받을 스트리머를 선택해 주세요.");
+      return;
+    }
     if (!pushConfig.data?.data.enabled || !pushConfig.data.data.publicKey) {
       setNotificationState("서버의 푸시 알림 키가 아직 설정되지 않았습니다.");
       return;
@@ -170,6 +193,7 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
     }
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
+      trackEvent("notification_permission_denied");
       setNotificationState("브라우저 알림 권한이 필요합니다.");
       return;
     }
@@ -185,6 +209,9 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
       await api.savePushPreferences(result.data.id, preferences);
       setSubscriptionId(result.data.id);
       window.localStorage.setItem(STORAGE_ID, result.data.id);
+      trackEvent("notification_enabled", {
+        channelId: preferences.find((item) => item.enabled)?.channelId
+      });
       setNotificationState("이 기기에서 변경 알림을 받습니다.");
     } catch {
       setNotificationState("알림 구독을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.");
@@ -200,19 +227,27 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
     } finally {
       setSubscriptionId("");
       window.localStorage.removeItem(STORAGE_ID);
+      window.localStorage.removeItem(LEGACY_STORAGE_ID);
+      trackEvent("notification_disabled");
       setNotificationState("이 기기의 알림을 껐습니다.");
     }
   }
 
   return (
     <section id="calendar" className="content-section calendar-section">
+      <div id="alerts" className="anchor-target" />
       <div className="section-heading calendar-heading">
         <div>
           <span className="kicker">VOD CALENDAR</span>
           <h2>방송을 달력으로 돌아보세요.</h2>
           <p>스트리머별 VOD와 카테고리 방송 시간을 한눈에 확인합니다.</p>
         </div>
-        <button className="notification-settings-button" onClick={() => setSettingsOpen((open) => !open)}>
+        <button className="notification-settings-button" onClick={() => {
+          setSettingsOpen((open) => {
+            if (!open) trackEvent("notification_settings_opened");
+            return !open;
+          });
+        }}>
           <Settings2 /> 알림 설정
         </button>
       </div>
@@ -230,23 +265,21 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
         />
       )}
 
-      <div className="streamer-tabs" role="tablist" aria-label="스트리머 선택">
-        {visibleStreamers.map((streamer) => (
-          <button
-            role="tab"
-            aria-selected={streamer.channelId === activeChannelId}
-            className={streamer.channelId === activeChannelId ? "active" : ""}
-            key={streamer.channelId}
-            onClick={() => setSelectedChannelId(streamer.channelId)}
-          >
-            <span className="tab-avatar">
-              {streamer.channelImageUrl
-                ? <img src={streamer.channelImageUrl} alt="" />
-                : streamer.channelName.slice(0, 1)}
-            </span>
-            {streamer.channelName}
-          </button>
-        ))}
+      <div className="streamer-picker">
+        <label htmlFor="calendar-streamer">스트리머</label>
+        <select
+          id="calendar-streamer"
+          value={activeChannelId}
+          onChange={(event) => {
+            setSelectedChannelId(event.target.value);
+            trackEvent("calendar_streamer_selected", { channelId: event.target.value });
+          }}
+        >
+          {visibleStreamers.map((streamer) => (
+            <option value={streamer.channelId} key={streamer.channelId}>{streamer.channelName}</option>
+          ))}
+        </select>
+        <span>{visibleStreamers.length}개 채널 추적 중</span>
       </div>
 
       <div className="calendar-shell">
@@ -352,7 +385,12 @@ function BroadcastTile({ broadcast, fallbackImage }: {
 }) {
   const image = broadcast.thumbnailUrl ?? fallbackImage ?? broadcast.channelImageUrl;
   return (
-    <Link href={`/broadcasts/${broadcast.id}`} className="broadcast-tile" title={broadcast.title}>
+    <Link
+      href={`/broadcasts/${broadcast.id}`}
+      className="broadcast-tile"
+      title={broadcast.title}
+      onClick={() => trackEvent("vod_opened")}
+    >
       {image ? <img src={image} alt="" /> : <span className="tile-fallback"><CalendarDays /></span>}
       <span className="tile-shade" />
       <strong>{broadcast.title}</strong>
@@ -420,6 +458,9 @@ function NotificationSettings({ streamers, preferences, active, state, onChange,
         <div><Bell /><span><strong>변경 알림</strong><small>이 기기에만 설정이 저장됩니다.</small></span></div>
         <button onClick={onClose} aria-label="알림 설정 닫기"><X /></button>
       </div>
+      <p className="notification-steps">
+        1. 스트리머 선택 · 2. 변경 항목 선택 · 3. 알림 켜기
+      </p>
       <div className="notification-grid">
         <span className="notification-grid-label">스트리머</span>
         <span className="notification-grid-label">선택</span>
