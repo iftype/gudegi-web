@@ -84,7 +84,15 @@ export function FollowTab({
               <button className={styles.followSummary} onClick={() => onOpenStreamer(streamer.channelId)}>
                 <span className={styles.rowAvatar}>
                   {streamer.channelImageUrl
-                    ? <Image src={streamer.channelImageUrl} alt="" width={46} height={46} loading="lazy" />
+                    ? <Image
+                        src={streamer.channelImageUrl}
+                        alt=""
+                        width={46}
+                        height={46}
+                        sizes="46px"
+                        loading="lazy"
+                        style={{ width: "100%", height: "100%" }}
+                      />
                     : streamer.channelName.slice(0, 1)}
                   {streamer.isLive && <i />}
                 </span>

@@ -58,7 +58,14 @@ export function StreamersTab({
             >
               <span aria-hidden="true">
                 {streamer.channelImageUrl
-                  ? <Image src={streamer.channelImageUrl} alt="" width={44} height={44} />
+                  ? <Image
+                      src={streamer.channelImageUrl}
+                      alt=""
+                      width={44}
+                      height={44}
+                      sizes="44px"
+                      style={{ width: "100%", height: "100%" }}
+                    />
                   : streamer.channelName.slice(0, 1)}
                 {streamer.isLive && <i />}
               </span>
@@ -71,7 +78,15 @@ export function StreamersTab({
         <div className={styles.streamerDetailHeading}>
           <span className={styles.detailAvatar}>
             {selected.channelImageUrl
-              ? <Image src={selected.channelImageUrl} alt="" width={58} height={58} priority />
+              ? <Image
+                  src={selected.channelImageUrl}
+                  alt=""
+                  width={58}
+                  height={58}
+                  sizes="58px"
+                  priority
+                  style={{ width: "100%", height: "100%" }}
+                />
               : selected.channelName.slice(0, 1)}
           </span>
           <div>
