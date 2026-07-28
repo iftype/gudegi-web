@@ -5,6 +5,7 @@ import { ArrowRight, Clock3, MessageCircle, Radio, Search, Sparkles } from "luci
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { VirtualBroadcastList } from "./virtual-broadcast-list";
+import { VodCalendarExperience } from "./vod-calendar-experience";
 
 export function HomeExperience() {
   const streamers = useQuery({
@@ -77,6 +78,8 @@ export function HomeExperience() {
           <div className="empty-card"><Radio /><div><h3>현재 수집 중인 방송이 없어요.</h3><p>등록된 스트리머가 방송을 시작하면 1분 안에 자동으로 연결됩니다.</p></div></div>
         )}
       </section>
+
+      <VodCalendarExperience streamers={streamers.data?.data ?? []} />
 
       <section id="archive" className="content-section archive-section">
         <div className="section-heading">

@@ -66,6 +66,10 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
   const timelineOrigin = item
     ? resolveTimelineOrigin(item.startedAt, timeline.data?.data[0]?.bucketStart)
     : 0;
+  const metadataChanges = item?.metadataEvents
+    ?.filter((event) => event.detectedAt > item.startedAt)
+    .slice()
+    .reverse() ?? [];
 
   if (broadcast.isLoading) return <main className="detail-loading">타임라인을 불러오고 있습니다.</main>;
   if (broadcast.isError || !item) {
@@ -115,6 +119,25 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
       </section>
 
       {item.gaps?.length ? <div className="gap-notice"><TriangleAlert /><span><strong>수집 공백 {item.gaps.length}회</strong> 연결이 끊긴 구간은 채팅이 없었던 구간과 다르게 표시됩니다.</span></div> : null}
+
+      {metadataChanges.length ? (
+        <section className="metadata-history">
+          <div><span className="kicker">CHANGE LOG</span><h2>방송 정보 변경</h2></div>
+          <div>
+            {metadataChanges.map((event) => (
+              <article key={event.id}>
+                <span>{event.type === "category" ? "카테고리" : "방제"}</span>
+                <p><del>{event.previousValue || "없음"}</del><strong>{event.newValue || "없음"}</strong></p>
+                <time>{new Intl.DateTimeFormat("ko-KR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "Asia/Seoul"
+                }).format(event.detectedAt)}</time>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="timeline-panel">
         <div className="panel-title">
