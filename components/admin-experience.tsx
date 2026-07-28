@@ -25,6 +25,11 @@ type Streamer = {
   collectorState: string;
   lastCheckedAt: number | null;
   lastError: string | null;
+  followerCount: number | null;
+  trackingRank: number | null;
+  rankingSource: string | null;
+  rankingSnapshotAt: number | null;
+  profileCheckedAt: number | null;
 };
 
 type Broadcast = {
@@ -40,6 +45,12 @@ type Broadcast = {
 type ActiveCollector = {
   channelId: string;
   broadcastId: string | null;
+};
+
+type ScheduledCollector = {
+  channelId: string;
+  nextCheckAt: number | null;
+  failureCount: number;
 };
 
 type Overview = {
@@ -92,13 +103,25 @@ type Overview = {
       running: boolean;
       checking: boolean;
       activeCount: number;
+      trackedCount: number;
+      neverCheckedCount: number;
+      staleCount: number;
+      errorCount: number;
       maxActiveStreamers: number;
       checkConcurrency: number;
       pollIntervalMs: number;
+      schedulerIntervalMs: number;
+      livePollIntervalMs: number;
+      offlinePollIntervalMs: number;
+      checksLastMinute: number;
+      checksLastHour: number;
+      failuresLastHour: number;
+      nextDueAt: number | null;
       lastCycleStartedAt: number | null;
       lastCycleCompletedAt: number | null;
       lastCycleChecked: number;
       active: ActiveCollector[];
+      schedule: ScheduledCollector[];
     } | null;
   };
 };
@@ -141,6 +164,19 @@ function relativeTime(value: number | null, now: number) {
   if (seconds < 60) return `${seconds}초 전`;
   if (seconds < 3600) return `${Math.floor(seconds / 60)}분 전`;
   return `${Math.floor(seconds / 3600)}시간 전`;
+}
+
+function relativeFuture(value: number | null, now: number) {
+  if (!value) return "예약 전";
+  const seconds = Math.max(0, Math.ceil((value - now) / 1000));
+  if (seconds === 0) return "곧 확인";
+  if (seconds < 60) return `${seconds}초 후`;
+  return `${Math.ceil(seconds / 60)}분 후`;
+}
+
+function formatInterval(value: number) {
+  if (value < 60_000) return `${Math.round(value / 1000)}초`;
+  return `${Math.round(value / 60_000)}분`;
 }
 
 function formatRate(value: number, total: number) {
@@ -242,21 +278,13 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
   );
   const analyticsVisitors = (eventName: string) =>
     analytics.events.find((event) => event.eventName === eventName)?.visitorCount ?? 0;
-
-  async function addStreamer(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    try {
-      await adminApi("/streamers", {
-        method: "POST",
-        body: JSON.stringify({ channelId: form.get("channelId") })
-      });
-      event.currentTarget.reset();
-      await load();
-    } catch {
-      setError("채널을 등록하지 못했습니다. 32자리 채널 ID를 확인해 주세요.");
-    }
-  }
+  const activeStreamers = streamers.filter((streamer) => streamer.enabled);
+  const scheduleByChannel = new Map(
+    (collector?.schedule ?? []).map((item) => [item.channelId, item])
+  );
+  const rankingSnapshotAt = activeStreamers.find(
+    (streamer) => streamer.rankingSnapshotAt
+  )?.rankingSnapshotAt ?? null;
 
   return (
     <main className={styles.shell}>
@@ -302,6 +330,39 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
           <strong>{formatBytes(sqliteBytes)}</strong>
           <small>WAL {formatBytes(system.database.sqlite.walBytes)}</small>
         </article>
+      </section>
+
+      <section className={styles.panel}>
+        <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>COLLECTOR LOAD</span><h2>상위 50명 수집 현황</h2></div>
+          <span className={styles.pill}>
+            LIVE {formatInterval(collector?.livePollIntervalMs ?? 0)}
+            {" · "}OFFLINE {formatInterval(collector?.offlinePollIntervalMs ?? 0)}
+            {" · "}동시 {collector?.checkConcurrency ?? 0}
+          </span>
+        </div>
+        <div className={styles.freshnessGrid}>
+          <article>
+            <span><Radio size={14} />추적 채널</span>
+            <strong>{collector?.trackedCount ?? 0} / {collector?.maxActiveStreamers ?? 50}</strong>
+            <small>팔로워 순위 기준 활성 채널</small>
+          </article>
+          <article>
+            <span><RefreshCw size={14} />확인 요청</span>
+            <strong>{collector?.checksLastMinute ?? 0} /분</strong>
+            <small>최근 1시간 {collector?.checksLastHour ?? 0}회</small>
+          </article>
+          <article>
+            <span><Activity size={14} />수집 범위</span>
+            <strong>{Math.max(0, (collector?.trackedCount ?? 0) - (collector?.neverCheckedCount ?? 0))}</strong>
+            <small>미확인 {collector?.neverCheckedCount ?? 0} · 지연 {collector?.staleCount ?? 0}</small>
+          </article>
+          <article>
+            <span><Server size={14} />오류</span>
+            <strong className={collector?.errorCount ? styles.warn : styles.good}>{collector?.errorCount ?? 0}</strong>
+            <small>최근 1시간 실패 {collector?.failuresLastHour ?? 0}회</small>
+          </article>
+        </div>
       </section>
 
       <section className={styles.panel}>
@@ -363,7 +424,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
       <section className={styles.panel}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>LIVE TRACKING</span><h2>현재 방송</h2></div>
-          <span className={styles.pill}>{Math.round((collector?.pollIntervalMs ?? 0) / 1000)}초 주기 · 동시 {collector?.checkConcurrency ?? 0}요청</span>
+          <span className={styles.pill}>방송 중 {formatInterval(collector?.livePollIntervalMs ?? 0)} 주기</span>
         </div>
         {collector?.active.length ? (
           <div className={styles.tableWrap}>
@@ -387,29 +448,29 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
 
       <section className={styles.panel}>
         <div className={styles.panelHeading}>
-          <div><span className={styles.eyebrow}>STREAMERS</span><h2>등록 채널</h2></div>
-          <form className={styles.inlineForm} onSubmit={addStreamer}>
-            <input name="channelId" placeholder="32자리 채널 ID" pattern="[a-f0-9]{32}" required />
-            <button>채널 등록</button>
-          </form>
+          <div><span className={styles.eyebrow}>TOP STREAMERS</span><h2>팔로워 상위 50명</h2></div>
+          <span className={styles.pill}>순위 기준일 {formatTime(rankingSnapshotAt)}</span>
         </div>
         <div className={styles.tableWrap}>
           <table>
-            <thead><tr><th>채널</th><th>상태</th><th>최근 확인</th><th>수집 설정</th></tr></thead>
-            <tbody>{streamers.map((streamer) => (
-              <tr key={streamer.channelId}>
-                <td><strong>{streamer.channelName}</strong><small>{streamer.channelId}</small></td>
-                <td><span className={`${styles.status} ${streamer.isLive ? styles.statusLive : ""}`}>{streamer.isLive ? "LIVE" : streamer.collectorState}</span></td>
-                <td>{relativeTime(streamer.lastCheckedAt, now)}{streamer.lastError && <small className={styles.errorText}>{streamer.lastError}</small>}</td>
-                <td><button className={styles.toggle} aria-pressed={streamer.enabled} onClick={async () => {
-                  await adminApi(`/streamers/${streamer.channelId}`, {
-                    method: "PATCH",
-                    body: JSON.stringify({ enabled: !streamer.enabled })
-                  });
-                  await load();
-                }}>{streamer.enabled ? "켜짐" : "꺼짐"}</button></td>
-              </tr>
-            ))}</tbody>
+            <thead><tr><th>순위</th><th>채널</th><th>팔로워</th><th>상태</th><th>최근 확인</th><th>다음 확인</th><th>오류</th></tr></thead>
+            <tbody>{activeStreamers.map((streamer) => {
+              const schedule = scheduleByChannel.get(streamer.channelId);
+              return (
+                <tr key={streamer.channelId}>
+                  <td><strong>#{streamer.trackingRank ?? "-"}</strong></td>
+                  <td><strong>{streamer.channelName}</strong><small>{streamer.channelId}</small></td>
+                  <td>{streamer.followerCount?.toLocaleString() ?? "확인 중"}</td>
+                  <td><span className={`${styles.status} ${streamer.isLive ? styles.statusLive : ""}`}>{streamer.isLive ? "LIVE" : streamer.collectorState}</span></td>
+                  <td>{relativeTime(streamer.lastCheckedAt, now)}</td>
+                  <td>{relativeFuture(schedule?.nextCheckAt ?? null, now)}</td>
+                  <td className={streamer.lastError ? styles.errorText : ""}>
+                    {streamer.lastError ? `재시도 ${schedule?.failureCount ?? 0}회` : "없음"}
+                    {streamer.lastError && <small>{streamer.lastError}</small>}
+                  </td>
+                </tr>
+              );
+            })}</tbody>
           </table>
         </div>
       </section>

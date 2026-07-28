@@ -7,6 +7,11 @@ export type Streamer = {
   activeBroadcastId: string | null;
   collectorState: string;
   lastCheckedAt: number | null;
+  followerCount?: number | null;
+  trackingRank?: number | null;
+  rankingSource?: string | null;
+  rankingSnapshotAt?: number | null;
+  profileCheckedAt?: number | null;
 };
 
 export type Broadcast = {

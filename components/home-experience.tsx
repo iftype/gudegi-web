@@ -47,7 +47,7 @@ export function HomeExperience() {
         <div className="signal-card change-card" aria-label="방송 정보 변경 예시">
           <div className="signal-card-header">
             <div><span className="live-dot" />LIVE CHANGE FEED</div>
-            <span>2분 주기 확인</span>
+            <span>상태별 1~5분 확인</span>
           </div>
           <div className="change-preview">
             <article><span>20:14</span><div><small>카테고리</small><del>토크</del><strong>리그 오브 레전드</strong></div></article>

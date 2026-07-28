@@ -480,7 +480,7 @@ function NotificationSettings({ streamers, preferences, active, state, onChange,
       </div>
       <div className="notification-panel-footer">
         <div>
-          <p>{state || (active ? "이 기기에서 알림을 받고 있습니다." : "알림은 최대 약 2분 뒤 도착할 수 있습니다.")}</p>
+          <p>{state || (active ? "이 기기에서 알림을 받고 있습니다." : "방송 중 변경은 약 1분 안에 확인합니다.")}</p>
           <small>iPhone·iPad는 홈 화면에 설치한 앱에서만 웹 푸시를 받을 수 있습니다.</small>
         </div>
         <button className={`button ${active ? "ghost" : "primary"}`} onClick={active ? onDisable : onEnable}>
