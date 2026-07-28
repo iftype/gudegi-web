@@ -14,7 +14,13 @@ export type AnalyticsEventName =
   | "notification_disabled"
   | "push_opened"
   | "calendar_streamer_selected"
-  | "vod_opened";
+  | "vod_opened"
+  | "onboarding_viewed"
+  | "guest_mode_selected"
+  | "chzzk_login_started"
+  | "chzzk_login_completed"
+  | "streamer_picker_opened"
+  | "pwa_guide_opened";
 
 const ANONYMOUS_ID_KEY = "trackline-anonymous-id";
 const ACQUISITION_SOURCE_KEY = "trackline-acquisition-source";

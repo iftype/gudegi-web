@@ -1,0 +1,46 @@
+.shell {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #effaf3;
+  background:
+    radial-gradient(circle at 50% 0%, #164e2d 0, transparent 42%),
+    #07110c;
+}
+
+.card {
+  width: min(420px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 34px 26px;
+  text-align: center;
+  background: #101d15;
+  border: 1px solid #2e4437;
+  border-radius: 28px;
+  box-shadow: 0 30px 80px #0008;
+}
+
+.brand { display: flex; align-items: center; gap: 8px; color: #52ef8a; font: 700 13px "DM Mono", monospace; }
+.icon { display: grid; place-items: center; width: 62px; height: 62px; margin-top: 12px; color: #07110c; background: #52ef8a; border-radius: 20px; }
+.card h1 { margin: 2px 0 0; font-size: 27px; letter-spacing: -.05em; }
+.card p { max-width: 300px; margin: 0; color: #96a89e; font-size: 13px; line-height: 1.7; }
+.card button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 15px;
+  color: #06120b;
+  background: #52ef8a;
+  border: 0;
+  border-radius: 14px;
+  font-weight: 800;
+}
+.card a { display: flex; align-items: center; gap: 5px; color: #9caf9f; font-size: 12px; }
+.card small { color: #6f8277; font-size: 10px; }
+.error { padding: 11px 13px; color: #ffb5a6; background: #4c1e184d; border-radius: 10px; font-size: 11px; }
+.spin { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

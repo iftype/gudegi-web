@@ -7,11 +7,11 @@ type RouteContext = {
   params: Promise<{ path: string[] }>;
 };
 
-async function proxy(request: NextRequest, context: RouteContext) {
-  return proxyApi(request, context, "admin");
+function proxy(request: NextRequest, context: RouteContext) {
+  return proxyApi(request, context, "auth");
 }
 
 export const GET = proxy;
 export const POST = proxy;
-export const PATCH = proxy;
+export const PUT = proxy;
 export const DELETE = proxy;

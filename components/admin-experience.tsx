@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   Activity,
+  AlertTriangle,
   BellRing,
+  Cpu,
   Database,
+  Gauge,
   HardDrive,
   History,
   LogOut,
@@ -88,6 +91,8 @@ type Overview = {
         titleChangeCount: number;
         latestMetadataEventAt: number | null;
         pendingNotificationCount: number;
+        appUserCount: number;
+        activeUserSessionCount: number;
       };
       sqlite: {
         databaseBytes: number;
@@ -122,6 +127,29 @@ type Overview = {
       lastCycleChecked: number;
       active: ActiveCollector[];
       schedule: ScheduledCollector[];
+    } | null;
+    http: {
+      requestsLastMinute: number;
+      requestsLastHour: number;
+      errors4xxLastHour: number;
+      errors5xxLastHour: number;
+      averageLatencyMs: number;
+      p95LatencyMs: number;
+      eventLoopP95Ms: number;
+      cpuPercent: number;
+      routes: Array<{
+        route: string;
+        calls: number;
+        failures: number;
+        averageLatencyMs: number;
+      }>;
+    };
+    chzzkApi: {
+      callsLastMinute: number;
+      callsLastHour: number;
+      failuresLastHour: number;
+      averageLatencyMs: number;
+      byKind: Array<{ kind: string; calls: number; failures: number }>;
     } | null;
   };
 };
@@ -285,6 +313,31 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
   const rankingSnapshotAt = activeStreamers.find(
     (streamer) => streamer.rankingSnapshotAt
   )?.rankingSnapshotAt ?? null;
+  const memoryPercent = system.host.totalMemoryBytes
+    ? Math.round(hostMemoryUsed / system.host.totalMemoryBytes * 100)
+    : 0;
+  const incidents = [
+    {
+      label: "수집 지연",
+      active: (collector?.staleCount ?? 0) > 0,
+      detail: `${collector?.staleCount ?? 0}개 채널이 기준 시간을 초과했습니다.`
+    },
+    {
+      label: "HTTP 5xx",
+      active: system.http.errors5xxLastHour > 0,
+      detail: `최근 1시간 ${system.http.errors5xxLastHour}건`
+    },
+    {
+      label: "치지직 API 오류",
+      active: (system.chzzkApi?.failuresLastHour ?? 0) > 3,
+      detail: `최근 1시간 ${system.chzzkApi?.failuresLastHour ?? 0}건`
+    },
+    {
+      label: "메모리 압박",
+      active: memoryPercent >= 85,
+      detail: `${memoryPercent}% 사용 중`
+    }
+  ];
 
   return (
     <main className={styles.shell}>
@@ -362,6 +415,64 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
             <strong className={collector?.errorCount ? styles.warn : styles.good}>{collector?.errorCount ?? 0}</strong>
             <small>최근 1시간 실패 {collector?.failuresLastHour ?? 0}회</small>
           </article>
+        </div>
+      </section>
+
+      <section className={styles.panel}>
+        <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>OPERATIONS</span><h2>API 호출·서버 부하·장애 감시</h2></div>
+          <span className={styles.pill}>최근 1시간 롤링 지표</span>
+        </div>
+        <div className={styles.freshnessGrid}>
+          <article>
+            <span><Gauge size={14} />서비스 요청</span>
+            <strong>{system.http.requestsLastMinute} /분</strong>
+            <small>1시간 {system.http.requestsLastHour}회 · p95 {system.http.p95LatencyMs}ms</small>
+          </article>
+          <article>
+            <span><Radio size={14} />치지직 API</span>
+            <strong>{system.chzzkApi?.callsLastMinute ?? 0} /분</strong>
+            <small>1시간 {system.chzzkApi?.callsLastHour ?? 0}회 · 평균 {system.chzzkApi?.averageLatencyMs ?? 0}ms</small>
+          </article>
+          <article>
+            <span><Cpu size={14} />프로세스 부하</span>
+            <strong>{system.http.cpuPercent}% CPU</strong>
+            <small>이벤트루프 p95 {system.http.eventLoopP95Ms}ms · Load {system.host.loadAverage[0]?.toFixed(2)}</small>
+          </article>
+          <article>
+            <span><Users size={14} />로그인 사용자</span>
+            <strong>{rows.activeUserSessionCount ?? 0}</strong>
+            <small>누적 사용자 {rows.appUserCount ?? 0}명</small>
+          </article>
+        </div>
+        <div className={styles.incidentList}>
+          {incidents.map((incident) => (
+            <article className={incident.active ? styles.incidentActive : ""} key={incident.label}>
+              <AlertTriangle />
+              <div><strong>{incident.label}</strong><small>{incident.detail}</small></div>
+              <span>{incident.active ? "대응 필요" : "정상"}</span>
+            </article>
+          ))}
+        </div>
+        <div className={styles.runbook}>
+          <strong>장애 대응 기준</strong>
+          <span>수집 지연 → 치지직 API 오류와 다음 확인 시각 확인</span>
+          <span>5xx 발생 → 해당 경로·평균 지연 확인 후 최근 배포 점검</span>
+          <span>메모리 85% 이상 → WAL·DB 용량 확인 후 서비스 재시작 검토</span>
+          <span>알림 대기 증가 → 만료 구독 정리와 푸시 재시도 상태 확인</span>
+        </div>
+        <div className={styles.tableWrap}>
+          <table>
+            <thead><tr><th>API 경로</th><th>호출</th><th>평균 지연</th><th>5xx</th></tr></thead>
+            <tbody>{system.http.routes.length ? system.http.routes.map((route) => (
+              <tr key={route.route}>
+                <td><strong>{route.route}</strong></td>
+                <td>{route.calls.toLocaleString()}</td>
+                <td>{route.averageLatencyMs}ms</td>
+                <td className={route.failures ? styles.errorText : ""}>{route.failures}</td>
+              </tr>
+            )) : <tr><td colSpan={4}>서버 재시작 후 요청을 집계하고 있습니다.</td></tr>}</tbody>
+          </table>
         </div>
       </section>
 
