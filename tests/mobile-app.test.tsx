@@ -127,7 +127,17 @@ describe("mobile-first entry and guidance", () => {
       data: {
         month: "2026-07",
         timezone: "Asia/Seoul",
-        broadcasts: [],
+        broadcasts: [{
+          id: "live-calendar",
+          title: "방송 중",
+          category: "talk",
+          startedAt: Date.parse("2026-07-29T10:00:00+09:00"),
+          endedAt: null,
+          vodUrl: null,
+          thumbnailUrl: null,
+          channelImageUrl: null,
+          categoryImageUrl: null
+        }],
         categoryDurations: [],
         totalDurationMs: 0,
         dayStatuses: [{ date: "2026-07-29", status: "broadcast" }]
@@ -156,6 +166,7 @@ describe("mobile-first entry and guidance", () => {
     fireEvent.click(screen.getByRole("button", { name: "오프라인 스트리머 상세 보기" }));
     expect(onSelect).toHaveBeenCalledWith(streamers[1]!.channelId);
     expect(await screen.findByText("방송일 1일 · 다시보기 0개")).toBeInTheDocument();
+    expect(screen.getByText("talk")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /스트리머 목록/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "알림" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "카테고리" })).toBeInTheDocument();

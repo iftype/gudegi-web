@@ -108,7 +108,9 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
       )}
       <footer>
         <span><i />방송 기록</span>
-        <strong>방송일 {broadcastDayCount}일 · 다시보기 {monthly.data?.data.broadcasts.length ?? 0}개</strong>
+        <strong>방송일 {broadcastDayCount}일 · 다시보기 {
+          monthly.data?.data.broadcasts.filter((broadcast) => broadcast.vodUrl).length ?? 0
+        }개</strong>
       </footer>
     </section>
   );

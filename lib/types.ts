@@ -46,7 +46,7 @@ export type CalendarBroadcast = {
   category: string | null;
   startedAt: number;
   endedAt: number | null;
-  vodUrl: string;
+  vodUrl: string | null;
   thumbnailUrl: string | null;
   channelImageUrl: string | null;
   categoryImageUrl?: string | null;
