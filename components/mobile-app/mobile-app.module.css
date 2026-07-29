@@ -816,15 +816,24 @@
 .calendarLoading { display: flex; align-items: center; justify-content: center; gap: 7px; color: #71847a; font-size: 11px; }
 .calendarLoading svg { width: 15px; animation: spin .8s linear infinite; }
 
-/* Sharper mobile UI system: reserve full rounding for avatars and switches. */
+/* who.tech-inspired system: quiet surfaces, subtle dividers, compact controls. */
 .app {
-  --app-radius-card: 0;
-  --app-radius-control: 0;
+  --app-green: #2ac1bc;
+  --app-lime: #2ac1bc;
+  --app-bg: #000;
+  --app-card: #0d0d0d;
+  --app-line: #1c1c1c;
+  --app-surface-alt: #111;
+  --app-text: #ededed;
+  --app-text-secondary: #888;
+  --app-text-muted: #555;
+  --app-radius-panel: 8px;
+  --app-radius-control: 4px;
   --app-type-micro: 10px;
   --app-type-caption: 11px;
   --app-type-body: 13px;
-  --app-flat-panel: #171719;
-  --app-flat-line: #343438;
+  color: var(--app-text);
+  border-inline-color: var(--app-line);
 }
 
 .app button,
@@ -835,119 +844,54 @@
   border-radius: var(--app-radius-control);
 }
 
-.bottomNav,
-.alertRow,
-.streamerIndex > article,
-.streamerDetail,
-.vodSection,
-.deviceCard,
-.accountCard,
-.accountManagement,
-.notificationLog,
-.apiNotice,
-.followPushBanner,
-.personalEmpty,
-.unsupportedSection,
-.unsupportedSection article,
-.calendarView,
-.quickGrid button,
-.alertOptions label,
-.installGate,
-.entryChoices > button {
-  border-radius: var(--app-radius-card);
+.appHeader {
+  height: calc(57px + env(safe-area-inset-top));
+  padding: 0 12px 9px;
+  background: rgb(0 0 0 / 92%);
+  border-color: var(--app-line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
-
-.sheet {
-  border-radius: 0;
-}
-
-.inlineSearch,
-.selectAll,
-.streamerPickerHeading > div,
-.categoryFilterTools label,
-.pickerTools label,
-.suggestionTypes,
-.compactCalendar > div,
-.currentTitle,
-.detailAlertHint,
-.statusCard,
-.categoryFocus,
-.homeAlertCta,
-.streamerChoices > button,
-.choiceName em,
-.choiceCheck,
-.shotApp .shotLogo,
-.shotAction,
-.compactCalendar .broadcastDay > span,
-.compactCalendar .broadcastDay b,
-.compactCalendar .calendarCategory {
-  border-radius: 0;
-}
-
-.categoryFilterTools > button > i,
-.categoryChoices button > i,
-.rowCategoryTags span,
-.detailCategoryTags span,
-.quickGrid button > span,
-.switchIcon,
-.deviceHeading > span {
-  border-radius: 0;
-}
-
-.categoryFilterTools .categoryFilterSelected,
-.categoryChoices .categoryChoiceSelected {
-  border-color: #42d77d;
-  box-shadow: inset 3px 0 0 #42d77d;
-}
-
-.categoryFilterTools .categoryFilterSelected > i,
-.categoryChoiceSelected > i {
-  color: #fff;
-  background: #15974f;
-  border: 1px solid #62e99a;
-  border-radius: 0;
-}
-
-.categoryFilterTools .categoryFilterSelected > i svg,
-.categoryChoiceSelected > i svg {
-  stroke-width: 3;
-}
-
-.choiceCheck {
-  color: #fff;
-  background: #15974f;
-  border: 1px solid #62e99a;
-}
-.choiceCheck:empty {
-  background: #242a27;
-  border-color: #3b4640;
-}
-.choiceCheck svg { stroke-width: 3; }
-
-.logo strong { font-size: 18px; line-height: 1.1; }
-.logo small { font-size: var(--app-type-caption); white-space: nowrap; }
+.logo strong { font-size: 17px; line-height: 1.1; letter-spacing: -.025em; }
+.logo small { color: var(--app-text-muted); font-size: var(--app-type-micro); white-space: nowrap; }
+.refreshButton,
 .guideButton,
-.suggestButton {
+.suggestButton,
+.headerActions .guideButton {
   height: 32px;
-  padding-inline: 8px;
-  font-size: var(--app-type-micro);
+  color: var(--app-text-secondary);
+  background: transparent;
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
+.guideButton,
+.suggestButton { padding-inline: 8px; font-size: var(--app-type-micro); }
 .guideButton svg,
 .suggestButton svg { width: 12px; }
 .headerActions button span { white-space: nowrap; }
+
+.tabScroll { padding-top: 18px; }
+.tabIntro { margin-bottom: 16px; }
+.tabIntro > span,
+.sheetHeader span,
+.alertView > header span {
+  color: var(--app-green);
+  font-size: var(--app-type-micro);
+  font-weight: 600;
+  letter-spacing: .1em;
+}
+.tabIntro h1 { margin-top: 7px; font-size: 24px; line-height: 1.2; letter-spacing: -.035em; }
+.tabIntro p { color: var(--app-text-secondary); font-size: var(--app-type-body); line-height: 1.5; }
 
 .followIntro {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: 8px;
+  gap: 10px;
 }
 .followIntroCopy { min-width: 0; }
-.followIntroCopy > span {
-  color: var(--app-green);
-  font: 700 var(--app-type-caption) ui-monospace, monospace;
-  letter-spacing: .15em;
-}
 .followIntroCopy p {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -955,73 +899,338 @@
 }
 .followIntro .followPushBanner {
   width: auto;
-  min-width: 138px;
-  min-height: 48px;
+  min-width: 124px;
+  min-height: 36px;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 6px;
   margin: 0;
-  padding: 8px;
-  border-radius: 0;
+  padding: 7px 9px;
+  color: var(--app-text-secondary);
+  background: transparent;
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
 }
-.followIntro .followPushBanner > svg:first-child { width: 16px; }
+.followIntro .followPushBanner > svg:first-child { width: 14px; color: var(--app-text-muted); }
 .followIntro .followPushBanner strong {
   font-size: var(--app-type-micro);
-  line-height: 1;
+  font-weight: 500;
+  line-height: 1.2;
   white-space: nowrap;
 }
+.followPushBannerAttention {
+  color: var(--app-green) !important;
+  background: rgb(42 193 188 / 7%) !important;
+  border-color: rgb(42 193 188 / 34%) !important;
+  box-shadow: none;
+}
+.followPushBannerAttention > svg:first-child { color: var(--app-green) !important; }
 
 .app .inlineSearch input::placeholder,
 .categoryFilterTools input::placeholder,
 .pickerTools input::placeholder,
 .suggestionForm input::placeholder,
 .suggestionForm textarea::placeholder {
-  color: #777d87;
+  color: var(--app-text-muted);
   font-size: var(--app-type-caption);
   opacity: 1;
 }
 
+.followTools { gap: 6px; margin-bottom: 10px; }
 .app .inlineSearch,
 .app .selectAll,
 .app .allCategoryFilterButton {
-  height: 44px;
-  min-height: 44px;
-  border-radius: 0;
+  height: 40px;
+  min-height: 40px;
+  border-radius: var(--app-radius-control);
+}
+.inlineSearch,
+.selectAll {
+  background: var(--app-card);
+  border-color: var(--app-line);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.inlineSearch input { height: 38px; font-size: 14px; }
+.inlineSearch svg { color: var(--app-text-muted); }
+.allCategoryFilterButton {
+  min-width: 68px;
+  color: var(--app-text-secondary);
+  background: transparent;
+  border-color: var(--app-line);
+  font-size: var(--app-type-micro);
+  font-weight: 600;
+  white-space: nowrap;
 }
 .app .selectAll {
-  min-height: 44px;
+  min-width: 88px;
+  padding-inline: 7px;
   white-space: nowrap;
 }
-.app .selectAll > span {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
+.app .selectAll > span { display: flex; align-items: baseline; gap: 3px; }
+.selectAll strong { font-size: var(--app-type-caption); font-weight: 600; }
+.selectAll small { display: none; }
+.app .selectAll > i {
+  width: 31px;
+  height: 18px;
+  background: #252525;
+  border-radius: 99px;
 }
-.app .selectAll > i,
 .app .selectAll > i::after {
-  border-radius: 0;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  background: #777;
+  border-radius: 50%;
 }
-.allCategoryFilterButton {
+.app .selectAll input:checked + i { background: var(--app-green); }
+.app .selectAll input:checked + i::after { background: #071110; transform: translateX(13px); }
+
+.followList,
+.streamerIndex {
+  gap: 0;
+  overflow: hidden;
+  background: var(--app-card);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-panel);
+}
+.alertRow,
+.streamerIndex > article {
+  min-height: 64px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.alertRow + .alertRow,
+.streamerIndex > article + article { border-top: 1px solid var(--app-line); }
+.alertRowContent { min-height: 64px; padding: 7px 9px; }
+.followList > .followActive { border-color: transparent; }
+.followActive .alertRowContent { background: rgb(42 193 188 / 3%); }
+.streamerIndex > article { padding: 7px 9px; }
+.streamerIndex button,
+.rowCategoryButton,
+.streamerPickerHeading button {
+  color: var(--app-text-secondary);
+  background: transparent;
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
   font-size: var(--app-type-caption);
-  white-space: nowrap;
+  font-weight: 500;
+}
+.streamerIndex .streamerRowActions .alertAdded,
+.streamerPickerHeading .pickerFilterActive {
+  color: var(--app-green);
+  background: rgb(42 193 188 / 8%);
+  border-color: rgb(42 193 188 / 30%);
 }
 
-.tabIntro > span,
-.sheetHeader span,
-.alertView > header span {
-  font-size: var(--app-type-caption);
+.rowAlarmToggle {
+  color: var(--app-text-muted);
+  background: transparent;
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
+  box-shadow: none;
 }
-.tabIntro h1 { font-size: 25px; line-height: 1.18; }
-.tabIntro p { font-size: var(--app-type-body); line-height: 1.5; }
+.rowAlarmToggle:hover { color: var(--app-text-secondary); background: var(--app-surface-alt); }
+.rowAlarmToggle:active { box-shadow: none; transform: none; }
+.rowAlarmToggleActive {
+  color: var(--app-green);
+  background: rgb(42 193 188 / 8%);
+  border-color: rgb(42 193 188 / 30%);
+  box-shadow: none;
+  transform: none;
+}
+.rowAlarmToggleActive > svg { fill: rgb(42 193 188 / 9%); }
+.rowCategoryTags span,
+.detailCategoryTags span {
+  color: #83c9c5;
+  background: rgb(42 193 188 / 7%);
+  border-color: rgb(42 193 188 / 18%);
+  border-radius: var(--app-radius-control);
+}
+
+.streamerDetail,
+.vodSection,
+.deviceCard,
+.accountCard,
+.accountManagement,
+.notificationLog,
+.apiNotice,
+.calendarView,
+.quickGrid button,
+.alertOptions label,
+.installGate,
+.entryChoices > button,
+.personalEmpty,
+.unsupportedSection {
+  background: var(--app-card);
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-panel);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.deviceHeading > span,
+.quickGrid button > span,
+.switchIcon {
+  color: var(--app-text-secondary);
+  background: var(--app-surface-alt);
+  border-radius: var(--app-radius-control);
+}
+.deviceActions button,
+.accountCard button,
+.settingLinks button,
+.settingLinks a,
+.resetAlertsButton,
+.quickGrid button {
+  color: var(--app-text-secondary);
+  background: transparent;
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.deviceActions .primarySettingAction,
+.quickGrid .quickActive {
+  color: var(--app-green);
+  background: rgb(42 193 188 / 8%);
+  border-color: rgb(42 193 188 / 30%);
+}
+.deviceHeading small,
+.accountCard small,
+.accountManagement > header small,
+.notificationLog article p { color: var(--app-text-secondary); }
+
+.sheet {
+  background: #080808;
+  border-color: var(--app-line);
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -16px 48px rgb(0 0 0 / 56%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.sheetHandle { background: #333; }
+.sheetHeader > button,
+.pickerTools > button,
+.guideNavigation button {
+  color: var(--app-text-secondary);
+  background: transparent;
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
+}
+.categoryFilterTools label,
+.pickerTools label,
+.suggestionForm input,
+.suggestionForm textarea {
+  background: var(--app-card);
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
+}
+.categoryFilterTools > button,
+.categoryChoices > button,
+.streamerChoices > button {
+  color: var(--app-text-secondary);
+  background: var(--app-card);
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
+  box-shadow: none;
+}
+.categoryFilterTools .categoryFilterSelected,
+.categoryChoices .categoryChoiceSelected {
+  color: var(--app-text);
+  background: rgb(42 193 188 / 7%);
+  border-color: rgb(42 193 188 / 42%);
+  box-shadow: none;
+}
+.categoryFilterTools .categoryFilterSelected > i,
+.categoryChoiceSelected > i,
+.choiceCheck {
+  color: #061110;
+  background: var(--app-green);
+  border: 0;
+  border-radius: var(--app-radius-control);
+}
+.choiceCheck:empty {
+  background: #222;
+  border: 1px solid #333;
+}
+.categoryFilterTools > button > i,
+.categoryChoices button > i {
+  border-radius: var(--app-radius-control);
+}
+.categoryChoices strong,
+.categoryChoices .categoryChoiceSelected strong,
+.choiceName strong { font-size: var(--app-type-body); }
+.categoryChoices small,
+.categoryChoices .categoryChoiceSelected small,
+.choiceName small,
+.choiceName em { font-size: var(--app-type-micro); }
+.choiceName em { border-radius: var(--app-radius-control); }
+.categoryFilterApply,
+.suggestionSubmit,
+.installNow,
+.alertAction {
+  color: #061110;
+  background: var(--app-green);
+  border-color: var(--app-green);
+  border-radius: var(--app-radius-control);
+  box-shadow: none;
+}
+
+.calendarView { border-radius: var(--app-radius-panel); }
+.calendarView > header,
+.calendarCategoryFilter,
+.calendarView > footer { border-color: var(--app-line); }
+.calendarView > header button,
+.calendarCategoryFilter select {
+  color: var(--app-text-secondary);
+  background: transparent;
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
+}
+.compactCalendar > div { border-radius: var(--app-radius-control); }
+.compactCalendar .broadcastDay { box-shadow: inset 0 0 0 1px #333; }
+.compactCalendar .broadcastDay > span,
+.compactCalendar .broadcastDay b,
+.compactCalendar .calendarCategory { border-radius: 2px; }
+
+.suggestionTypes {
+  padding: 3px;
+  background: var(--app-card);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-control);
+}
+.suggestionTypes button { border-radius: 2px; }
+.suggestionTypes .suggestionTypeActive {
+  color: var(--app-text);
+  background: #1a1a1a;
+}
+
+.bottomNav {
+  min-height: 57px;
+  margin: 0;
+  padding: 4px 18px calc(4px + env(safe-area-inset-bottom));
+  background: rgb(5 5 5 / 96%);
+  border: 0;
+  border-top: 1px solid var(--app-line);
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.bottomNav button { color: var(--app-text-muted); font-size: var(--app-type-caption); }
+.bottomNav .navActive { color: var(--app-green); }
 
 .followListManagement > button,
-.allCategoryFilterButton,
 .rowBroadcastTime,
 .rowCategoryButton,
 .rowCategoryTags span,
 .detailCategoryTags span,
-.selectAll small,
-.streamerIndex small,
-.accountCard button,
 .notificationLog > header button,
 .notificationLog article > span,
 .notificationLog article p,
@@ -1033,72 +1242,6 @@
 .calendarCategoryFilter select,
 .calendarView > footer {
   font-size: var(--app-type-micro);
-}
-
-.selectAll strong,
-.streamerPickerHeading > strong,
-.streamerPickerHeading button,
-.streamerIndex button,
-.deviceHeading small,
-.accountCard small,
-.accountManagement > header small,
-.settingLinks button,
-.settingLinks a,
-.bottomNav button {
-  font-size: var(--app-type-caption);
-}
-
-.categoryChoices strong,
-.categoryChoices .categoryChoiceSelected strong {
-  font-size: var(--app-type-body);
-}
-.categoryChoices small,
-.categoryChoices .categoryChoiceSelected small {
-  font-size: var(--app-type-micro);
-}
-.choiceName strong { font-size: var(--app-type-body); }
-.choiceName small,
-.choiceName em { font-size: var(--app-type-micro); }
-
-.alertRow,
-.streamerIndex > article,
-.streamerDetail,
-.vodSection,
-.deviceCard,
-.accountCard,
-.accountManagement,
-.notificationLog,
-.apiNotice,
-.followPushBanner,
-.inlineSearch,
-.selectAll,
-.calendarView,
-.quickGrid button,
-.alertOptions label {
-  background: var(--app-flat-panel);
-  border-color: var(--app-flat-line);
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.bottomNav {
-  background: #121214;
-  border-color: var(--app-flat-line);
-  box-shadow: none;
-}
-
-.app .deviceCard,
-.app .accountCard,
-.app .accountManagement,
-.app .notificationLog,
-.app .deviceHeading > span,
-.app .deviceActions button,
-.app .accountCard button,
-.app .resetAlertsButton,
-.app .settingLinks button,
-.app .settingLinks a {
-  border-radius: 0;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
