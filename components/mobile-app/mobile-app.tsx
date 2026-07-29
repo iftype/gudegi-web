@@ -112,7 +112,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   }
 
   function connectPush() {
-    if (!pwa.installed) {
+    if (!pwa.installed && !push.capable) {
       setGuideOpen(true);
       return;
     }

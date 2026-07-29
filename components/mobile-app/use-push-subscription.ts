@@ -25,6 +25,9 @@ export function usePushSubscription(preferences: PushPreference[]) {
     queryFn: ({ signal }) => api.pushConfig(signal),
     staleTime: 10 * 60_000
   });
+  const capable = typeof window !== "undefined"
+    && "serviceWorker" in navigator
+    && "Notification" in window;
 
   useEffect(() => {
     if (!subscriptionId || !("serviceWorker" in navigator)) return;
@@ -70,53 +73,74 @@ export function usePushSubscription(preferences: PushPreference[]) {
       setMessage("먼저 스트리머와 알림 종류를 선택해 주세요.");
       return false;
     }
-    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    if (!capable) {
       setMessage("이 브라우저에서는 푸시 알림을 사용할 수 없습니다.");
       return false;
     }
     setConnecting(true);
-    setMessage("알림 서버를 확인하고 있습니다…");
-    let stage = "서버 설정 확인";
+    let stage = "기기 권한 요청";
     try {
-      const configResult = pushConfig.data ?? (await pushConfig.refetch()).data;
-      if (!configResult?.data.enabled || !configResult.data.publicKey) {
-        setMessage("알림 서버 키가 아직 준비되지 않았습니다.");
-        return false;
-      }
-      stage = "기기 권한 요청";
+      // iOS PWA는 사용자 클릭과 같은 동기 이벤트 안에서 권한 요청을 시작해야 한다.
+      // 네트워크 요청보다 먼저 호출해 transient user activation을 잃지 않게 한다.
       setMessage("기기 알림 권한을 요청합니다…");
-      const permission = await Notification.requestPermission();
+      const permissionRequest = Notification.permission === "default"
+        ? Notification.requestPermission()
+        : Promise.resolve(Notification.permission);
+      const permission = await permissionRequest;
       setPermission(permission);
       if (permission !== "granted") {
         trackEvent("notification_permission_denied");
         setMessage("알림 권한이 꺼져 있습니다. 휴대폰 설정에서 구데기 알림을 허용해 주세요.");
         return false;
       }
+
+      stage = "서버 설정 확인";
+      setMessage("알림 서버를 확인하고 있습니다…");
+      const configResult = pushConfig.data ?? (await pushConfig.refetch()).data;
+      if (!configResult?.data.enabled || !configResult.data.publicKey) {
+        setMessage("알림 서버 키가 아직 준비되지 않았습니다.");
+        return false;
+      }
+
       stage = "서비스 워커 연결";
       setMessage("이 기기를 알림 서비스에 연결하고 있습니다…");
-      await navigator.serviceWorker.register("/sw.js");
+      const worker = await navigator.serviceWorker.register("/sw.js", {
+        updateViaCache: "none"
+      });
+      await worker.update().catch(() => undefined);
       const registration = await navigator.serviceWorker.ready;
+      if (!registration.pushManager) {
+        setMessage("설치된 PWA 앱에서만 푸시 알림을 연결할 수 있습니다.");
+        return false;
+      }
       stage = "브라우저 푸시 등록";
-      const existing = await registration.pushManager.getSubscription();
-      const subscription = existing ?? await registration.pushManager.subscribe({
+      const applicationServerKey = base64ToUint8Array(configResult.data.publicKey);
+      let subscription = await registration.pushManager.getSubscription();
+      if (subscription && !applicationServerKeysMatch(
+        subscription.options.applicationServerKey,
+        applicationServerKey
+      )) {
+        await subscription.unsubscribe();
+        subscription = null;
+      }
+      subscription ??= await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: base64ToUint8Array(configResult.data.publicKey)
+        applicationServerKey
       });
       stage = "서버 구독 저장";
-      const result = await api.createPushSubscription(subscription.toJSON());
+      const result = await api.createPushSubscription(serializeSubscription(subscription));
       stage = "알림 대상 저장";
       await api.savePushPreferences(result.data.id, selected);
+      stage = "연결 테스트";
+      setMessage("연결을 확인하는 테스트 알림을 보내고 있습니다…");
+      await api.testPushSubscription(result.data.id);
       setSubscriptionId(result.data.id);
       window.localStorage.setItem(STORAGE_ID, result.data.id);
       trackEvent("notification_enabled", { channelId: selected[0]?.channelId });
-      setMessage("이 앱에서 변경 알림을 받고 있습니다.");
+      setMessage("연결됐습니다. 방금 보낸 테스트 알림을 확인해 주세요.");
       return true;
     } catch (error) {
-      const detail = error instanceof DOMException && error.name === "NotAllowedError"
-        ? "휴대폰 설정에서 알림 권한을 허용해 주세요."
-        : error instanceof Error && error.message === "api_unavailable"
-          ? "서버 응답이 없습니다. 잠시 후 다시 시도해 주세요."
-          : "앱을 완전히 닫았다가 다시 열어 주세요.";
+      const detail = pushErrorMessage(error);
       setMessage(`${stage} 단계에서 실패했습니다. ${detail}`);
       return false;
     } finally {
@@ -165,6 +189,7 @@ export function usePushSubscription(preferences: PushPreference[]) {
 
   return {
     active: Boolean(subscriptionId),
+    capable,
     connecting,
     testing,
     permission,
@@ -180,4 +205,53 @@ function base64ToUint8Array(value: string) {
   const base64 = (value + padding).replaceAll("-", "+").replaceAll("_", "/");
   const raw = window.atob(base64);
   return Uint8Array.from(raw, (character) => character.charCodeAt(0));
+}
+
+function applicationServerKeysMatch(
+  current: ArrayBuffer | null,
+  expected: Uint8Array<ArrayBuffer>
+) {
+  if (!current) return false;
+  const currentBytes = new Uint8Array(current);
+  return currentBytes.length === expected.length
+    && currentBytes.every((value, index) => value === expected[index]);
+}
+
+function serializeSubscription(subscription: PushSubscription): PushSubscriptionJSON {
+  const json = subscription.toJSON();
+  const encodeKey = (name: PushEncryptionKeyName) => {
+    const key = subscription.getKey(name);
+    if (!key) return "";
+    const binary = String.fromCharCode(...new Uint8Array(key));
+    return window.btoa(binary)
+      .replaceAll("+", "-")
+      .replaceAll("/", "_")
+      .replace(/=+$/, "");
+  };
+  return {
+    endpoint: subscription.endpoint,
+    expirationTime: subscription.expirationTime,
+    keys: {
+      p256dh: json.keys?.p256dh || encodeKey("p256dh"),
+      auth: json.keys?.auth || encodeKey("auth")
+    }
+  };
+}
+
+function pushErrorMessage(error: unknown) {
+  if (error instanceof DOMException) {
+    if (error.name === "NotAllowedError") {
+      return "휴대폰 설정에서 구데기 알림을 허용해 주세요.";
+    }
+    if (error.name === "InvalidStateError" || error.name === "AbortError") {
+      return "기존 알림 연결을 복구하지 못했습니다. 앱을 완전히 닫았다가 다시 열어 주세요.";
+    }
+  }
+  if (error instanceof Error && error.message === "not_found") {
+    return "서버 등록이 만료되었습니다. 다시 연결해 주세요.";
+  }
+  if (error instanceof Error && error.message === "api_unavailable") {
+    return "서버 응답이 없습니다. 잠시 후 다시 시도해 주세요.";
+  }
+  return "앱을 완전히 닫았다가 다시 열어 주세요.";
 }
