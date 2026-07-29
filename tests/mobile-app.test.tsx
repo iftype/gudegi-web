@@ -120,11 +120,14 @@ describe("mobile-first entry and guidance", () => {
     });
     fireEvent.click(deleteButton);
     expect(onRemove).toHaveBeenCalledWith(streamers[0]!.channelId);
-    expect(alertButton.parentElement).toContainElement(screen.getByText("라이브 스트리머"));
+    expect(alertButton.parentElement?.parentElement).toContainElement(
+      screen.getByText("라이브 스트리머")
+    );
     expect(categoryButton.parentElement).toContainElement(
       screen.getByLabelText("라이브 스트리머 선택 카테고리")
     );
     expect(alertButton).toHaveTextContent("알람");
+    expect(screen.queryByText(/팔로워 순위/)).not.toBeInTheDocument();
     expect(screen.getAllByText("전체 카테고리")).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))
