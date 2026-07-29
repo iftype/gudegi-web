@@ -1,5 +1,7 @@
 import type {
   Broadcast,
+  CategoryFilter,
+  LiveCategory,
   MonthlyStreamer,
   PushPreference,
   Streamer
@@ -46,6 +48,8 @@ async function mutate<T>(path: string, init: RequestInit): Promise<T> {
 
 export const api = {
   streamers: (signal?: AbortSignal) => request<{ data: Streamer[] }>("/v1/streamers", signal),
+  categories: (signal?: AbortSignal) =>
+    request<{ data: LiveCategory[]; syncedAt: number | null }>("/v1/categories", signal),
   broadcasts: (signal?: AbortSignal) => request<{ data: Broadcast[] }>("/v1/broadcasts?limit=100", signal),
   streamerBroadcasts: (channelId: string, signal?: AbortSignal) =>
     request<{ data: Broadcast[] }>(`/v1/streamers/${channelId}/broadcasts?limit=100`, signal),
@@ -62,17 +66,23 @@ export const api = {
       method: "POST",
       body: JSON.stringify(subscription)
     }),
-  savePushPreferences: (id: string, channels: PushPreference[]) =>
+  savePushPreferences: (
+    id: string,
+    channels: PushPreference[],
+    categoryFilter: CategoryFilter
+  ) =>
     mutate<{ ok: true }>(`/v1/push/subscriptions/${id}/preferences`, {
       method: "PUT",
       body: JSON.stringify({
         channels: channels
           .filter((channel) => channel.enabled)
-          .map(({ channelId, categoryChanged, titleChanged }) => ({
+          .map(({ channelId, liveStarted, categoryChanged, titleChanged }) => ({
             channelId,
+            liveStarted,
             categoryChanged,
             titleChanged
-          }))
+          })),
+        categoryFilter
       })
     }),
   deletePushSubscription: (id: string) =>

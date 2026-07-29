@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Radio } from "lucide-react";
 import type { PushPreference } from "@/lib/types";
 import styles from "./mobile-app.module.css";
 
@@ -10,11 +10,17 @@ export function AlertToggleGrid({
 }: {
   preference: PushPreference;
   onChange: (
-    key: "enabled" | "categoryChanged" | "titleChanged",
+    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
     checked: boolean
   ) => void;
 }) {
   const options = [
+    {
+      key: "liveStarted" as const,
+      label: "방송 시작",
+      icon: Radio,
+      checked: preference.enabled && preference.liveStarted
+    },
     {
       key: "categoryChanged" as const,
       label: "카테고리",

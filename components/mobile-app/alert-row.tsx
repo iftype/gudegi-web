@@ -15,12 +15,12 @@ export function AlertRow({
   preference: PushPreference;
   onChange: (
     channelId: string,
-    key: "categoryChanged" | "titleChanged",
+    key: "liveStarted" | "categoryChanged" | "titleChanged",
     checked: boolean
   ) => void;
   onRemove?: (channelId: string) => void;
 }) {
-  const active = preference.categoryChanged;
+  const active = preference.liveStarted || preference.categoryChanged;
 
   return (
     <article className={`${styles.alertRow} ${active ? styles.followActive : ""}`}>
@@ -46,6 +46,19 @@ export function AlertRow({
             : `팔로워 순위 #${streamer.trackingRank ?? "-"}`}</small>
         </span>
         <span className={styles.rowAlertToggles}>
+          <button
+            type="button"
+            className={preference.liveStarted ? styles.rowAlertToggleActive : ""}
+            aria-pressed={preference.liveStarted}
+            aria-label={`${streamer.channelName} 방송 시작 알림`}
+            onClick={() => onChange(
+              streamer.channelId,
+              "liveStarted",
+              !preference.liveStarted
+            )}
+          >
+            방송 시작
+          </button>
           <button
             type="button"
             className={preference.categoryChanged ? styles.rowAlertToggleActive : ""}

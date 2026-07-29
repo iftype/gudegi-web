@@ -8,12 +8,14 @@ import type { PushPreference } from "@/lib/types";
 const preferences: PushPreference[] = [{
   channelId: "a".repeat(32),
   enabled: true,
+  liveStarted: true,
   categoryChanged: true,
   titleChanged: true
 }];
+const categoryFilter = { allCategories: true, categoryKeys: [] };
 
 function PushProbe() {
-  const push = usePushSubscription(preferences);
+  const push = usePushSubscription(preferences, categoryFilter);
   return (
     <button onClick={() => void push.enable()}>
       {push.message || "알림 연결"}
@@ -103,7 +105,8 @@ describe("guest push subscription", () => {
     expect(registration.pushManager.subscribe).toHaveBeenCalledOnce();
     expect(savePreferences).toHaveBeenCalledWith(
       "11111111-1111-4111-8111-111111111111",
-      preferences
+      preferences,
+      categoryFilter
     );
     expect(await screen.findByText(/테스트 알림을 확인/)).toBeInTheDocument();
     expect(window.localStorage.getItem("trackline-push-subscription-id"))

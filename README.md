@@ -26,8 +26,8 @@ pnpm check
 
 ## 배포
 
-- `dev`: Vercel Preview 배포, 운영 API `https://sub.iftype.store` 사용
+- `dev`: Vercel Preview 배포, 격리된 개발 API `https://sub.iftype.store/dev-api` 사용
 - `main`: Vercel Production 배포, 운영 API `https://sub.iftype.store` 사용
 
-서버는 Oracle에서 운영 인스턴스 하나만 실행합니다. Vercel 프로젝트의 Production Branch는
-`main`으로 두고, 기능은 `dev` Preview에서 같은 API를 대상으로 검증한 뒤 `main`에 병합합니다.
+Vercel 프로젝트의 Production Branch는 `main`으로 두고, 기능은 `dev` Preview와 별도
+Oracle dev DB에서 검증한 뒤 `main`에 병합합니다.

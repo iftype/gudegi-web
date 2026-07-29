@@ -73,8 +73,25 @@ export type MonthlyStreamer = {
 export type PushPreference = {
   channelId: string;
   enabled: boolean;
+  liveStarted: boolean;
   categoryChanged: boolean;
   titleChanged: boolean;
+};
+
+export type CategoryFilter = {
+  allCategories: boolean;
+  categoryKeys: string[];
+};
+
+export type LiveCategory = {
+  categoryKey: string;
+  categoryType: string;
+  categoryId: string;
+  categoryValue: string;
+  posterImageUrl: string | null;
+  openLiveCount: number;
+  concurrentUserCount: number;
+  syncedAt: number;
 };
 
 export type UnsupportedStreamerRequest = {

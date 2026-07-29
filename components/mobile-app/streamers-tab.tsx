@@ -30,7 +30,7 @@ export function StreamersTab({
   personalChannelIds: string[];
   onSelect: (channelId: string) => void;
   onChange: (
-    key: "enabled" | "categoryChanged" | "titleChanged",
+    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
     checked: boolean
   ) => void;
   unsupportedRequests?: import("@/lib/types").UnsupportedStreamerRequest[];
@@ -180,7 +180,7 @@ export function StreamersTab({
         </button>
         {selectedInAlerts
           ? <AlertToggleGrid preference={preference} onChange={onChange} />
-          : <p className={styles.detailAlertHint}>알림 목록에 추가하면 카테고리 변경 알림을 설정할 수 있습니다.</p>}
+          : <p className={styles.detailAlertHint}>알림 목록에 추가하면 방송 시작과 카테고리 변경 알림을 설정할 수 있습니다.</p>}
       </article>
 
       <CompactCalendar streamer={selected} />

@@ -51,8 +51,8 @@ describe("mobile-first entry and guidance", () => {
       <FollowTab
         streamers={streamers}
         preferences={[
-          { channelId: streamers[0]!.channelId, enabled: false, categoryChanged: false, titleChanged: false },
-          { channelId: streamers[1]!.channelId, enabled: true, categoryChanged: true, titleChanged: true }
+          { channelId: streamers[0]!.channelId, enabled: false, liveStarted: false, categoryChanged: false, titleChanged: false },
+          { channelId: streamers[1]!.channelId, enabled: true, liveStarted: true, categoryChanged: true, titleChanged: true }
         ]}
         user={null}
         pushActive
@@ -76,7 +76,7 @@ describe("mobile-first entry and guidance", () => {
     expect(onClearAll).toHaveBeenCalledOnce();
   });
 
-  it("shows only category and delete actions on alert rows", () => {
+  it("shows broadcast start, category, and delete actions on alert rows", () => {
     const onRemove = vi.fn();
     render(
       <FollowTab
@@ -84,6 +84,7 @@ describe("mobile-first entry and guidance", () => {
         preferences={streamers.map((streamer) => ({
           channelId: streamer.channelId,
           enabled: true,
+          liveStarted: true,
           categoryChanged: true,
           titleChanged: true
         }))}
@@ -101,9 +102,69 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.getByRole("button", {
       name: /라이브 스트리머 알림 목록에서 삭제/
     })).toBeInTheDocument();
+    expect(screen.getByRole("button", {
+      name: /라이브 스트리머 방송 시작 알림/
+    })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))
       .toEqual(["라이브 스트리머", "오프라인 스트리머"]);
+  });
+
+  it("defaults to all categories and applies a selected CHZZK category", () => {
+    const onCategoryFilterChange = vi.fn();
+    render(
+      <FollowTab
+        streamers={[streamers[0]!]}
+        preferences={[{
+          channelId: streamers[0]!.channelId,
+          enabled: true,
+          liveStarted: true,
+          categoryChanged: true,
+          titleChanged: false
+        }]}
+        user={null}
+        pushActive
+        pushBusy={false}
+        pushMessage=""
+        categories={[
+          {
+            categoryKey: "ETC:talk",
+            categoryType: "ETC",
+            categoryId: "talk",
+            categoryValue: "talk",
+            posterImageUrl: null,
+            openLiveCount: 200,
+            concurrentUserCount: 20_000,
+            syncedAt: 1
+          },
+          {
+            categoryKey: "GAME:League_of_Legends",
+            categoryType: "GAME",
+            categoryId: "League_of_Legends",
+            categoryValue: "리그 오브 레전드",
+            posterImageUrl: null,
+            openLiveCount: 100,
+            concurrentUserCount: 10_000,
+            syncedAt: 1
+          }
+        ]}
+        categoryFilter={{ allCategories: true, categoryKeys: [] }}
+        onConnect={() => undefined}
+        onChange={() => undefined}
+        onChangeAll={() => undefined}
+        onCategoryFilterChange={onCategoryFilterChange}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /받을 카테고리/ }));
+    expect(screen.getByRole("button", { name: "전체 카테고리 모든 방송 카테고리 알림" }))
+      .toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: /talk.*기타/ }));
+    fireEvent.click(screen.getByRole("button", { name: "1개 카테고리로 적용" }));
+    expect(onCategoryFilterChange).toHaveBeenCalledWith({
+      allCategories: false,
+      categoryKeys: ["ETC:talk"]
+    });
   });
 
   it("shows unsupported personal streamers separately and routes them to suggestions", () => {
@@ -145,7 +206,7 @@ describe("mobile-first entry and guidance", () => {
     const onGuest = vi.fn();
     render(<OnboardingGate user={null} oauthConfigured={true} onGuest={onGuest} />);
 
-    expect(screen.getByRole("button", { name: /팔로우 불러오기/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /치지직 로그인/ })).toBeInTheDocument();
     expect(screen.getByText(/이 브라우저에만 저장/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /비로그인으로 시작/ }));
     expect(onGuest).toHaveBeenCalledOnce();
@@ -195,6 +256,7 @@ describe("mobile-first entry and guidance", () => {
           preference={{
             channelId: streamers[0]!.channelId,
             enabled: true,
+            liveStarted: true,
             categoryChanged: true,
             titleChanged: true
           }}

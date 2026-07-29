@@ -19,7 +19,6 @@ export function OnboardingGate({
   async function login() {
     setError("");
     try {
-      window.localStorage.setItem("gudegi-import-all-after-login", "1");
       const result = await authApi.begin();
       trackEvent("chzzk_login_started");
       window.location.assign(result.data.authorizationUrl);
@@ -33,7 +32,7 @@ export function OnboardingGate({
       <div className={styles.onboardingGlow} />
       <div className={styles.onboardingBrand}><BrandMark /><span>구데기</span></div>
       <button className={styles.onboardingImport} onClick={() => void login()}>
-        <CloudDownload /> 팔로우 불러오기
+        <CloudDownload /> 치지직 로그인
       </button>
       <div className={styles.onboardingCopy}>
         <span>CHZZK CHANGE ALERT</span>
@@ -51,7 +50,7 @@ export function OnboardingGate({
         </button>
       </div>
       <p className={styles.importDisclosure}>
-        치지직 공식 API는 내가 팔로우한 채널 조회를 지원하지 않아, 불러오기를 누르면 구데기의 추적 채널 전체가 선택됩니다.
+        치지직 공식 API는 내가 팔로우한 채널 조회를 지원하지 않습니다. 로그인 후 원하는 스트리머를 직접 추가해 주세요.
       </p>
       {error && <p className={styles.entryError}>{error}</p>}
       <div className={styles.onboardingPrivacy}>

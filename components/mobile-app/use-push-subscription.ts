@@ -4,11 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { trackEvent } from "@/lib/analytics";
-import type { PushPreference } from "@/lib/types";
+import type { CategoryFilter, PushPreference } from "@/lib/types";
 
 const STORAGE_ID = "trackline-push-subscription-id";
 
-export function usePushSubscription(preferences: PushPreference[]) {
+export function usePushSubscription(
+  preferences: PushPreference[],
+  categoryFilter: CategoryFilter
+) {
   const [subscriptionId, setSubscriptionId] = useState(() =>
     typeof window === "undefined" ? "" : window.localStorage.getItem(STORAGE_ID) ?? ""
   );
@@ -58,16 +61,16 @@ export function usePushSubscription(preferences: PushPreference[]) {
   useEffect(() => {
     if (!subscriptionId) return;
     const timer = window.setTimeout(() => {
-      void api.savePushPreferences(subscriptionId, preferences).catch(() => {
+      void api.savePushPreferences(subscriptionId, preferences, categoryFilter).catch(() => {
         setMessage("기기 알림 설정을 동기화하지 못했습니다.");
       });
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [preferences, subscriptionId]);
+  }, [categoryFilter, preferences, subscriptionId]);
 
   async function enable() {
     const selected = preferences.filter(
-      (item) => item.enabled && (item.categoryChanged || item.titleChanged)
+      (item) => item.enabled && (item.liveStarted || item.categoryChanged || item.titleChanged)
     );
     if (!selected.length) {
       setMessage("먼저 스트리머와 알림 종류를 선택해 주세요.");
@@ -136,7 +139,7 @@ export function usePushSubscription(preferences: PushPreference[]) {
       stage = "서버 구독 저장";
       const result = await api.createPushSubscription(serializeSubscription(subscription));
       stage = "알림 대상 저장";
-      await api.savePushPreferences(result.data.id, selected);
+      await api.savePushPreferences(result.data.id, selected, categoryFilter);
       stage = "연결 테스트";
       setMessage("연결을 확인하는 테스트 알림을 보내고 있습니다…");
       await api.testPushSubscription(result.data.id);

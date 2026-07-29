@@ -104,10 +104,12 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
       const stored = byChannel.get(streamer.channelId);
       return stored ? {
         ...stored,
-        enabled: stored.enabled ?? (stored.categoryChanged || stored.titleChanged)
+        enabled: stored.enabled ?? (stored.liveStarted || stored.categoryChanged || stored.titleChanged),
+        liveStarted: Boolean(stored.liveStarted)
       } : {
         channelId: streamer.channelId,
         enabled: false,
+        liveStarted: false,
         categoryChanged: false,
         titleChanged: false
       };
@@ -144,7 +146,10 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
     window.localStorage.setItem(STORAGE_PREFERENCES, JSON.stringify(next));
     if (!subscriptionId) return;
     try {
-      await api.savePushPreferences(subscriptionId, next);
+      await api.savePushPreferences(subscriptionId, next, {
+        allCategories: true,
+        categoryKeys: []
+      });
       const selected = next.find((item) => item.enabled);
       trackEvent("notification_preference_saved", { channelId: selected?.channelId });
       setNotificationState("알림 설정을 저장했습니다.");
@@ -155,18 +160,18 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
 
   function changePreference(
     channelId: string,
-    key: "enabled" | "categoryChanged" | "titleChanged",
+    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
     checked: boolean
   ) {
     const next = preferences.map((item) => {
       if (item.channelId !== channelId) return item;
       if (key === "enabled") {
-        return checked && !item.categoryChanged && !item.titleChanged
+        return checked && !item.liveStarted && !item.categoryChanged && !item.titleChanged
           ? { ...item, enabled: true, categoryChanged: true }
           : { ...item, enabled: checked };
       }
       const updated = { ...item, enabled: checked ? true : item.enabled, [key]: checked };
-      return !updated.categoryChanged && !updated.titleChanged
+      return !updated.liveStarted && !updated.categoryChanged && !updated.titleChanged
         ? { ...updated, enabled: false }
         : updated;
     });
@@ -177,7 +182,7 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
     const enabledPreferences = preferences.filter(
       (preference) =>
         preference.enabled &&
-        (preference.categoryChanged || preference.titleChanged),
+        (preference.liveStarted || preference.categoryChanged || preference.titleChanged),
     );
     if (enabledPreferences.length === 0) {
       setNotificationState("먼저 알림 받을 스트리머를 선택해 주세요.");
@@ -206,7 +211,10 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
         applicationServerKey: base64ToUint8Array(pushConfig.data.data.publicKey)
       });
       const result = await api.createPushSubscription(subscription.toJSON());
-      await api.savePushPreferences(result.data.id, preferences);
+      await api.savePushPreferences(result.data.id, preferences, {
+        allCategories: true,
+        categoryKeys: []
+      });
       setSubscriptionId(result.data.id);
       window.localStorage.setItem(STORAGE_ID, result.data.id);
       trackEvent("notification_enabled", {
@@ -446,7 +454,7 @@ function NotificationSettings({ streamers, preferences, active, state, onChange,
   state: string;
   onChange: (
     channelId: string,
-    key: "enabled" | "categoryChanged" | "titleChanged",
+    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
     checked: boolean
   ) => void;
   onEnable: () => void;

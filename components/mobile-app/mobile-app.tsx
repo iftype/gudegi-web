@@ -60,8 +60,17 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   const user = session.data ?? null;
   const preferences = useMobilePreferences(streamers, user);
   const personal = usePersonalStreamers(streamers, user);
+  const categories = useQuery({
+    queryKey: ["live-categories"],
+    queryFn: ({ signal }) => api.categories(signal),
+    staleTime: 6 * 60 * 60_000,
+    retry: 1
+  });
   const pwa = usePwaInstall();
-  const push = usePushSubscription(preferences.preferences);
+  const push = usePushSubscription(
+    preferences.preferences,
+    preferences.categoryFilter
+  );
   const pushLogs = usePushLogs();
 
   const selectedStreamer = useMemo(() => {
@@ -174,6 +183,11 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     await personal.clear();
   }
 
+  async function removeFromAlerts(channelId: string) {
+    await preferences.clear([channelId]);
+    personal.remove(channelId);
+  }
+
   return (
     <main className={`${styles.app} mobile-app-shell standalone-route`}>
       <header className={styles.appHeader}>
@@ -204,13 +218,16 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             pushActive={push.active}
             pushBusy={push.connecting}
             pushMessage={push.message}
+            categories={categories.data?.data ?? []}
+            categoryFilter={preferences.categoryFilter}
             onConnect={push.active ? () => selectTab("settings") : connectPush}
             onChange={preferences.updatePreference}
             onChangeAll={(checked) => preferences.updateAll(checked, personal.channelIds)}
+            onCategoryFilterChange={(value) => void preferences.updateCategoryFilter(value)}
             onAdd={() => selectTab("streamers")}
             onImport={() => void startLogin()}
             onClearAll={() => void resetAlertList()}
-            onRemove={personal.remove}
+            onRemove={(channelId) => void removeFromAlerts(channelId)}
             unsupportedRequests={personal.unsupported}
             onSuggest={() => setSuggestionType("streamer_request")}
             onSuggestUnsupported={async (streamerName) => {
@@ -233,9 +250,9 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             unsupportedRequests={personal.unsupported}
             onAddToAlerts={(channelId) => {
               personal.add(channelId);
-              preferences.updatePreference(channelId, "categoryChanged", true);
+              void preferences.enableNewStreamer(channelId);
             }}
-            onRemoveFromAlerts={personal.remove}
+            onRemoveFromAlerts={(channelId) => void removeFromAlerts(channelId)}
             onSuggest={() => setSuggestionType("streamer_request")}
             onSuggestUnsupported={async (streamerName) => {
               await api.submitFeedback({ category: "streamer_request", streamerName });
@@ -251,7 +268,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             pushMessage={push.message}
             permission={push.permission}
             targetCount={preferences.preferences.filter((item) =>
-              item.enabled && item.categoryChanged
+              item.enabled && (item.liveStarted || item.categoryChanged)
             ).length}
             logs={pushLogs.logs}
             logoutBusy={logoutBusy}

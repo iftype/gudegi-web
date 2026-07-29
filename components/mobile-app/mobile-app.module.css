@@ -119,6 +119,12 @@
 .followImportButton { width: 100%; min-height: 31px; display: flex; align-items: center; justify-content: center; gap: 4px; margin: -1px 0 9px; color: #aeb7ca; background: #141822; border: 1px solid #30394d; border-radius: 9px; font-size: 8px; font-weight: 700; }
 .followImportButton svg { width: 10px; }
 .followPushMessage { margin: -2px 3px 9px; color: #c3c9d4; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.categoryFilterButton { width: 100%; min-height: 48px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 9px; margin-bottom: 9px; padding: 8px 10px; color: #e7e9ee; background: #141820; border: 1px solid #303745; border-radius: 13px; text-align: left; }
+.categoryFilterButton > svg { width: 17px; color: var(--app-green); }
+.categoryFilterButton > span { min-width: 0; display: grid; gap: 2px; }
+.categoryFilterButton strong { font-size: 12px; }
+.categoryFilterButton small { color: #9aa1ae; font-size: 10px; }
+.categoryFilterButton > i { color: #737b89; font-size: 9px; font-style: normal; white-space: nowrap; }
 .followTools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-bottom: 9px; }
 .inlineSearch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 0; padding: 0 11px; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .inlineSearch svg { width: 15px; color: #767c88; }
@@ -195,7 +201,7 @@
   background: var(--app-green);
   border-color: var(--app-green);
 }
-.rowAlertToggles .rowDeleteButton { display: flex; align-items: center; justify-content: center; gap: 3px; color: #c98d95; }
+.rowAlertToggles .rowDeleteButton { grid-column: 1 / -1; width: 100%; display: flex; align-items: center; justify-content: center; gap: 3px; color: #c98d95; }
 .rowDeleteButton svg { width: 11px; }
 .selectAll { min-width: 106px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px; color: #dededb; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; cursor: pointer; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .selectAll > span { display: grid; gap: 1px; }
@@ -206,7 +212,7 @@
 .selectAll > i::after { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; content: ""; background: #afb5c0; border-radius: 50%; transition: transform 150ms ease, background-color 150ms ease; }
 .selectAll input:checked + i { background: var(--app-green); }
 .selectAll input:checked + i::after { background: #0b0d11; transform: translateX(14px); }
-.alertToggleGrid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.alertToggleGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .alertToggleGrid button { min-width: 0; height: 37px; display: flex; align-items: center; justify-content: center; gap: 5px; color: #7d8491; background: #181b22; border: 1px solid #2c3039; border-radius: 10px; font-size: 11px; font-weight: 700; }
 .alertToggleGrid button svg { width: 13px; }
 .alertToggleGrid .toggleSelected { color: #0b0c0f; background: var(--app-green); border-color: var(--app-green); }
@@ -513,6 +519,29 @@
 .sheetHeader h2 { margin: 4px 0 0; font-size: 20px; letter-spacing: -.04em; }
 .sheetHeader > button { display: grid; place-items: center; width: 34px; height: 34px; color: #9a9faa; background: #181b22; border: 1px solid #30343e; border-radius: 11px; }
 .sheetHeader > button svg { width: 15px; }
+.categoryFilterSheet { height: min(760px, 90dvh); max-height: 90dvh; grid-template-rows: auto auto auto minmax(0, 1fr) auto; }
+.categoryFilterTools { display: grid; gap: 7px; padding: 0 17px 10px; }
+.categoryFilterTools > button { min-height: 52px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px 11px; color: #dce0e8; background: #151820; border: 1px solid #303641; border-radius: 12px; text-align: left; }
+.categoryFilterTools > button > span { display: grid; gap: 2px; }
+.categoryFilterTools > button strong { font-size: 13px; }
+.categoryFilterTools > button small { color: #838b98; font-size: 10px; }
+.categoryFilterTools > button > i, .categoryChoices button > i { display: grid; place-items: center; width: 21px; height: 21px; color: #0a0c0f; background: #2a3039; border-radius: 7px; }
+.categoryFilterTools > button > i svg, .categoryChoices button > i svg { width: 13px; }
+.categoryFilterTools .categoryFilterSelected { color: #09100c; background: var(--app-green); border-color: var(--app-green); }
+.categoryFilterTools .categoryFilterSelected small { color: #284234; }
+.categoryFilterTools .categoryFilterSelected > i, .categoryChoiceSelected > i { background: #f4f7f2; }
+.categoryFilterTools label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 7px; padding: 0 10px; background: rgb(255 255 255 / 5%); border: 1px solid var(--app-line); border-radius: 11px; }
+.categoryFilterTools label svg { width: 14px; color: #75887e; }
+.categoryFilterTools input { min-width: 0; height: 43px; color: #eef2ef; background: transparent; border: 0; outline: 0; font-size: 16px; }
+.categoryChoices { min-height: 0; display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 6px; padding: 3px 12px 12px; overflow-y: auto; overscroll-behavior: contain; }
+.categoryChoices > button { min-width: 0; min-height: 53px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 7px; padding: 8px 9px; color: #d9dde5; background: rgb(255 255 255 / 4%); border: 1px solid var(--app-line); border-radius: 12px; text-align: left; content-visibility: auto; contain-intrinsic-size: 53px; }
+.categoryChoices > button > span { min-width: 0; display: grid; gap: 3px; }
+.categoryChoices strong, .categoryChoices small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.categoryChoices strong { font-size: 12px; }
+.categoryChoices small { color: #737b88; font-size: 9px; }
+.categoryChoices .categoryChoiceSelected { color: #07110b; background: var(--app-green); border-color: var(--app-green); }
+.categoryChoices .categoryChoiceSelected small { color: #2e4939; }
+.categoryFilterApply { min-height: 46px; margin: 0 17px calc(13px + env(safe-area-inset-bottom)); color: #07110b; background: var(--app-green); border: 0; border-radius: 13px; font-size: 13px; font-weight: 900; }
 .suggestionSheet { max-height: min(88dvh, 680px); }
 .suggestionForm { display: grid; gap: 12px; padding: 4px 17px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; }
 .suggestionTypes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; background: #101217; border-radius: 12px; }

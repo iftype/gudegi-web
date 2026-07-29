@@ -1,11 +1,27 @@
 "use client";
 
-import { Bell, CheckCircle2, CloudDownload, Plus, RefreshCw, Search, Send, Trash2 } from "lucide-react";
+import {
+  Bell,
+  CheckCircle2,
+  CloudDownload,
+  ListFilter,
+  Plus,
+  RefreshCw,
+  Search,
+  Send,
+  Trash2
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AppUser } from "@/lib/auth-api";
-import type { PushPreference, Streamer } from "@/lib/types";
+import type {
+  CategoryFilter,
+  LiveCategory,
+  PushPreference,
+  Streamer
+} from "@/lib/types";
 import styles from "./mobile-app.module.css";
 import { AlertRow } from "./alert-row";
+import { CategoryFilterSheet } from "./category-filter-sheet";
 import { UnsupportedList } from "./unsupported-list";
 
 export function FollowTab({
@@ -15,9 +31,12 @@ export function FollowTab({
   pushActive,
   pushBusy,
   pushMessage,
+  categories = [],
+  categoryFilter = { allCategories: true, categoryKeys: [] },
   onConnect,
   onChange,
   onChangeAll,
+  onCategoryFilterChange = () => undefined,
   onAdd = () => undefined,
   onImport = () => undefined,
   onClearAll = () => undefined,
@@ -32,13 +51,16 @@ export function FollowTab({
   pushActive: boolean;
   pushBusy: boolean;
   pushMessage: string;
+  categories?: LiveCategory[];
+  categoryFilter?: CategoryFilter;
   onConnect: () => void;
   onChange: (
     channelId: string,
-    key: "enabled" | "categoryChanged" | "titleChanged",
+    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
     checked: boolean
   ) => void;
   onChangeAll: (checked: boolean) => void;
+  onCategoryFilterChange?: (value: CategoryFilter) => void;
   onAdd?: () => void;
   onImport?: () => void;
   onClearAll?: () => void;
@@ -48,6 +70,7 @@ export function FollowTab({
   onSuggestUnsupported?: (streamerName: string) => Promise<void>;
 }) {
   const [query, setQuery] = useState("");
+  const [categorySheetOpen, setCategorySheetOpen] = useState(false);
   const preferenceByChannel = useMemo(
     () => new Map(preferences.map((item) => [item.channelId, item])),
     [preferences]
@@ -64,8 +87,8 @@ export function FollowTab({
         <span>MY ALERTS</span>
         <h1>알림 관리</h1>
         <p>{user
-          ? `계정에 저장한 ${enabledCount}명의 카테고리 변경 알림을 관리합니다.`
-          : `이 기기에 저장한 ${enabledCount}명의 카테고리 변경 알림을 관리합니다.`}</p>
+          ? `계정에 저장한 ${enabledCount}명의 방송 시작·카테고리 알림을 관리합니다.`
+          : `이 기기에 저장한 ${enabledCount}명의 방송 시작·카테고리 알림을 관리합니다.`}</p>
       </header>
       <button className={`${styles.followPushBanner} ${!pushActive ? styles.followPushBannerAttention : ""}`} disabled={pushBusy} onClick={onConnect}>
         {pushBusy ? <RefreshCw className={styles.spinning} /> : pushActive ? <CheckCircle2 /> : <Bell />}
@@ -73,7 +96,7 @@ export function FollowTab({
           <strong>{pushActive ? "이 기기 알림 연결됨" : "이 기기에서 알림 받기"}</strong>
           <small>{pushActive
             ? enabledCount > 0
-              ? `선택한 ${enabledCount}명의 카테고리 변경을 알려드려요.`
+              ? `선택한 ${enabledCount}명의 방송 시작과 카테고리 변경을 알려드려요.`
               : "아래에서 알림 받을 스트리머를 선택하세요."
             : "PWA 앱에서 한 번만 연결하면 됩니다."}</small>
         </span>
@@ -84,6 +107,20 @@ export function FollowTab({
         </button>
       )}
       {pushMessage && <p className={styles.followPushMessage}>{pushMessage}</p>}
+      <button
+        type="button"
+        className={styles.categoryFilterButton}
+        onClick={() => setCategorySheetOpen(true)}
+      >
+        <ListFilter />
+        <span>
+          <strong>받을 카테고리</strong>
+          <small>{categoryFilter.allCategories
+            ? "전체 카테고리"
+            : `${categoryFilter.categoryKeys.length}개 선택`}</small>
+        </span>
+        <i>{categories.length ? `${categories.length}개 목록` : "불러오는 중"}</i>
+      </button>
       <div className={styles.followTools}>
         <label className={styles.inlineSearch}>
           <Search />
@@ -132,6 +169,14 @@ export function FollowTab({
         onSuggest={onSuggest}
         onSuggestUnsupported={onSuggestUnsupported}
       />
+      {categorySheetOpen && (
+        <CategoryFilterSheet
+          categories={categories}
+          value={categoryFilter}
+          onApply={onCategoryFilterChange}
+          onClose={() => setCategorySheetOpen(false)}
+        />
+      )}
     </section>
   );
 }

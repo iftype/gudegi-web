@@ -39,6 +39,40 @@ describe("API mutations", () => {
     expect(new Headers(init.headers).get("content-type")).toBe("application/json");
   });
 
+  it("sends alert triggers and the selected category filter together", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ ok: true }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    ));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.savePushPreferences(
+      "11111111-1111-4111-8111-111111111111",
+      [{
+        channelId: "a".repeat(32),
+        enabled: true,
+        liveStarted: true,
+        categoryChanged: true,
+        titleChanged: false
+      }],
+      { allCategories: false, categoryKeys: ["ETC:talk"] }
+    );
+
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(init.body))).toEqual({
+      channels: [{
+        channelId: "a".repeat(32),
+        liveStarted: true,
+        categoryChanged: true,
+        titleChanged: false
+      }],
+      categoryFilter: {
+        allCategories: false,
+        categoryKeys: ["ETC:talk"]
+      }
+    });
+  });
+
   it("sends only self-hosted access and PWA counters without browsing details", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
     vi.stubGlobal("fetch", fetchMock);

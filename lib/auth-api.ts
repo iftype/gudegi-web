@@ -1,4 +1,8 @@
-import type { PushPreference, UnsupportedStreamerRequest } from "./types";
+import type {
+  CategoryFilter,
+  PushPreference,
+  UnsupportedStreamerRequest
+} from "./types";
 
 export type AppUser = {
   channelId: string;
@@ -42,7 +46,12 @@ export const authApi = {
   ),
   me: () => request<{ data: { user: AppUser } }>("/me"),
   logout: () => request<void>("/logout", { method: "POST" }),
-  preferences: () => request<{ data: { channels: PushPreference[] } }>("/preferences"),
+  preferences: () => request<{
+    data: {
+      channels: PushPreference[];
+      categoryFilter: CategoryFilter;
+    };
+  }>("/preferences"),
   myStreamers: () => request<{
     data: {
       supported: string[];
@@ -53,16 +62,21 @@ export const authApi = {
     method: "PUT",
     body: JSON.stringify({ channelIds })
   }),
-  savePreferences: (preferences: PushPreference[]) => request<{ ok: true }>("/preferences", {
+  savePreferences: (
+    preferences: PushPreference[],
+    categoryFilter: CategoryFilter
+  ) => request<{ ok: true }>("/preferences", {
     method: "PUT",
     body: JSON.stringify({
       channels: preferences
         .filter((preference) => preference.enabled)
-        .map(({ channelId, categoryChanged, titleChanged }) => ({
+        .map(({ channelId, liveStarted, categoryChanged, titleChanged }) => ({
           channelId,
+          liveStarted,
           categoryChanged,
           titleChanged
-        }))
+        })),
+      categoryFilter
     })
   })
 };
