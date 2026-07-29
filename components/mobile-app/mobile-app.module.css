@@ -816,6 +816,140 @@
 .calendarLoading { display: flex; align-items: center; justify-content: center; gap: 7px; color: #71847a; font-size: 11px; }
 .calendarLoading svg { width: 15px; animation: spin .8s linear infinite; }
 
+/* Sharper mobile UI system: reserve full rounding for avatars and switches. */
+.app {
+  --app-radius-card: 6px;
+  --app-radius-control: 4px;
+  --app-type-micro: 10px;
+  --app-type-caption: 11px;
+  --app-type-body: 13px;
+}
+
+.app button,
+.app input,
+.app textarea,
+.app select {
+  border-radius: var(--app-radius-control);
+}
+
+.bottomNav,
+.alertRow,
+.streamerIndex > article,
+.streamerDetail,
+.vodSection,
+.deviceCard,
+.accountCard,
+.accountManagement,
+.notificationLog,
+.apiNotice,
+.followPushBanner,
+.personalEmpty,
+.unsupportedSection,
+.unsupportedSection article,
+.calendarView,
+.quickGrid button,
+.alertOptions label,
+.installGate,
+.entryChoices > button {
+  border-radius: var(--app-radius-card);
+}
+
+.sheet {
+  border-radius: 8px 8px 0 0;
+}
+
+.categoryFilterTools > button > i,
+.categoryChoices button > i,
+.rowCategoryTags span,
+.detailCategoryTags span,
+.quickGrid button > span,
+.switchIcon,
+.deviceHeading > span {
+  border-radius: 3px;
+}
+
+.categoryFilterTools .categoryFilterSelected,
+.categoryChoices .categoryChoiceSelected {
+  border-color: #42d77d;
+  box-shadow: inset 3px 0 0 #42d77d;
+}
+
+.categoryFilterTools .categoryFilterSelected > i,
+.categoryChoiceSelected > i {
+  color: #fff;
+  background: #15974f;
+  border: 1px solid #62e99a;
+}
+
+.categoryFilterTools .categoryFilterSelected > i svg,
+.categoryChoiceSelected > i svg {
+  stroke-width: 3;
+}
+
+.logo strong { font-size: 18px; line-height: 1.1; }
+.logo small { font-size: var(--app-type-caption); white-space: nowrap; }
+.guideButton,
+.suggestButton {
+  height: 32px;
+  padding-inline: 8px;
+  font-size: var(--app-type-micro);
+}
+.guideButton svg,
+.suggestButton svg { width: 12px; }
+.headerActions button span { white-space: nowrap; }
+
+.tabIntro > span,
+.sheetHeader span,
+.alertView > header span {
+  font-size: var(--app-type-caption);
+}
+.tabIntro h1 { font-size: 25px; line-height: 1.18; }
+.tabIntro p { font-size: var(--app-type-body); line-height: 1.5; }
+
+.followListManagement > button,
+.allCategoryFilterButton,
+.rowBroadcastTime,
+.rowCategoryButton,
+.rowCategoryTags span,
+.detailCategoryTags span,
+.selectAll small,
+.streamerIndex small,
+.accountCard button,
+.notificationLog > header button,
+.notificationLog article > span,
+.notificationLog article p,
+.unsupportedSection article small,
+.unsupportedSection article > button,
+.calendarView > header span,
+.calendarView > header button,
+.calendarCategoryFilter > span,
+.calendarCategoryFilter select,
+.calendarView > footer {
+  font-size: var(--app-type-micro);
+}
+
+.selectAll strong,
+.streamerPickerHeading > strong,
+.streamerPickerHeading button,
+.streamerIndex button,
+.deviceHeading small,
+.accountCard small,
+.accountManagement > header small,
+.settingLinks button,
+.settingLinks a,
+.bottomNav button {
+  font-size: var(--app-type-caption);
+}
+
+.categoryChoices strong,
+.categoryChoices .categoryChoiceSelected strong {
+  font-size: var(--app-type-body);
+}
+.categoryChoices small,
+.categoryChoices .categoryChoiceSelected small {
+  font-size: var(--app-type-micro);
+}
+
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes guide-in { from { opacity: .55; transform: translateX(8px); } }
 .spinning { animation: spin .8s linear infinite; }
@@ -847,6 +981,16 @@
   .guideCaption h3 { font-size: 16px; }
   .guideCaption p { font-size: 11px; }
   .logo small { display: none; }
+}
+
+@media (max-width: 350px) {
+  .appHeader { gap: 5px; padding-inline: 9px; }
+  .brandActions { gap: 5px; }
+  .brandMark { width: 28px; height: 28px; }
+  .logo strong { font-size: 17px; }
+  .refreshButton { width: 30px; height: 30px; }
+  .headerActions { gap: 3px; }
+  .guideButton, .suggestButton { height: 30px; padding-inline: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
