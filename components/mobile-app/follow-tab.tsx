@@ -14,6 +14,7 @@ export function FollowTab({
   user,
   pushActive,
   pushBusy,
+  pushMessage,
   onConnect,
   onChange,
   onOpenStreamer
@@ -23,6 +24,7 @@ export function FollowTab({
   user: AppUser | null;
   pushActive: boolean;
   pushBusy: boolean;
+  pushMessage: string;
   onConnect: () => void;
   onChange: (
     channelId: string,
@@ -64,10 +66,15 @@ export function FollowTab({
         {pushBusy ? <RefreshCw className={styles.spinning} /> : pushActive ? <CheckCircle2 /> : <Bell />}
         <span>
           <strong>{pushActive ? "이 기기 알림 연결됨" : "이 기기에서 알림 받기"}</strong>
-          <small>{pushActive ? "선택한 변경을 푸시로 알려드립니다." : "PWA 앱에서 한 번만 연결하면 됩니다."}</small>
+          <small>{pushActive
+            ? enabledCount > 0
+              ? `선택한 ${enabledCount}명의 변경을 푸시로 알려드립니다.`
+              : "아래에서 알림 받을 스트리머를 하나 이상 선택하세요."
+            : "PWA 앱에서 한 번만 연결하면 됩니다."}</small>
         </span>
         {!pushActive && <ChevronRight />}
       </button>
+      {pushMessage && <p className={styles.followPushMessage}>{pushMessage}</p>}
       <label className={styles.inlineSearch}>
         <Search />
         <input

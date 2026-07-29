@@ -15,6 +15,11 @@ export function usePushSubscription(preferences: PushPreference[]) {
   const [message, setMessage] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(
+    typeof window !== "undefined" && "Notification" in window
+      ? Notification.permission
+      : "unsupported"
+  );
   const pushConfig = useQuery({
     queryKey: ["push-config"],
     queryFn: ({ signal }) => api.pushConfig(signal),
@@ -29,6 +34,17 @@ export function usePushSubscription(preferences: PushPreference[]) {
       if (!cancelled && !browserSubscription) {
         setSubscriptionId("");
         window.localStorage.removeItem(STORAGE_ID);
+        setMessage("기기 알림 연결이 만료되었습니다. 다시 연결해 주세요.");
+        return;
+      }
+      try {
+        await api.pushSubscriptionStatus(subscriptionId);
+      } catch (error) {
+        if (!cancelled && error instanceof Error && error.message === "not_found") {
+          setSubscriptionId("");
+          window.localStorage.removeItem(STORAGE_ID);
+          setMessage("서버의 기기 등록이 만료되었습니다. 알림을 다시 연결해 주세요.");
+        }
       }
     });
     return () => {
@@ -46,18 +62,10 @@ export function usePushSubscription(preferences: PushPreference[]) {
     return () => window.clearTimeout(timer);
   }, [preferences, subscriptionId]);
 
-  async function enable(defaultChannelId?: string) {
+  async function enable() {
     const selected = preferences.filter(
       (item) => item.enabled && (item.categoryChanged || item.titleChanged)
     );
-    if (!selected.length && defaultChannelId) {
-      selected.push({
-        channelId: defaultChannelId,
-        enabled: true,
-        categoryChanged: true,
-        titleChanged: true
-      });
-    }
     if (!selected.length) {
       setMessage("먼저 스트리머와 알림 종류를 선택해 주세요.");
       return false;
@@ -78,6 +86,7 @@ export function usePushSubscription(preferences: PushPreference[]) {
       stage = "기기 권한 요청";
       setMessage("기기 알림 권한을 요청합니다…");
       const permission = await Notification.requestPermission();
+      setPermission(permission);
       if (permission !== "granted") {
         trackEvent("notification_permission_denied");
         setMessage("알림 권한이 꺼져 있습니다. 휴대폰 설정에서 구데기 알림을 허용해 주세요.");
@@ -140,8 +149,14 @@ export function usePushSubscription(preferences: PushPreference[]) {
       await api.testPushSubscription(subscriptionId);
       setMessage("테스트 알림을 보냈습니다. 잠시 후 알림과 로그를 확인해 주세요.");
       return true;
-    } catch {
-      setMessage("테스트 전송에 실패했습니다. 알림을 껐다가 다시 연결해 주세요.");
+    } catch (error) {
+      if (error instanceof Error && error.message === "not_found") {
+        setSubscriptionId("");
+        window.localStorage.removeItem(STORAGE_ID);
+        setMessage("기기 등록이 만료되었습니다. 알림을 다시 연결해 주세요.");
+      } else {
+        setMessage("테스트 전송에 실패했습니다. 알림을 껐다가 다시 연결해 주세요.");
+      }
       return false;
     } finally {
       setTesting(false);
@@ -152,6 +167,7 @@ export function usePushSubscription(preferences: PushPreference[]) {
     active: Boolean(subscriptionId),
     connecting,
     testing,
+    permission,
     message,
     enable,
     disable,

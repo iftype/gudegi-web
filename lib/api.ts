@@ -65,6 +65,8 @@ export const api = {
     mutate<{ data: { sent: number } }>(`/v1/push/subscriptions/${id}/test`, {
       method: "POST"
     }),
+  pushSubscriptionStatus: (id: string, signal?: AbortSignal) =>
+    request<{ data: { active: true } }>(`/v1/push/subscriptions/${id}/status`, signal),
   trackAnalytics: (event: {
     anonymousId: string;
     eventName: AnalyticsEventName;

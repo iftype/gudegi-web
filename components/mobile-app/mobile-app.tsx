@@ -126,7 +126,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
       setGuideOpen(true);
       return;
     }
-    void push.enable(selectedStreamer.channelId);
+    void push.enable();
   }
 
   return (
@@ -147,6 +147,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             user={user}
             pushActive={push.active}
             pushBusy={push.connecting}
+            pushMessage={push.message}
             onConnect={push.active ? () => setTab("settings") : connectPush}
             onChange={preferences.updatePreference}
             onOpenStreamer={openStreamer}
@@ -172,6 +173,10 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             pushActive={push.active}
             pushBusy={push.connecting || push.testing}
             pushMessage={push.message}
+            permission={push.permission}
+            targetCount={preferences.preferences.filter((item) =>
+              item.enabled && (item.categoryChanged || item.titleChanged)
+            ).length}
             logs={pushLogs.logs}
             onEnable={connectPush}
             onDisable={() => void push.disable()}

@@ -91,7 +91,11 @@ type Overview = {
         categoryChangeCount: number;
         titleChangeCount: number;
         latestMetadataEventAt: number | null;
+        pushSubscriptionCount: number;
+        pushPreferenceCount: number;
+        sentNotificationCount: number;
         pendingNotificationCount: number;
+        failedNotificationCount: number;
         appUserCount: number;
         activeUserSessionCount: number;
       };
@@ -574,7 +578,10 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
           <article><span>마지막 변경</span><strong>{relativeTime(rows.latestMetadataEventAt, now)}</strong><small>{formatTime(rows.latestMetadataEventAt)}</small></article>
           <article><span>카테고리 변경</span><strong>{rows.categoryChangeCount.toLocaleString()}</strong><small>누적 감지 건수</small></article>
           <article><span>방제 변경</span><strong>{rows.titleChangeCount.toLocaleString()}</strong><small>누적 감지 건수</small></article>
+          <article><span>알림 기기</span><strong>{rows.pushSubscriptionCount ?? 0}</strong><small>대상 설정 {rows.pushPreferenceCount ?? 0}개</small></article>
+          <article><span>전송 완료</span><strong className={styles.good}>{rows.sentNotificationCount ?? 0}</strong><small>누적 변경 푸시</small></article>
           <article><span>대기 알림</span><strong className={rows.pendingNotificationCount ? styles.warn : styles.good}>{rows.pendingNotificationCount}</strong><small>아직 전송되지 않은 푸시</small></article>
+          <article><span>재시도 알림</span><strong className={rows.failedNotificationCount ? styles.warn : styles.good}>{rows.failedNotificationCount ?? 0}</strong><small>전송 실패 후 재시도 중</small></article>
         </div>
       </section>
 

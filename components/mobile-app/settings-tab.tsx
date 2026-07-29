@@ -24,6 +24,8 @@ export function SettingsTab({
   pushActive,
   pushBusy,
   pushMessage,
+  permission,
+  targetCount,
   logs,
   onEnable,
   onDisable,
@@ -38,6 +40,8 @@ export function SettingsTab({
   pushActive: boolean;
   pushBusy: boolean;
   pushMessage: string;
+  permission: NotificationPermission | "unsupported";
+  targetCount: number;
   logs: PushLogEntry[];
   onEnable: () => void;
   onDisable: () => void;
@@ -60,7 +64,9 @@ export function SettingsTab({
           <span>{pushActive ? <CheckCircle2 /> : <Smartphone />}</span>
           <div>
             <strong>{pushActive ? "알림 연결됨" : installed ? "알림 연결 대기" : "앱 설치 필요"}</strong>
-            <small>{pushActive ? "카테고리·방제 변경을 받을 수 있습니다." : "홈 화면 앱에서 알림을 연결해 주세요."}</small>
+            <small>{pushActive
+              ? `${permissionLabel(permission)} · 알림 대상 ${targetCount}명`
+              : "홈 화면 앱에서 알림을 연결해 주세요."}</small>
           </div>
         </div>
         <div className={styles.deviceActions}>
@@ -113,4 +119,11 @@ export function SettingsTab({
       </div>
     </section>
   );
+}
+
+function permissionLabel(permission: NotificationPermission | "unsupported") {
+  if (permission === "granted") return "휴대폰 권한 허용됨";
+  if (permission === "denied") return "휴대폰 권한 차단됨";
+  if (permission === "default") return "휴대폰 권한 확인 필요";
+  return "푸시 미지원 브라우저";
 }
