@@ -116,6 +116,12 @@ export function usePushSubscription(preferences: PushPreference[]) {
       stage = "브라우저 푸시 등록";
       const applicationServerKey = base64ToUint8Array(configResult.data.publicKey);
       let subscription = await registration.pushManager.getSubscription();
+      // 직전 연결 테스트가 실패하면 서버 ID는 저장되지 않지만 브라우저 구독은
+      // 남을 수 있다. 같은 만료 endpoint를 재사용하지 않고 새로 발급받는다.
+      if (subscription && !subscriptionId) {
+        await subscription.unsubscribe();
+        subscription = null;
+      }
       if (subscription && !applicationServerKeysMatch(
         subscription.options.applicationServerKey,
         applicationServerKey

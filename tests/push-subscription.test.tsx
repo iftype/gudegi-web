@@ -43,6 +43,10 @@ describe("guest push subscription", () => {
     });
 
     const applicationServerKey = Uint8Array.from([1, 2, 3]).buffer;
+    const staleSubscription = {
+      options: { applicationServerKey },
+      unsubscribe: vi.fn().mockResolvedValue(true)
+    } as unknown as PushSubscription;
     const subscription = {
       endpoint: "https://push.example.test/device",
       expirationTime: null,
@@ -58,8 +62,8 @@ describe("guest push subscription", () => {
     const registration = {
       update: vi.fn().mockResolvedValue(undefined),
       pushManager: {
-        getSubscription: vi.fn().mockResolvedValue(subscription),
-        subscribe: vi.fn()
+        getSubscription: vi.fn().mockResolvedValue(staleSubscription),
+        subscribe: vi.fn().mockResolvedValue(subscription)
       }
     } as unknown as ServiceWorkerRegistration;
     Object.defineProperty(navigator, "serviceWorker", {
@@ -95,6 +99,8 @@ describe("guest push subscription", () => {
 
     await waitFor(() => expect(testSubscription).toHaveBeenCalledOnce());
     expect(requestPermission).toHaveBeenCalledOnce();
+    expect(staleSubscription.unsubscribe).toHaveBeenCalledOnce();
+    expect(registration.pushManager.subscribe).toHaveBeenCalledOnce();
     expect(savePreferences).toHaveBeenCalledWith(
       "11111111-1111-4111-8111-111111111111",
       preferences
