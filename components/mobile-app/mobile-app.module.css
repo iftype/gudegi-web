@@ -936,6 +936,20 @@
 }
 
 .followTools { gap: 6px; margin-bottom: 10px; }
+.followListManagement > button,
+.personalListActions button,
+.followImportButton {
+  color: var(--app-text-secondary);
+  background: transparent;
+  border-color: var(--app-line);
+  border-radius: var(--app-radius-control);
+  box-shadow: none;
+}
+.personalListActions button:last-child {
+  color: var(--app-green);
+  background: rgb(42 193 188 / 8%);
+  border-color: rgb(42 193 188 / 30%);
+}
 .app .inlineSearch,
 .app .selectAll,
 .app .allCategoryFilterButton {
