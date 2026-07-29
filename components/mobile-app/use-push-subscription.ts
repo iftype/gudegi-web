@@ -260,10 +260,15 @@ function pushErrorMessage(error: unknown) {
     return "서버 응답이 없습니다. 잠시 후 다시 시도해 주세요.";
   }
   if (error instanceof Error && error.message === "push_delivery_failed") {
-    const statusCode = (error as Error & { failureStatusCode?: number }).failureStatusCode;
+    const diagnostic = error as Error & {
+      failureStatusCode?: number;
+      failureCode?: string;
+    };
+    const statusCode = diagnostic.failureStatusCode;
+    const failureCode = diagnostic.failureCode || "unknown_push_error";
     return statusCode
       ? `휴대폰 푸시 제공자가 전송을 거절했습니다(${statusCode}). 다시 연결해 주세요.`
-      : "휴대폰 푸시 제공자가 전송을 거절했습니다. 다시 연결해 주세요.";
+      : `푸시 암호화 준비 중 실패했습니다(진단: ${failureCode}). 다시 연결해 주세요.`;
   }
   return "앱을 완전히 닫았다가 다시 열어 주세요.";
 }

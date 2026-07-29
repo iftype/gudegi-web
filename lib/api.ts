@@ -24,14 +24,15 @@ async function mutate<T>(path: string, init: RequestInit): Promise<T> {
   if (!response.ok) {
     const payload = await response.json().catch(() => null) as {
       error?: string;
-      data?: { failureStatusCode?: number };
+      data?: { failureStatusCode?: number; failureCode?: string };
     } | null;
     const error = new Error(
       response.status === 404 ? "not_found" : payload?.error ?? "api_unavailable"
     );
     Object.assign(error, {
       status: response.status,
-      failureStatusCode: payload?.data?.failureStatusCode
+      failureStatusCode: payload?.data?.failureStatusCode,
+      failureCode: payload?.data?.failureCode
     });
     throw error;
   }
