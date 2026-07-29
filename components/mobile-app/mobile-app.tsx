@@ -2,7 +2,6 @@
 
 import {
   CircleHelp,
-  CloudDownload,
   Heart,
   MessageSquarePlus,
   RefreshCw,
@@ -188,7 +187,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
           ><RefreshCw /></button>
         </div>
         <div className={styles.headerActions}>
-          {!user && <button className={styles.importButton} onClick={() => void startLogin()}><CloudDownload /><span>팔로우 불러오기</span></button>}
           <button className={styles.suggestButton} onClick={() => setSuggestionType("idea")}><MessageSquarePlus /><span>제안</span></button>
           <button className={styles.guideButton} onClick={() => {
             trackEvent("pwa_guide_opened");

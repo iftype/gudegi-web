@@ -48,25 +48,8 @@
 .suggestButton { height: 29px; display: flex; flex: 0 0 auto; align-items: center; gap: 3px; padding: 0 6px; color: #bfc6d8; background: #171b25; border: 1px solid #343b4d; border-radius: 9px; font-size: 8px; font-weight: 700; line-height: 1; white-space: nowrap; }
 .suggestButton svg { width: 11px; }
 .headerActions { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; }
-.headerActions .importButton {
-  height: 29px;
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 4px;
-  padding: 0 6px;
-  color: #dededb;
-  background: rgb(28 28 30 / 72%);
-  border: 1px solid var(--app-line);
-  border-radius: 10px;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-}
 .headerActions button svg { width: 14px; }
 .headerActions .guideButton { color: #bbbcb8; background: rgb(28 28 30 / 72%); border-color: var(--app-line); }
-.headerActions .importButton { color: #e4e4e1; background: rgb(28 28 30 / 72%); border-color: var(--app-line); }
 .headerActions .loginButton { color: #08120c; background: var(--app-green); border-color: var(--app-green); font-weight: 800; }
 .userButton > span { display: grid; place-items: center; width: 20px; height: 20px; color: #07110c; background: var(--app-green); border-radius: 50%; font-size: 11px; font-weight: 800; }
 
@@ -128,11 +111,9 @@
 .followPushBanner strong { font-size: 13px; }
 .followPushBanner small { color: #7e8594; font-size: 10px; }
 .followPushBannerAttention {
-  background: linear-gradient(110deg, #181b1d 20%, #273027 48%, #181b1d 76%);
-  background-size: 220% 100%;
+  background: #202720;
   border-color: #566956;
   box-shadow: 0 0 0 1px rgb(215 255 102 / 8%), 0 0 18px rgb(215 255 102 / 8%);
-  animation: install-attention 2.4s ease-in-out infinite;
 }
 .followPushBannerAttention > svg:first-child { color: var(--app-lime); }
 .followImportButton { width: 100%; min-height: 31px; display: flex; align-items: center; justify-content: center; gap: 4px; margin: -1px 0 9px; color: #aeb7ca; background: #141822; border: 1px solid #30394d; border-radius: 9px; font-size: 8px; font-weight: 700; }
@@ -720,10 +701,6 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes guide-in { from { opacity: .55; transform: translateX(8px); } }
-@keyframes install-attention {
-  0%, 100% { background-position: 100% 0; box-shadow: 0 0 0 1px rgb(215 255 102 / 6%), 0 0 12px rgb(215 255 102 / 6%); }
-  50% { background-position: 0 0; box-shadow: 0 0 0 1px rgb(215 255 102 / 15%), 0 0 22px rgb(215 255 102 / 13%); }
-}
 .spinning { animation: spin .8s linear infinite; }
 
 @media (min-width: 700px) {

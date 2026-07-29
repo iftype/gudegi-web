@@ -59,7 +59,7 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [streamers, user]);
+  }, [user]);
 
   const preferences = useMemo(() => {
     const byChannel = new Map(stored.map((item) => [item.channelId, item]));

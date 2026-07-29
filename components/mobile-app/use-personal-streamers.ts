@@ -21,6 +21,10 @@ export function usePersonalStreamers(streamers: Streamer[], user: AppUser | null
   const [channelIds, setChannelIds] = useState<string[]>([]);
   const [unsupported, setUnsupported] = useState<UnsupportedStreamerRequest[]>([]);
   const [ready, setReady] = useState(false);
+  const availableChannelIds = useMemo(
+    () => streamers.map((streamer) => streamer.channelId).sort().join(","),
+    [streamers]
+  );
 
   const load = useCallback(async () => {
     setReady(false);
@@ -29,7 +33,7 @@ export function usePersonalStreamers(streamers: Streamer[], user: AppUser | null
         const result = await authApi.myStreamers();
         let supported = result.data.supported;
         if (window.localStorage.getItem(STREAMER_IMPORT_KEY) === "1") {
-          const available = new Set(streamers.map((streamer) => streamer.channelId));
+          const available = new Set(availableChannelIds.split(",").filter(Boolean));
           const guest = readJson<string[]>(STORAGE_KEY, []).filter((channelId) => available.has(channelId));
           supported = [...new Set([...supported, ...guest])];
           await authApi.saveMyStreamers(supported);
@@ -57,7 +61,7 @@ export function usePersonalStreamers(streamers: Streamer[], user: AppUser | null
     }
     setUnsupported(readJson<UnsupportedStreamerRequest[]>(UNSUPPORTED_KEY, []));
     setReady(true);
-  }, [streamers, user]);
+  }, [availableChannelIds, user]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
