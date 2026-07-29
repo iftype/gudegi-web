@@ -22,7 +22,18 @@ async function mutate<T>(path: string, init: RequestInit): Promise<T> {
     headers: { "content-type": "application/json", ...init.headers }
   });
   if (!response.ok) {
-    throw new Error(response.status === 404 ? "not_found" : "api_unavailable");
+    const payload = await response.json().catch(() => null) as {
+      error?: string;
+      data?: { failureStatusCode?: number };
+    } | null;
+    const error = new Error(
+      response.status === 404 ? "not_found" : payload?.error ?? "api_unavailable"
+    );
+    Object.assign(error, {
+      status: response.status,
+      failureStatusCode: payload?.data?.failureStatusCode
+    });
+    throw error;
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
