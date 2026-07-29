@@ -5,7 +5,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "nng-phinf.pstatic.net" }
+      { protocol: "https", hostname: "nng-phinf.pstatic.net" },
+      { protocol: "https", hostname: "ssl.pstatic.net" }
     ],
     formats: ["image/avif", "image/webp"]
   },
