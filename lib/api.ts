@@ -17,9 +17,13 @@ async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
 }
 
 async function mutate<T>(path: string, init: RequestInit): Promise<T> {
+  const headers = new Headers(init.headers);
+  if (init.body != null && !headers.has("content-type")) {
+    headers.set("content-type", "application/json");
+  }
   const response = await fetch(`${API_URL}${path.replace(/^\/v1/, "")}`, {
     ...init,
-    headers: { "content-type": "application/json", ...init.headers }
+    headers
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null) as {
