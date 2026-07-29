@@ -69,6 +69,10 @@ describe("mobile-first entry and guidance", () => {
 
     const names = screen.getAllByText(/스트리머$/).map((element) => element.textContent);
     expect(names).toEqual(["라이브 스트리머", "오프라인 스트리머"]);
+    const followHeader = screen.getByRole("heading", { name: "알림 관리" }).closest("header");
+    expect(followHeader).toContainElement(
+      screen.getByRole("button", { name: "기기 알림 연결됨" })
+    );
     fireEvent.click(screen.getByRole("button", { name: "라이브 스트리머 알림 받기" }));
     expect(onChange).toHaveBeenCalledWith(streamers[0]!.channelId, "enabled", true);
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();

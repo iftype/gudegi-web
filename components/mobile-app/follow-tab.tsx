@@ -83,24 +83,23 @@ export function FollowTab({
 
   return (
     <section className={styles.tabScroll}>
-      <header className={styles.tabIntro}>
-        <span>MY ALERTS</span>
-        <h1>알림 관리</h1>
-        <p>{user
-          ? `계정에 저장한 ${enabledCount}명의 카테고리 알림을 관리합니다.`
-          : `이 기기에 저장한 ${enabledCount}명의 카테고리 알림을 관리합니다.`}</p>
+      <header className={`${styles.tabIntro} ${styles.followIntro}`}>
+        <div className={styles.followIntroCopy}>
+          <span>MY ALERTS</span>
+          <h1>알림 관리</h1>
+          <p>{user
+            ? `계정에 저장한 ${enabledCount}명의 카테고리 알림을 관리합니다.`
+            : `이 기기에 저장한 ${enabledCount}명의 카테고리 알림을 관리합니다.`}</p>
+        </div>
+        <button
+          className={`${styles.followPushBanner} ${!pushActive ? styles.followPushBannerAttention : ""}`}
+          disabled={pushBusy}
+          onClick={onConnect}
+        >
+          {pushBusy ? <RefreshCw className={styles.spinning} /> : pushActive ? <CheckCircle2 /> : <Bell />}
+          <strong>{pushActive ? "기기 알림 연결됨" : "이 기기에서 알림 받기"}</strong>
+        </button>
       </header>
-      <button className={`${styles.followPushBanner} ${!pushActive ? styles.followPushBannerAttention : ""}`} disabled={pushBusy} onClick={onConnect}>
-        {pushBusy ? <RefreshCw className={styles.spinning} /> : pushActive ? <CheckCircle2 /> : <Bell />}
-        <span>
-          <strong>{pushActive ? "이 기기 알림 연결됨" : "이 기기에서 알림 받기"}</strong>
-          <small>{pushActive
-            ? enabledCount > 0
-              ? `선택한 ${enabledCount}명이 원하는 카테고리로 방송하면 알려드려요.`
-              : "아래에서 알림 받을 스트리머를 선택하세요."
-            : "PWA 앱에서 한 번만 연결하면 됩니다."}</small>
-        </span>
-      </button>
       {pushMessage && <p className={styles.followPushMessage}>{pushMessage}</p>}
       {(!user || streamers.length > 0) && (
         <div className={styles.followListManagement}>
