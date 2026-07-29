@@ -108,6 +108,13 @@ describe("mobile-first entry and guidance", () => {
       .toBeInTheDocument();
     expect(screen.getByRole("button", { name: "라이브 스트리머 카테고리 선택" }))
       .toBeInTheDocument();
+    const alertButton = screen.getByRole("button", { name: "라이브 스트리머 알림 받기" });
+    const categoryButton = screen.getByRole("button", { name: "라이브 스트리머 카테고리 선택" });
+    const deleteButton = screen.getByRole("button", {
+      name: "라이브 스트리머 알림 목록에서 삭제"
+    });
+    expect(alertButton.parentElement).toBe(categoryButton.parentElement);
+    expect(categoryButton.parentElement).toBe(deleteButton.parentElement);
     expect(screen.getAllByText("전체 카테고리")).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))

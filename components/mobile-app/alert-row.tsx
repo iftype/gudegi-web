@@ -53,12 +53,6 @@ export function AlertRow({
             ? <><Radio /> {streamer.currentCategory || "카테고리 확인 중"}</>
             : `팔로워 순위 #${streamer.trackingRank ?? "-"}`}</small>
         </span>
-        {onRemove && <button
-          type="button"
-          className={styles.rowDeleteIcon}
-          aria-label={`${streamer.channelName} 알림 목록에서 삭제`}
-          onClick={() => onRemove(streamer.channelId)}
-        ><Trash2 /></button>}
         <div className={styles.rowAlertControls}>
           <button
             type="button"
@@ -68,7 +62,6 @@ export function AlertRow({
             onClick={() => onChange(streamer.channelId, "enabled", !preference.enabled)}
           >
             <Bell />
-            <span>알림 받기</span>
             <i aria-hidden="true" />
           </button>
           <button
@@ -80,6 +73,15 @@ export function AlertRow({
             <ListFilter />
             카테고리
           </button>
+          {onRemove && <button
+            type="button"
+            className={styles.rowDeleteIcon}
+            aria-label={`${streamer.channelName} 알림 목록에서 삭제`}
+            onClick={() => onRemove(streamer.channelId)}
+          >
+            <Trash2 />
+            삭제
+          </button>}
         </div>
         <div className={styles.rowCategoryTags} aria-label={`${streamer.channelName} 선택 카테고리`}>
           {tags.map((tag) => <span key={tag.key}>{tag.label}</span>)}

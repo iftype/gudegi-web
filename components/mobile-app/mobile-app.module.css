@@ -148,7 +148,7 @@
   position: relative;
   min-height: 122px;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 9px;
   padding: 10px;
@@ -173,10 +173,6 @@
 .followCopy small { display: flex; align-items: center; gap: 4px; overflow: hidden; color: #838a96; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .followCopy small svg { width: 10px; color: #ff7085; }
 .rowDeleteIcon {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
   padding: 0;
   color: #8b6670;
   background: #1c1619;
@@ -187,7 +183,7 @@
 .rowAlertControls {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(76px, .75fr) minmax(108px, 1fr) minmax(64px, .65fr);
   gap: 6px;
 }
 .rowAlertControls button {
@@ -209,7 +205,6 @@
   position: relative;
   width: 28px;
   height: 17px;
-  margin-left: auto;
   background: #343944;
   border-radius: 99px;
 }
@@ -232,6 +227,7 @@
 .rowAlarmToggleActive > i { background: var(--app-green); }
 .rowAlarmToggleActive > i::after { background: #0b0d11; transform: translateX(11px); }
 .rowCategoryButton { color: #d9dde6 !important; }
+.rowAlertControls .rowDeleteIcon { color: #b88a94; background: #21171a; border-color: #503038; }
 .rowCategoryTags, .detailCategoryTags {
   grid-column: 1 / -1;
   display: flex;
