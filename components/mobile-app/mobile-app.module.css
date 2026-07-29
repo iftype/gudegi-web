@@ -818,14 +818,17 @@
 
 /* Sharper mobile UI system: reserve full rounding for avatars and switches. */
 .app {
-  --app-radius-card: 6px;
-  --app-radius-control: 4px;
+  --app-radius-card: 0;
+  --app-radius-control: 0;
   --app-type-micro: 10px;
   --app-type-caption: 11px;
   --app-type-body: 13px;
+  --app-flat-panel: #171719;
+  --app-flat-line: #343438;
 }
 
 .app button,
+.app a,
 .app input,
 .app textarea,
 .app select {
@@ -855,7 +858,30 @@
 }
 
 .sheet {
-  border-radius: 8px 8px 0 0;
+  border-radius: 0;
+}
+
+.inlineSearch,
+.selectAll,
+.streamerPickerHeading > div,
+.categoryFilterTools label,
+.pickerTools label,
+.suggestionTypes,
+.compactCalendar > div,
+.currentTitle,
+.detailAlertHint,
+.statusCard,
+.categoryFocus,
+.homeAlertCta,
+.streamerChoices > button,
+.choiceName em,
+.choiceCheck,
+.shotApp .shotLogo,
+.shotAction,
+.compactCalendar .broadcastDay > span,
+.compactCalendar .broadcastDay b,
+.compactCalendar .calendarCategory {
+  border-radius: 0;
 }
 
 .categoryFilterTools > button > i,
@@ -865,7 +891,7 @@
 .quickGrid button > span,
 .switchIcon,
 .deviceHeading > span {
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 .categoryFilterTools .categoryFilterSelected,
@@ -879,12 +905,24 @@
   color: #fff;
   background: #15974f;
   border: 1px solid #62e99a;
+  border-radius: 0;
 }
 
 .categoryFilterTools .categoryFilterSelected > i svg,
 .categoryChoiceSelected > i svg {
   stroke-width: 3;
 }
+
+.choiceCheck {
+  color: #fff;
+  background: #15974f;
+  border: 1px solid #62e99a;
+}
+.choiceCheck:empty {
+  background: #242a27;
+  border-color: #3b4640;
+}
+.choiceCheck svg { stroke-width: 3; }
 
 .logo strong { font-size: 18px; line-height: 1.1; }
 .logo small { font-size: var(--app-type-caption); white-space: nowrap; }
@@ -897,6 +935,30 @@
 .guideButton svg,
 .suggestButton svg { width: 12px; }
 .headerActions button span { white-space: nowrap; }
+
+.inlineSearch input::placeholder,
+.categoryFilterTools input::placeholder,
+.pickerTools input::placeholder,
+.suggestionForm input::placeholder,
+.suggestionForm textarea::placeholder {
+  color: #777d87;
+  font-size: var(--app-type-body);
+  opacity: 1;
+}
+
+.selectAll {
+  min-height: 44px;
+  white-space: nowrap;
+}
+.selectAll > span {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.allCategoryFilterButton {
+  font-size: var(--app-type-caption);
+  white-space: nowrap;
+}
 
 .tabIntro > span,
 .sheetHeader span,
@@ -948,6 +1010,37 @@
 .categoryChoices small,
 .categoryChoices .categoryChoiceSelected small {
   font-size: var(--app-type-micro);
+}
+.choiceName strong { font-size: var(--app-type-body); }
+.choiceName small,
+.choiceName em { font-size: var(--app-type-micro); }
+
+.alertRow,
+.streamerIndex > article,
+.streamerDetail,
+.vodSection,
+.deviceCard,
+.accountCard,
+.accountManagement,
+.notificationLog,
+.apiNotice,
+.followPushBanner,
+.inlineSearch,
+.selectAll,
+.calendarView,
+.quickGrid button,
+.alertOptions label {
+  background: var(--app-flat-panel);
+  border-color: var(--app-flat-line);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.bottomNav {
+  background: #121214;
+  border-color: var(--app-flat-line);
+  box-shadow: none;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
