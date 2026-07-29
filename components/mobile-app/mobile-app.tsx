@@ -233,7 +233,10 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
               checked
             )}
             unsupportedRequests={personal.unsupported}
-            onAddToAlerts={personal.add}
+            onAddToAlerts={(channelId) => {
+              personal.add(channelId);
+              preferences.updatePreference(channelId, "categoryChanged", true);
+            }}
             onRemoveFromAlerts={personal.remove}
             onSuggest={() => setSuggestionType("streamer_request")}
             onSuggestUnsupported={async (streamerName) => {

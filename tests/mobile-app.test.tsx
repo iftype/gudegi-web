@@ -220,7 +220,7 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.queryByRole("button", { name: "방제" })).not.toBeInTheDocument();
   });
 
-  it("shows different Android and iPhone installation steps", () => {
+  it("shows the detected platform guide without platform navigation or redundant notice", () => {
     const onClose = vi.fn();
     const onEnable = vi.fn();
     render(
@@ -234,7 +234,9 @@ describe("mobile-first entry and guidance", () => {
       />
     );
     expect(screen.getByText("삼성 브라우저에서 열기")).toBeInTheDocument();
-    expect(screen.getByText(/삼성 인터넷으로 열어야/)).toBeInTheDocument();
+    expect(screen.getByText(/삼성 브라우저에서 열기.*선택하세요/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "iPhone" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/화살표를 직접 눌러/)).not.toBeInTheDocument();
     expect(screen.getByAltText("삼성 브라우저에서 열기 실제 기기 화면")).toHaveAttribute(
       "src",
       expect.stringContaining("samsung-5.jpg")
@@ -255,13 +257,24 @@ describe("mobile-first entry and guidance", () => {
       "src",
       expect.stringContaining("samsung-7.jpg")
     );
-    fireEvent.click(screen.getByRole("button", { name: "iPhone" }));
+
+    cleanup();
+    render(
+      <GuideSheet
+        initialPlatform="ios"
+        canPrompt={false}
+        installed={false}
+        onInstall={async () => false}
+        onEnable={onEnable}
+        onClose={onClose}
+      />
+    );
     expect(screen.getByText("Safari 메뉴에서 공유")).toBeInTheDocument();
     expect(screen.getByAltText("Safari 메뉴에서 공유 실제 기기 화면")).toHaveAttribute(
       "src",
       expect.stringContaining("iphone-1.jpg")
     );
-    expect(screen.getByText(/기본 Safari로 열어야/)).toBeInTheDocument();
+    expect(screen.queryByText(/기본 Safari로 열어야 설치할 수 있어요/)).not.toBeInTheDocument();
     fireEvent.pointerDown(screen.getByTestId("guide-carousel"), { clientX: 120, clientY: 120 });
     fireEvent.pointerUp(screen.getByTestId("guide-carousel"), { clientX: 20, clientY: 120 });
     expect(screen.getByText("Safari 메뉴에서 공유")).toBeInTheDocument();

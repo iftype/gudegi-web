@@ -102,9 +102,7 @@ export function GuideSheet({
   onEnable: () => void;
   onClose: () => void;
 }) {
-  const [platform, setPlatform] = useState<"android" | "ios">(
-    initialPlatform === "ios" ? "ios" : "android"
-  );
+  const platform = initialPlatform === "ios" ? "ios" : "android";
   const [stepIndex, setStepIndex] = useState(0);
   const steps = guides[platform];
   const step = steps[stepIndex]!;
@@ -123,28 +121,6 @@ export function GuideSheet({
           <div><span>QUICK START</span><h2>설치 및 사용 방법</h2></div>
           <button type="button" onClick={onClose} aria-label="닫기"><X /></button>
         </header>
-        <div className={styles.platformTabs}>
-          <button type="button" className={platform === "android" ? styles.platformActive : ""} onClick={() => {
-            setPlatform("android");
-            setStepIndex(0);
-          }}>Samsung</button>
-          <button type="button" className={platform === "ios" ? styles.platformActive : ""} onClick={() => {
-            setPlatform("ios");
-            setStepIndex(0);
-          }}>iPhone</button>
-        </div>
-        <div className={styles.guideNotice}>
-          {installed ? <Check /> : <BellRing />}
-          <div>
-            <strong>{installed
-              ? "앱으로 실행 중입니다"
-              : platform === "android"
-                ? "삼성 인터넷으로 열어야 설치할 수 있어요"
-                : "기본 Safari로 열어야 설치할 수 있어요"}</strong>
-            <p>화살표를 직접 눌러 설치 순서를 확인하세요. 단계는 자동으로 넘어가지 않습니다.</p>
-          </div>
-        </div>
-
         <div className={styles.guideNavigation}>
           <button
             type="button"
