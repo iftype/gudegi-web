@@ -108,6 +108,7 @@ describe("mobile-first entry and guidance", () => {
 
   it("shows unsupported personal streamers separately and routes them to suggestions", () => {
     const onSuggest = vi.fn();
+    const onSuggestUnsupported = vi.fn().mockResolvedValue(undefined);
     render(
       <FollowTab
         streamers={[]}
@@ -128,11 +129,14 @@ describe("mobile-first entry and guidance", () => {
           requestedAt: Date.now()
         }]}
         onSuggest={onSuggest}
+        onSuggestUnsupported={onSuggestUnsupported}
       />
     );
 
     expect(screen.getByText("아직 미지원")).toBeInTheDocument();
-    expect(screen.getByText("제안 완료 · 현재 미지원")).toBeInTheDocument();
+    expect(screen.getByText("현재 수집하지 않아 미지원")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "수집 제안" }));
+    expect(onSuggestUnsupported).toHaveBeenCalledWith("아직 미지원");
     fireEvent.click(screen.getByRole("button", { name: "다른 스트리머 제안하기" }));
     expect(onSuggest).toHaveBeenCalledOnce();
   });
@@ -203,6 +207,10 @@ describe("mobile-first entry and guidance", () => {
       </QueryClientProvider>
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    const streamerSearch = screen.getByPlaceholderText("스트리머 검색 후 알림 추가");
+    fireEvent.change(streamerSearch, { target: { value: "오프라인" } });
+    expect(screen.queryByText("라이브 스트리머")).not.toBeInTheDocument();
+    expect(screen.getByText("오프라인 스트리머")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "오프라인 스트리머 상세 보기" }));
     expect(onSelect).toHaveBeenCalledWith(streamers[1]!.channelId);
     expect(await screen.findByText("방송일 1일 · 다시보기 0개")).toBeInTheDocument();

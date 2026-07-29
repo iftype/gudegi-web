@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeft, BellPlus, CalendarDays, Check, ExternalLink, Film, Radio, Send, X } from "lucide-react";
+import { ArrowLeft, BellPlus, CalendarDays, Check, ExternalLink, Film, Radio, Search, Send, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import type { PushPreference, Streamer } from "@/lib/types";
 import { AlertToggleGrid } from "./alert-toggle-grid";
@@ -21,7 +21,8 @@ export function StreamersTab({
   unsupportedRequests = [],
   onAddToAlerts,
   onRemoveFromAlerts,
-  onSuggest = () => undefined
+  onSuggest = () => undefined,
+  onSuggestUnsupported = async () => undefined
 }: {
   streamers: Streamer[];
   selected: Streamer;
@@ -36,8 +37,10 @@ export function StreamersTab({
   onAddToAlerts: (channelId: string) => void;
   onRemoveFromAlerts: (channelId: string) => void;
   onSuggest?: () => void;
+  onSuggestUnsupported?: (streamerName: string) => Promise<void>;
 }) {
   const [liveOnly, setLiveOnly] = useState(false);
+  const [query, setQuery] = useState("");
   const [detailOpen, setDetailOpen] = useState(false);
   const broadcasts = useQuery({
     queryKey: ["streamer-broadcasts", selected.channelId],
@@ -46,7 +49,13 @@ export function StreamersTab({
     enabled: detailOpen
   });
   const liveStreamers = streamers.filter((streamer) => streamer.isLive);
-  const selection = liveOnly ? liveStreamers : streamers;
+  const selection = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    return streamers.filter((streamer) => (
+      (!liveOnly || streamer.isLive)
+      && (!normalized || streamer.channelName.toLowerCase().includes(normalized))
+    ));
+  }, [liveOnly, query, streamers]);
   const selectedInAlerts = personalChannelIds.includes(selected.channelId);
 
   if (!detailOpen) {
@@ -57,6 +66,14 @@ export function StreamersTab({
           <h1>스트리머</h1>
           <p>수집 중인 스트리머를 보고 내 알림 목록에 바로 추가하세요.</p>
         </header>
+        <label className={`${styles.inlineSearch} ${styles.streamerSearch}`}>
+          <Search />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="스트리머 검색 후 알림 추가"
+          />
+        </label>
         <div className={styles.streamerPickerHeading}>
           <strong>{liveOnly ? `방송 중 ${liveStreamers.length}명` : `전체 ${streamers.length}명`}</strong>
           <div>
@@ -105,13 +122,19 @@ export function StreamersTab({
               </div>
             </article>
           )) : streamers.length > 0
-            ? <p className={styles.emptyLive}>현재 방송 중인 스트리머가 없습니다.</p>
+            ? <p className={styles.emptyLive}>{query.trim()
+                ? "검색 결과가 없습니다."
+                : "현재 방송 중인 스트리머가 없습니다."}</p>
             : null}
         </div>
         <div className={styles.personalListActions}>
           <button onClick={onSuggest}><Send />원하는 스트리머 제안하기</button>
         </div>
-        <UnsupportedList requests={unsupportedRequests} onSuggest={onSuggest} />
+        <UnsupportedList
+          requests={unsupportedRequests}
+          onSuggest={onSuggest}
+          onSuggestUnsupported={onSuggestUnsupported}
+        />
       </section>
     );
   }

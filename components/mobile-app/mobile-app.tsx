@@ -14,13 +14,13 @@ import { useEffect, useMemo, useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
 import { authApi, type AppUser } from "@/lib/auth-api";
 import { trackEvent } from "@/lib/analytics";
+import { api } from "@/lib/api";
 import type { Streamer } from "@/lib/types";
 import { FollowTab } from "./follow-tab";
 import { GuideSheet } from "./guide-sheet";
 import { OnboardingGate } from "./onboarding-gate";
 import { SettingsTab } from "./settings-tab";
 import { StreamersTab } from "./streamers-tab";
-import { StreamerPickerSheet } from "./streamer-picker-sheet";
 import { SuggestionSheet } from "./suggestion-sheet";
 import { useMobilePreferences } from "./use-mobile-preferences";
 import { PREFERENCE_IMPORT_KEY } from "./use-mobile-preferences";
@@ -40,7 +40,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   const [tab, setTab] = useState<AppTab>("follow");
   const [guideOpen, setGuideOpen] = useState(false);
   const [suggestionType, setSuggestionType] = useState<"idea" | "streamer_request" | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [entryReady, setEntryReady] = useState(false);
   const [guestMode, setGuestMode] = useState(false);
   const [logoutBusy, setLogoutBusy] = useState(false);
@@ -140,11 +139,13 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   async function logout() {
     setLogoutBusy(true);
     setLogoutMessage("");
+    window.localStorage.setItem("gudegi-entry-mode", "guest");
+    window.localStorage.setItem(TAB_STORAGE_KEY, "settings");
+    setGuestMode(true);
+    setTab("settings");
+    queryClient.setQueryData(["app-session"], null);
     try {
       await authApi.logout();
-      window.localStorage.setItem("gudegi-entry-mode", "guest");
-      window.localStorage.setItem(TAB_STORAGE_KEY, "settings");
-      setGuestMode(true);
       queryClient.clear();
       window.location.replace(`/?logged_out=${Date.now()}`);
     } catch {
@@ -208,11 +209,15 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onConnect={push.active ? () => selectTab("settings") : connectPush}
             onChange={preferences.updatePreference}
             onChangeAll={(checked) => preferences.updateAll(checked, personal.channelIds)}
-            onAdd={() => setPickerOpen(true)}
+            onAdd={() => selectTab("streamers")}
+            onImport={() => void startLogin()}
             onClearAll={() => void resetAlertList()}
             onRemove={personal.remove}
             unsupportedRequests={personal.unsupported}
             onSuggest={() => setSuggestionType("streamer_request")}
+            onSuggestUnsupported={async (streamerName) => {
+              await api.submitFeedback({ category: "streamer_request", streamerName });
+            }}
           />
         )}
         {tab === "streamers" && (
@@ -231,6 +236,9 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onAddToAlerts={personal.add}
             onRemoveFromAlerts={personal.remove}
             onSuggest={() => setSuggestionType("streamer_request")}
+            onSuggestUnsupported={async (streamerName) => {
+              await api.submitFeedback({ category: "streamer_request", streamerName });
+            }}
           />
         )}
         {tab === "settings" && (
@@ -275,14 +283,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             window.localStorage.setItem(GUIDE_SEEN_KEY, "1");
             setGuideOpen(false);
           }}
-        />
-      )}
-      {pickerOpen && (
-        <StreamerPickerSheet
-          streamers={streamers.filter((streamer) => !personal.channelIds.includes(streamer.channelId))}
-          selectedChannelId=""
-          onSelect={personal.add}
-          onClose={() => setPickerOpen(false)}
         />
       )}
       {suggestionType && (

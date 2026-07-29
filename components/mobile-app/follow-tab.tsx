@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, CheckCircle2, Plus, RefreshCw, Search, Send, Trash2 } from "lucide-react";
+import { Bell, CheckCircle2, CloudDownload, Plus, RefreshCw, Search, Send, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AppUser } from "@/lib/auth-api";
 import type { PushPreference, Streamer } from "@/lib/types";
@@ -19,10 +19,12 @@ export function FollowTab({
   onChange,
   onChangeAll,
   onAdd = () => undefined,
+  onImport = () => undefined,
   onClearAll = () => undefined,
   onRemove,
   unsupportedRequests = [],
-  onSuggest = () => undefined
+  onSuggest = () => undefined,
+  onSuggestUnsupported = async () => undefined
 }: {
   streamers: Streamer[];
   preferences: PushPreference[];
@@ -38,10 +40,12 @@ export function FollowTab({
   ) => void;
   onChangeAll: (checked: boolean) => void;
   onAdd?: () => void;
+  onImport?: () => void;
   onClearAll?: () => void;
   onRemove?: (channelId: string) => void;
   unsupportedRequests?: import("@/lib/types").UnsupportedStreamerRequest[];
   onSuggest?: () => void;
+  onSuggestUnsupported?: (streamerName: string) => Promise<void>;
 }) {
   const [query, setQuery] = useState("");
   const preferenceByChannel = useMemo(
@@ -63,7 +67,7 @@ export function FollowTab({
           ? `계정에 저장한 ${enabledCount}명의 카테고리 변경 알림을 관리합니다.`
           : `이 기기에 저장한 ${enabledCount}명의 카테고리 변경 알림을 관리합니다.`}</p>
       </header>
-      <button className={styles.followPushBanner} disabled={pushBusy} onClick={onConnect}>
+      <button className={`${styles.followPushBanner} ${!pushActive ? styles.followPushBannerAttention : ""}`} disabled={pushBusy} onClick={onConnect}>
         {pushBusy ? <RefreshCw className={styles.spinning} /> : pushActive ? <CheckCircle2 /> : <Bell />}
         <span>
           <strong>{pushActive ? "이 기기 알림 연결됨" : "이 기기에서 알림 받기"}</strong>
@@ -74,6 +78,11 @@ export function FollowTab({
             : "PWA 앱에서 한 번만 연결하면 됩니다."}</small>
         </span>
       </button>
+      {!user && (
+        <button className={styles.followImportButton} onClick={onImport}>
+          <CloudDownload />팔로우 불러오기
+        </button>
+      )}
       {pushMessage && <p className={styles.followPushMessage}>{pushMessage}</p>}
       <div className={styles.followTools}>
         <label className={styles.inlineSearch}>
@@ -118,7 +127,11 @@ export function FollowTab({
         <button onClick={onAdd}><Plus />알림 목록에 추가</button>
         <button onClick={onSuggest}><Send />스트리머 제안</button>
       </div>
-      <UnsupportedList requests={unsupportedRequests} onSuggest={onSuggest} />
+      <UnsupportedList
+        requests={unsupportedRequests}
+        onSuggest={onSuggest}
+        onSuggestUnsupported={onSuggestUnsupported}
+      />
     </section>
   );
 }
