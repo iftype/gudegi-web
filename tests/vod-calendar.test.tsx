@@ -94,6 +94,7 @@ describe("VodCalendarExperience", () => {
     );
 
     const more = await screen.findByRole("button", { name: "4개 방송 모두 보기" });
+    expect(screen.getAllByText("게임").length).toBeGreaterThan(0);
     fireEvent.click(more);
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getAllByRole("link")).toHaveLength(4);

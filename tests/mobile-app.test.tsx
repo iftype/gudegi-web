@@ -45,6 +45,7 @@ describe("mobile-first entry and guidance", () => {
   it("keeps ranking order while toggling alerts and supports select all", () => {
     const onChange = vi.fn();
     const onChangeAll = vi.fn();
+    const onDelete = vi.fn();
     render(
       <FollowTab
         streamers={streamers}
@@ -59,15 +60,54 @@ describe("mobile-first entry and guidance", () => {
         onConnect={() => undefined}
         onChange={onChange}
         onChangeAll={onChangeAll}
+        onDelete={onDelete}
       />
     );
 
     const names = screen.getAllByText(/스트리머$/).map((element) => element.textContent);
     expect(names).toEqual(["라이브 스트리머", "오프라인 스트리머"]);
-    fireEvent.click(screen.getByRole("checkbox", { name: /라이브 스트리머 알림/ }));
-    expect(onChange).toHaveBeenCalledWith(streamers[0]!.channelId, "enabled", true);
+    fireEvent.click(screen.getByRole("button", { name: /라이브 스트리머 카테고리 변경 알림/ }));
+    expect(onChange).toHaveBeenCalledWith(streamers[0]!.channelId, "categoryChanged", true);
+    fireEvent.click(screen.getByRole("button", { name: /라이브 스트리머 제목 변경 알림/ }));
+    expect(onChange).toHaveBeenCalledWith(streamers[0]!.channelId, "titleChanged", true);
     fireEvent.click(screen.getByRole("checkbox", { name: /전체 선택/ }));
     expect(onChangeAll).toHaveBeenCalledWith(true);
+    fireEvent.click(screen.getByRole("button", { name: /라이브 스트리머 알림 설정 삭제/ }));
+    expect(onDelete).toHaveBeenCalledWith(streamers[0]!.channelId);
+  });
+
+  it("clears only alert preferences after a full left swipe", () => {
+    const onDelete = vi.fn();
+    render(
+      <FollowTab
+        streamers={streamers}
+        preferences={streamers.map((streamer) => ({
+          channelId: streamer.channelId,
+          enabled: true,
+          categoryChanged: true,
+          titleChanged: true
+        }))}
+        user={null}
+        pushActive
+        pushBusy={false}
+        pushMessage=""
+        onConnect={() => undefined}
+        onChange={() => undefined}
+        onChangeAll={() => undefined}
+        onDelete={onDelete}
+      />
+    );
+
+    const row = screen.getByRole("button", {
+      name: /라이브 스트리머 알림 설정 삭제/
+    }).closest("article")!;
+    fireEvent.pointerDown(row, { clientX: 300, pointerId: 1 });
+    fireEvent.pointerMove(row, { clientX: 150, pointerId: 1 });
+    fireEvent.pointerUp(row, { clientX: 150, pointerId: 1 });
+
+    expect(onDelete).toHaveBeenCalledWith(streamers[0]!.channelId);
+    expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))
+      .toEqual(["라이브 스트리머", "오프라인 스트리머"]);
   });
 
   it("clearly offers login and local-only guest mode", () => {

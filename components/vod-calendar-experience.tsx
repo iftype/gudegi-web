@@ -393,6 +393,7 @@ function BroadcastTile({ broadcast, fallbackImage }: {
     >
       {image ? <img src={image} alt="" /> : <span className="tile-fallback"><CalendarDays /></span>}
       <span className="tile-shade" />
+      <small>{broadcast.category || "미분류"}</small>
       <strong>{broadcast.title}</strong>
     </Link>
   );

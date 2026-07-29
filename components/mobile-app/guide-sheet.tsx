@@ -11,9 +11,11 @@ import {
   Smartphone,
   X
 } from "lucide-react";
+import Image from "next/image";
 import { useRef, useState } from "react";
 import type { MobilePlatform } from "@/lib/device";
 import { trackEvent } from "@/lib/analytics";
+import { GUIDE_SCREENSHOTS } from "./guide-assets";
 import styles from "./mobile-app.module.css";
 
 const guides = {
@@ -24,7 +26,8 @@ const guides = {
       body: "Safari 하단의 공유 버튼을 눌러 주세요.",
       browser: "Safari",
       action: "공유",
-      hint: "하단 가운데 ↑ 버튼"
+      hint: "하단 가운데 ↑ 버튼",
+      imageSrc: GUIDE_SCREENSHOTS.ios[0]
     },
     {
       icon: Smartphone,
@@ -32,7 +35,8 @@ const guides = {
       body: "공유 목록을 위로 올리고 ‘홈 화면에 추가’를 선택합니다.",
       browser: "공유 메뉴",
       action: "홈 화면에 추가",
-      hint: "＋ 아이콘이 있는 항목"
+      hint: "＋ 아이콘이 있는 항목",
+      imageSrc: GUIDE_SCREENSHOTS.ios[1]
     },
     {
       icon: BellRing,
@@ -40,7 +44,8 @@ const guides = {
       body: "홈 화면의 구데기를 열고 첫 화면의 알림 버튼을 누릅니다.",
       browser: "구데기",
       action: "변경 알림 켜기",
-      hint: "알림 허용을 선택"
+      hint: "알림 허용을 선택",
+      imageSrc: GUIDE_SCREENSHOTS.ios[2]
     }
   ],
   android: [
@@ -50,7 +55,8 @@ const guides = {
       body: "Chrome 오른쪽 위의 점 세 개 메뉴를 눌러 주세요.",
       browser: "Chrome",
       action: "⋮ 메뉴",
-      hint: "오른쪽 위 점 세 개"
+      hint: "오른쪽 위 점 세 개",
+      imageSrc: GUIDE_SCREENSHOTS.android[0]
     },
     {
       icon: Download,
@@ -58,7 +64,8 @@ const guides = {
       body: "메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택합니다.",
       browser: "Chrome 메뉴",
       action: "앱 설치",
-      hint: "설치 확인을 한 번 더 눌러요"
+      hint: "설치 확인을 한 번 더 눌러요",
+      imageSrc: GUIDE_SCREENSHOTS.android[1]
     },
     {
       icon: BellRing,
@@ -66,7 +73,8 @@ const guides = {
       body: "설치된 구데기를 열고 첫 화면의 알림 버튼을 누릅니다.",
       browser: "구데기",
       action: "변경 알림 켜기",
-      hint: "알림 허용을 선택"
+      hint: "알림 허용을 선택",
+      imageSrc: GUIDE_SCREENSHOTS.android[2]
     }
   ]
 } as const;
@@ -146,21 +154,34 @@ export function GuideSheet({
           <button className={styles.guideArrowLeft} onClick={() => move(-1)} disabled={stepIndex === 0} aria-label="이전 단계"><ChevronLeft /></button>
           <button className={styles.guideArrowRight} onClick={() => move(1)} disabled={stepIndex === steps.length - 1} aria-label="다음 단계"><ChevronRight /></button>
           <div className={styles.guideScreenshot} key={`${platform}-${stepIndex}`}>
-            <div className={styles.shotStatus}><span>9:41</span><span>●●●</span></div>
-            <div className={styles.shotBrowser}>
-              <span>{step.browser}</span>
-              <MoreVertical />
-            </div>
-            <div className={styles.shotApp}>
-              <div className={styles.shotLogo}>ㄱ</div>
-              <small>구데기</small>
-              <strong>카테고리 변경을<br />놓치지 마세요</strong>
-            </div>
-            <div className={styles.shotAction}>
-              <step.icon />
-              <div><strong>{step.action}</strong><small>{step.hint}</small></div>
-              <ChevronRight />
-            </div>
+            {step.imageSrc ? (
+              <Image
+                className={styles.guidePhoto}
+                src={step.imageSrc}
+                alt={`${step.title} 실제 기기 화면`}
+                width={390}
+                height={844}
+                sizes="210px"
+              />
+            ) : (
+              <>
+                <div className={styles.shotStatus}><span>9:41</span><span>●●●</span></div>
+                <div className={styles.shotBrowser}>
+                  <span>{step.browser}</span>
+                  <MoreVertical />
+                </div>
+                <div className={styles.shotApp}>
+                  <div className={styles.shotLogo}>ㄱ</div>
+                  <small>구데기</small>
+                  <strong>카테고리 변경을<br />놓치지 마세요</strong>
+                </div>
+                <div className={styles.shotAction}>
+                  <step.icon />
+                  <div><strong>{step.action}</strong><small>{step.hint}</small></div>
+                  <ChevronRight />
+                </div>
+              </>
+            )}
           </div>
           <div className={styles.guideCaption}>
             <span>0{stepIndex + 1} / 0{steps.length}</span>

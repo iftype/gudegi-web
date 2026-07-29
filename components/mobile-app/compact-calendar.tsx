@@ -86,16 +86,18 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
             const broadcasts = day ? broadcastsByDay.get(day) ?? [] : [];
             const hasBroadcast = Boolean(day && (broadcasts.length > 0 || statusByDay.get(day) === "broadcast"));
             const categoryImage = broadcasts.find((item) => item.categoryImageUrl)?.categoryImageUrl;
+            const category = broadcasts.find((item) => item.category)?.category;
             return (
               <div className={!day ? styles.outsideDay : hasBroadcast ? styles.broadcastDay : ""} key={index}>
                 {day && <>
                   <span>{day}</span>
                   {categoryImage && <Image
                     src={categoryImage}
-                    alt={broadcasts[0]?.category ?? "카테고리"}
+                    alt={category ?? "카테고리"}
                     fill
                     sizes="64px"
                   />}
+                  {category && <small className={styles.calendarCategory}>{category}</small>}
                   {hasBroadcast && !categoryImage && <i>{broadcasts.length > 1 ? broadcasts.length : ""}</i>}
                   {broadcasts.length > 1 && categoryImage && <b>{broadcasts.length}</b>}
                 </>}

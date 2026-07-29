@@ -1,11 +1,11 @@
 "use client";
 
-import { Bell, CheckCircle2, Radio, RefreshCw, Search } from "lucide-react";
-import Image from "next/image";
+import { Bell, CheckCircle2, RefreshCw, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AppUser } from "@/lib/auth-api";
 import type { PushPreference, Streamer } from "@/lib/types";
 import styles from "./mobile-app.module.css";
+import { SwipeableAlertRow } from "./swipeable-alert-row";
 
 export function FollowTab({
   streamers,
@@ -16,7 +16,8 @@ export function FollowTab({
   pushMessage,
   onConnect,
   onChange,
-  onChangeAll
+  onChangeAll,
+  onDelete
 }: {
   streamers: Streamer[];
   preferences: PushPreference[];
@@ -31,6 +32,7 @@ export function FollowTab({
     checked: boolean
   ) => void;
   onChangeAll: (checked: boolean) => void;
+  onDelete: (channelId: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const preferenceByChannel = useMemo(
@@ -49,8 +51,8 @@ export function FollowTab({
         <span>MY ALERTS</span>
         <h1>알림 설정</h1>
         <p>{user
-          ? `계정에 저장한 ${enabledCount}명의 변경 알림을 관리합니다.`
-          : `이 기기에 저장한 ${enabledCount}명의 변경 알림을 관리합니다.`}</p>
+          ? `계정에 저장한 ${enabledCount}명의 카테고리·제목 알림을 관리합니다.`
+          : `이 기기에 저장한 ${enabledCount}명의 카테고리·제목 알림을 관리합니다.`}</p>
       </header>
       <button className={styles.followPushBanner} disabled={pushBusy} onClick={onConnect}>
         {pushBusy ? <RefreshCw className={styles.spinning} /> : pushActive ? <CheckCircle2 /> : <Bell />}
@@ -87,42 +89,13 @@ export function FollowTab({
         {visible.map((streamer) => {
           const preference = preferenceByChannel.get(streamer.channelId)!;
           return (
-            <article className={preference.enabled ? styles.followActive : ""} key={streamer.channelId}>
-              <div className={styles.followSummary}>
-                <span className={styles.rowAvatar}>
-                  {streamer.channelImageUrl
-                    ? <Image
-                        src={streamer.channelImageUrl}
-                        alt=""
-                        width={46}
-                        height={46}
-                        sizes="46px"
-                        loading="lazy"
-                        style={{ width: "100%", height: "100%" }}
-                      />
-                    : streamer.channelName.slice(0, 1)}
-                  {streamer.isLive && <i />}
-                </span>
-                <span className={styles.followCopy}>
-                  <strong>{streamer.channelName}</strong>
-                  <small>{streamer.isLive
-                    ? <><Radio /> {streamer.currentCategory || "카테고리 확인 중"}</>
-                    : `팔로워 순위 #${streamer.trackingRank ?? "-"}`}</small>
-                </span>
-                <label className={styles.alertSwitch} aria-label={`${streamer.channelName} 알림`}>
-                  <input
-                    type="checkbox"
-                    checked={preference.enabled}
-                    onChange={(event) => onChange(
-                      streamer.channelId,
-                      "enabled",
-                      event.target.checked
-                    )}
-                  />
-                  <i aria-hidden="true" />
-                </label>
-              </div>
-            </article>
+            <SwipeableAlertRow
+              key={streamer.channelId}
+              streamer={streamer}
+              preference={preference}
+              onChange={onChange}
+              onDelete={onDelete}
+            />
           );
         })}
       </div>
