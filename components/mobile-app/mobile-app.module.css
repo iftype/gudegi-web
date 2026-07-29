@@ -818,8 +818,8 @@
 
 /* who.tech-inspired system: quiet surfaces, subtle dividers, compact controls. */
 .app {
-  --app-green: #2ac1bc;
-  --app-lime: #2ac1bc;
+  --app-green: #ededed;
+  --app-lime: #ededed;
   --app-bg: #000;
   --app-card: #0d0d0d;
   --app-line: #1c1c1c;
@@ -919,8 +919,8 @@
 }
 .followPushBannerAttention {
   color: var(--app-green) !important;
-  background: rgb(42 193 188 / 7%) !important;
-  border-color: rgb(42 193 188 / 34%) !important;
+  background: rgb(255 255 255 / 5%) !important;
+  border-color: rgb(255 255 255 / 22%) !important;
   box-shadow: none;
 }
 .followPushBannerAttention > svg:first-child { color: var(--app-green) !important; }
@@ -947,8 +947,8 @@
 }
 .personalListActions button:last-child {
   color: var(--app-green);
-  background: rgb(42 193 188 / 8%);
-  border-color: rgb(42 193 188 / 30%);
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 20%);
 }
 .app .inlineSearch,
 .app .selectAll,
@@ -999,7 +999,7 @@
   border-radius: 50%;
 }
 .app .selectAll input:checked + i { background: var(--app-green); }
-.app .selectAll input:checked + i::after { background: #071110; transform: translateX(13px); }
+.app .selectAll input:checked + i::after { background: #080808; transform: translateX(13px); }
 
 .followList,
 .streamerIndex {
@@ -1023,7 +1023,7 @@
 .streamerIndex > article + article { border-top: 1px solid var(--app-line); }
 .alertRowContent { min-height: 64px; padding: 7px 9px; }
 .followList > .followActive { border-color: transparent; }
-.followActive .alertRowContent { background: rgb(42 193 188 / 3%); }
+.followActive .alertRowContent { background: rgb(255 255 255 / 3%); }
 .streamerIndex > article { padding: 7px 9px; }
 .streamerIndex button,
 .rowCategoryButton,
@@ -1038,8 +1038,8 @@
 .streamerIndex .streamerRowActions .alertAdded,
 .streamerPickerHeading .pickerFilterActive {
   color: var(--app-green);
-  background: rgb(42 193 188 / 8%);
-  border-color: rgb(42 193 188 / 30%);
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 20%);
 }
 
 .rowAlarmToggle {
@@ -1053,17 +1053,17 @@
 .rowAlarmToggle:active { box-shadow: none; transform: none; }
 .rowAlarmToggleActive {
   color: var(--app-green);
-  background: rgb(42 193 188 / 8%);
-  border-color: rgb(42 193 188 / 30%);
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 20%);
   box-shadow: none;
   transform: none;
 }
-.rowAlarmToggleActive > svg { fill: rgb(42 193 188 / 9%); }
+.rowAlarmToggleActive > svg { fill: rgb(255 255 255 / 8%); }
 .rowCategoryTags span,
 .detailCategoryTags span {
-  color: #83c9c5;
-  background: rgb(42 193 188 / 7%);
-  border-color: rgb(42 193 188 / 18%);
+  color: #aaa;
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 12%);
   border-radius: var(--app-radius-control);
 }
 
@@ -1112,8 +1112,8 @@
 .deviceActions .primarySettingAction,
 .quickGrid .quickActive {
   color: var(--app-green);
-  background: rgb(42 193 188 / 8%);
-  border-color: rgb(42 193 188 / 30%);
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 20%);
 }
 .deviceHeading small,
 .accountCard small,
@@ -1157,14 +1157,14 @@
 .categoryFilterTools .categoryFilterSelected,
 .categoryChoices .categoryChoiceSelected {
   color: var(--app-text);
-  background: rgb(42 193 188 / 7%);
-  border-color: rgb(42 193 188 / 42%);
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 28%);
   box-shadow: none;
 }
 .categoryFilterTools .categoryFilterSelected > i,
 .categoryChoiceSelected > i,
 .choiceCheck {
-  color: #061110;
+  color: #080808;
   background: var(--app-green);
   border: 0;
   border-radius: var(--app-radius-control);
@@ -1189,7 +1189,7 @@
 .suggestionSubmit,
 .installNow,
 .alertAction {
-  color: #061110;
+  color: #080808;
   background: var(--app-green);
   border-color: var(--app-green);
   border-radius: var(--app-radius-control);
