@@ -62,6 +62,7 @@ export function AlertRow({
             onClick={() => onChange(streamer.channelId, "enabled", !preference.enabled)}
           >
             <Bell />
+            <span>알람</span>
             <i aria-hidden="true" />
           </button>
           <button

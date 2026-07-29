@@ -115,6 +115,7 @@ describe("mobile-first entry and guidance", () => {
     });
     expect(alertButton.parentElement).toBe(categoryButton.parentElement);
     expect(categoryButton.parentElement).toBe(deleteButton.parentElement);
+    expect(alertButton).toHaveTextContent("알람");
     expect(screen.getAllByText("전체 카테고리")).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))
