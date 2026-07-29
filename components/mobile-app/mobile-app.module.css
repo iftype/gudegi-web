@@ -108,7 +108,7 @@
 .followPushBanner > span { display: grid; gap: 2px; }
 .followPushBanner strong { font-size: 11px; }
 .followPushBanner small { color: #7e8594; font-size: 8px; }
-.followPushMessage { margin: -2px 3px 9px; color: #9ca5b5; font-size: 8px; line-height: 1.5; }
+.followPushMessage { margin: -2px 3px 9px; color: #c3c9d4; font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
 .followTools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-bottom: 9px; }
 .inlineSearch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 0; padding: 0 11px; background: #111319; border: 1px solid #292c34; border-radius: 13px; }
 .inlineSearch svg { width: 15px; color: #767c88; }
@@ -208,7 +208,7 @@
 .deviceActions button svg { width: 14px; }
 .deviceActions .primarySettingAction { color: #0b0c0e; background: #fff; border-color: #fff; }
 .deviceActions button:only-child { grid-column: 1 / -1; }
-.settingMessage { margin: 9px 0 0; color: #8b929e; font-size: 8px; line-height: 1.5; text-align: center; }
+.settingMessage { margin: 9px 0 0; color: #c3c9d4; font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; text-align: center; }
 .accountCard { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px 13px; }
 .accountCard > div { min-width: 0; display: grid; gap: 3px; }
 .accountCard button { display: flex; align-items: center; gap: 5px; padding: 8px 9px; color: #d9dce2; background: #1a1d24; border: 1px solid #30343e; border-radius: 9px; font-size: 8px; }

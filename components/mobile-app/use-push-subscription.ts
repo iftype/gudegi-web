@@ -245,6 +245,9 @@ function serializeSubscription(subscription: PushSubscription): PushSubscription
 }
 
 function pushErrorMessage(error: unknown) {
+  if (error instanceof Error && (error as Error & { status?: number }).status === 429) {
+    return "테스트 요청이 너무 잦습니다. 1분 뒤 다시 시도해 주세요.";
+  }
   if (error instanceof DOMException) {
     if (error.name === "NotAllowedError") {
       return "휴대폰 설정에서 구데기 알림을 허용해 주세요.";
