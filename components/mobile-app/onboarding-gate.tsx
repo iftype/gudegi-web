@@ -1,18 +1,16 @@
 "use client";
 
-import { ArrowRight, Cloud, HardDrive, LogIn, ShieldCheck } from "lucide-react";
+import { ArrowRight, CloudDownload, HardDrive, ShieldCheck } from "lucide-react";
 import { useState } from "react";
-import { authApi, type AppUser } from "@/lib/auth-api";
+import { authApi } from "@/lib/auth-api";
 import { trackEvent } from "@/lib/analytics";
 import styles from "./mobile-app.module.css";
 
 export function OnboardingGate({
-  user,
-  oauthConfigured,
   onGuest
 }: {
-  user: AppUser | null;
-  oauthConfigured: boolean;
+  user?: unknown;
+  oauthConfigured?: boolean;
   onGuest: () => void;
 }) {
   const [error, setError] = useState("");
@@ -20,6 +18,7 @@ export function OnboardingGate({
   async function login() {
     setError("");
     try {
+      window.localStorage.setItem("gudegi-import-all-after-login", "1");
       const result = await authApi.begin();
       trackEvent("chzzk_login_started");
       window.location.assign(result.data.authorizationUrl);
@@ -32,17 +31,15 @@ export function OnboardingGate({
     <div className={styles.onboarding}>
       <div className={styles.onboardingGlow} />
       <div className={styles.onboardingBrand}><b>ㄱ</b><span>구데기</span></div>
+      <button className={styles.onboardingImport} onClick={() => void login()}>
+        <CloudDownload /> 팔로우 불러오기
+      </button>
       <div className={styles.onboardingCopy}>
         <span>CHZZK CHANGE ALERT</span>
         <h1>원하는 방송으로<br />바뀌는 순간 알려드려요.</h1>
         <p>원하는 스트리머의 카테고리와 방제 변경을 휴대폰 알림으로 확인하세요.</p>
       </div>
       <div className={styles.entryChoices}>
-        <button className={styles.loginChoice} onClick={() => void login()} disabled={!oauthConfigured && Boolean(user)}>
-          <span><LogIn /><strong>치지직 로그인</strong></span>
-          <small><Cloud />선택한 알림 설정을 서버에 보관</small>
-          <ArrowRight />
-        </button>
         <button className={styles.guestChoice} onClick={() => {
           trackEvent("guest_mode_selected");
           onGuest();
@@ -52,6 +49,9 @@ export function OnboardingGate({
           <ArrowRight />
         </button>
       </div>
+      <p className={styles.importDisclosure}>
+        치지직 공식 API는 내가 팔로우한 채널 조회를 지원하지 않아, 불러오기를 누르면 구데기의 추적 채널 전체가 선택됩니다.
+      </p>
       {error && <p className={styles.entryError}>{error}</p>}
       <div className={styles.onboardingPrivacy}>
         <ShieldCheck /><span>로그인해도 치지직 비밀번호는 전달받지 않습니다.</span>

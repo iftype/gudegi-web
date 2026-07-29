@@ -2,6 +2,7 @@
 
 import {
   CircleHelp,
+  CloudDownload,
   Heart,
   RefreshCw,
   Settings,
@@ -44,11 +45,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     retry: false,
     staleTime: 60_000
   });
-  const oauthConfig = useQuery({
-    queryKey: ["oauth-config"],
-    queryFn: () => authApi.config(),
-    staleTime: 10 * 60_000
-  });
   const user = session.data ?? null;
   const preferences = useMobilePreferences(streamers, user);
   const pwa = usePwaInstall();
@@ -85,8 +81,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     return (
       <main className={`${styles.app} mobile-app-shell standalone-route`}>
         <OnboardingGate
-          user={user}
-          oauthConfigured={oauthConfig.data?.data.configured ?? false}
           onGuest={() => {
             window.localStorage.setItem("gudegi-entry-mode", "guest");
             setGuestMode(true);
@@ -102,6 +96,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
 
   async function startLogin() {
     try {
+      window.localStorage.setItem("gudegi-import-all-after-login", "1");
       const result = await authApi.begin();
       window.location.assign(result.data.authorizationUrl);
     } catch {
@@ -116,11 +111,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     await session.refetch();
   }
 
-  function openStreamer(channelId: string) {
-    preferences.selectPrimary(channelId);
-    setTab("streamers");
-  }
-
   function connectPush() {
     if (!pwa.installed) {
       setGuideOpen(true);
@@ -133,10 +123,13 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     <main className={`${styles.app} mobile-app-shell standalone-route`}>
       <header className={styles.appHeader}>
         <div className={styles.logo}><span>ㄱ</span><div><strong>구데기</strong><small>원하는 방송만 골라보기</small></div></div>
-        <button className={styles.guideButton} onClick={() => {
-          trackEvent("pwa_guide_opened");
-          setGuideOpen(true);
-        }}><CircleHelp /><span>사용방법</span></button>
+        <div className={styles.headerActions}>
+          {!user && <button className={styles.importButton} onClick={() => void startLogin()}><CloudDownload /><span>팔로우 불러오기</span></button>}
+          <button className={styles.guideButton} onClick={() => {
+            trackEvent("pwa_guide_opened");
+            setGuideOpen(true);
+          }}><CircleHelp /><span>사용방법</span></button>
+        </div>
       </header>
 
       <section className={styles.viewport}>
@@ -150,7 +143,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             pushMessage={push.message}
             onConnect={push.active ? () => setTab("settings") : connectPush}
             onChange={preferences.updatePreference}
-            onOpenStreamer={openStreamer}
+            onChangeAll={preferences.updateAll}
           />
         )}
         {tab === "streamers" && (
@@ -182,7 +175,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onDisable={() => void push.disable()}
             onTest={() => void push.test()}
             onGuide={() => setGuideOpen(true)}
-            onLogin={() => void startLogin()}
             onLogout={() => void logout()}
             onClearLogs={() => void pushLogs.clear()}
           />

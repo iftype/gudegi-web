@@ -2,9 +2,10 @@
 
 import { ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import type { Streamer } from "@/lib/types";
+import type { CalendarBroadcast, Streamer } from "@/lib/types";
 import styles from "./mobile-app.module.css";
 
 const KOREA_TIMEZONE = "Asia/Seoul";
@@ -44,14 +45,14 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
   });
   const cells = useMemo(() => monthCells(month), [month]);
   const broadcastsByDay = useMemo(() => {
-    const grouped = new Map<number, number>();
+    const grouped = new Map<number, CalendarBroadcast[]>();
     for (const broadcast of monthly.data?.data.broadcasts ?? []) {
       const parts = new Intl.DateTimeFormat("en-US", {
         timeZone: KOREA_TIMEZONE,
         day: "2-digit"
       }).formatToParts(broadcast.startedAt);
       const day = Number(parts.find((part) => part.type === "day")?.value ?? 0);
-      grouped.set(day, (grouped.get(day) ?? 0) + 1);
+      grouped.set(day, [...(grouped.get(day) ?? []), broadcast]);
     }
     return grouped;
   }, [monthly.data]);
@@ -82,11 +83,22 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
         <div className={styles.compactCalendar}>
           {["일", "월", "화", "수", "목", "금", "토"].map((day) => <span className={styles.weekday} key={day}>{day}</span>)}
           {cells.map((day, index) => {
-            const count = day ? broadcastsByDay.get(day) ?? 0 : 0;
-            const hasBroadcast = Boolean(day && (count > 0 || statusByDay.get(day) === "broadcast"));
+            const broadcasts = day ? broadcastsByDay.get(day) ?? [] : [];
+            const hasBroadcast = Boolean(day && (broadcasts.length > 0 || statusByDay.get(day) === "broadcast"));
+            const categoryImage = broadcasts.find((item) => item.categoryImageUrl)?.categoryImageUrl;
             return (
               <div className={!day ? styles.outsideDay : hasBroadcast ? styles.broadcastDay : ""} key={index}>
-                {day && <><span>{day}</span>{hasBroadcast && <i>{count > 1 ? count : ""}</i>}</>}
+                {day && <>
+                  <span>{day}</span>
+                  {categoryImage && <Image
+                    src={categoryImage}
+                    alt={broadcasts[0]?.category ?? "카테고리"}
+                    fill
+                    sizes="64px"
+                  />}
+                  {hasBroadcast && !categoryImage && <i>{broadcasts.length > 1 ? broadcasts.length : ""}</i>}
+                  {broadcasts.length > 1 && categoryImage && <b>{broadcasts.length}</b>}
+                </>}
               </div>
             );
           })}

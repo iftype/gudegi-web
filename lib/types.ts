@@ -49,6 +49,7 @@ export type CalendarBroadcast = {
   vodUrl: string;
   thumbnailUrl: string | null;
   channelImageUrl: string | null;
+  categoryImageUrl?: string | null;
 };
 
 export type CategoryDuration = {

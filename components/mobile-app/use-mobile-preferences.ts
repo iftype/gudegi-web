@@ -6,6 +6,7 @@ import type { PushPreference, Streamer } from "@/lib/types";
 
 const STORAGE_KEY = "trackline-push-preferences";
 const PRIMARY_KEY = "trackline-primary-streamer";
+export const IMPORT_ALL_KEY = "gudegi-import-all-after-login";
 
 function readGuestPreferences() {
   try {
@@ -33,7 +34,22 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
       setReady(false);
       authApi.preferences().then((result) => {
         if (cancelled) return;
-        setStored(result.data.channels);
+        if (window.localStorage.getItem(IMPORT_ALL_KEY) === "1") {
+          const imported = streamers.map((streamer) => ({
+            channelId: streamer.channelId,
+            enabled: true,
+            categoryChanged: true,
+            titleChanged: true
+          }));
+          window.localStorage.removeItem(IMPORT_ALL_KEY);
+          setStored(imported);
+          setSaveState("saving");
+          void authApi.savePreferences(imported)
+            .then(() => setSaveState("saved"))
+            .catch(() => setSaveState("error"));
+        } else {
+          setStored(result.data.channels);
+        }
         setReady(true);
       }).catch(() => {
         if (cancelled) return;
@@ -45,7 +61,7 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [user]);
+  }, [streamers, user]);
 
   const preferences = useMemo(() => {
     const byChannel = new Map(stored.map((item) => [item.channelId, item]));
@@ -103,11 +119,21 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
     void persist(next);
   }, [persist, preferences]);
 
+  const updateAll = useCallback((checked: boolean) => {
+    void persist(preferences.map((preference) => ({
+      ...preference,
+      enabled: checked,
+      categoryChanged: checked,
+      titleChanged: checked
+    })));
+  }, [persist, preferences]);
+
   return {
     preferences,
     primaryChannelId,
     selectPrimary,
     updatePreference,
+    updateAll,
     ready,
     saveState
   };

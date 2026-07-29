@@ -77,5 +77,15 @@ export const api = {
     method: "POST",
     body: JSON.stringify(event),
     keepalive: true
+  }),
+  submitFeedback: (feedback: {
+    category: "idea" | "bug" | "usability" | "other";
+    message: string;
+    contact?: string;
+    anonymousId?: string;
+    website?: string;
+  }) => mutate<{ data: { id: number } }>("/v1/feedback", {
+    method: "POST",
+    body: JSON.stringify(feedback)
   })
 };

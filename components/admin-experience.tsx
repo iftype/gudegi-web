@@ -60,6 +60,14 @@ type ScheduledCollector = {
 type Overview = {
   streamers: Streamer[];
   broadcasts: Broadcast[];
+  feedback: Array<{
+    id: number;
+    category: string;
+    message: string;
+    contact: string | null;
+    status: string;
+    createdAt: number;
+  }>;
   analytics: {
     since: number;
     eventCount: number;
@@ -297,7 +305,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
     return <main className={styles.loading}>{error || "서버 상태를 확인하고 있습니다."}</main>;
   }
 
-  const { analytics, system, streamers, broadcasts } = overview;
+  const { analytics, system, streamers, broadcasts, feedback } = overview;
   const now = system.generatedAt;
   const rows = system.database.rows;
   const collector = system.collector;
@@ -587,6 +595,28 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
 
       <section className={styles.panel}>
         <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>USER FEEDBACK</span><h2>서비스 피드백</h2></div>
+          <span className={styles.pill}>최근 {feedback.length}건</span>
+        </div>
+        {feedback.length ? (
+          <div className={styles.tableWrap}>
+            <table>
+              <thead><tr><th>시각</th><th>종류</th><th>내용</th><th>연락처</th></tr></thead>
+              <tbody>{feedback.map((item) => (
+                <tr key={item.id}>
+                  <td>{formatTime(item.createdAt)}</td>
+                  <td><span className={styles.status}>{feedbackLabel(item.category)}</span></td>
+                  <td><strong>{item.message}</strong></td>
+                  <td>{item.contact || "없음"}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ) : <p className={styles.empty}>아직 받은 피드백이 없습니다.</p>}
+      </section>
+
+      <section className={styles.panel}>
+        <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>LIVE TRACKING</span><h2>현재 방송</h2></div>
           <span className={styles.pill}>방송 중 {formatInterval(collector?.livePollIntervalMs ?? 0)} 주기</span>
         </div>
@@ -660,6 +690,13 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
       </section>
     </main>
   );
+}
+
+function feedbackLabel(category: string) {
+  if (category === "bug") return "오류";
+  if (category === "idea") return "아이디어";
+  if (category === "usability") return "사용성";
+  return "기타";
 }
 
 export function AdminExperience() {

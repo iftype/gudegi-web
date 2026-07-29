@@ -36,6 +36,7 @@ export function LoginExperience() {
     setState("working");
     setMessage("");
     try {
+      window.localStorage.setItem("gudegi-import-all-after-login", "1");
       const result = await authApi.begin();
       trackEvent("chzzk_login_started");
       window.location.assign(result.data.authorizationUrl);
@@ -60,11 +61,11 @@ export function LoginExperience() {
         ) : (
           <>
             <span className={styles.icon}><ShieldCheck /></span>
-            <h1>{oauthError ? "로그인이 취소됐어요" : "설정을 안전하게 보관하세요"}</h1>
-            <p>로그인하면 선택한 스트리머와 알림 종류가 다른 기기에서도 유지됩니다.</p>
+            <h1>{oauthError ? "불러오기가 취소됐어요" : "알림 목록을 불러올게요"}</h1>
+            <p>연결하면 구데기의 추적 채널 전체를 선택하고 설정을 계정에 보관합니다.</p>
             <button onClick={() => void startLogin()} disabled={state === "working"}>
               {state === "working" ? <LoaderCircle className={styles.spin} /> : <ExternalLink />}
-              치지직으로 로그인
+              팔로우 불러오기
             </button>
             <Link href="/"><ArrowLeft /> 비로그인으로 돌아가기</Link>
           </>

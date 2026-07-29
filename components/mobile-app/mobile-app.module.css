@@ -35,7 +35,7 @@
 .guideButton { height: 33px; display: flex; align-items: center; gap: 5px; padding: 0 9px; color: #afb4c0; background: #12141a; border: 1px solid #2c2f38; border-radius: 10px; font-size: 10px; }
 .guideButton svg { width: 14px; }
 .headerActions { display: flex; align-items: center; gap: 6px; }
-.headerActions button {
+.headerActions .importButton {
   height: 32px;
   display: inline-flex;
   align-items: center;
@@ -48,6 +48,8 @@
   font-size: 10px;
 }
 .headerActions button svg { width: 14px; }
+.headerActions .guideButton { color: #afb4c0; background: #12141a; border-color: #2c2f38; }
+.headerActions .importButton { color: #d8deed; background: #171b25; border-color: #343b4d; }
 .headerActions .loginButton { color: #08120c; background: var(--app-green); border-color: var(--app-green); font-weight: 800; }
 .userButton > span { display: grid; place-items: center; width: 20px; height: 20px; color: #07110c; background: var(--app-green); border-radius: 50%; font-size: 9px; font-weight: 800; }
 
@@ -107,13 +109,14 @@
 .followPushBanner strong { font-size: 11px; }
 .followPushBanner small { color: #7e8594; font-size: 8px; }
 .followPushMessage { margin: -2px 3px 9px; color: #9ca5b5; font-size: 8px; line-height: 1.5; }
-.inlineSearch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin-bottom: 9px; padding: 0 11px; background: #111319; border: 1px solid #292c34; border-radius: 13px; }
+.followTools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-bottom: 9px; }
+.inlineSearch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 0; padding: 0 11px; background: #111319; border: 1px solid #292c34; border-radius: 13px; }
 .inlineSearch svg { width: 15px; color: #767c88; }
 .inlineSearch input { min-width: 0; height: 44px; color: #f2f3f6; background: transparent; border: 0; outline: 0; font-size: 16px; }
 .followList { display: grid; gap: 8px; }
 .followList > article { padding: 10px; background: #101217; border: 1px solid #282b33; border-radius: 16px; content-visibility: auto; contain-intrinsic-size: 116px; }
 .followList > .followActive { border-color: #505d82; background: #121620; }
-.followSummary { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 0 0 9px; color: #eef0f4; background: transparent; border: 0; text-align: left; }
+.followSummary { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; color: #eef0f4; text-align: left; }
 .followSummary > svg { width: 16px; color: #676e7b; }
 .rowAvatar, .detailAvatar {
   position: relative;
@@ -131,6 +134,16 @@
 .followCopy strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .followCopy small { display: flex; align-items: center; gap: 4px; overflow: hidden; color: #838a96; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .followCopy small svg { width: 10px; color: #ff7085; }
+.selectAll { min-width: 106px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px; color: #d8dce5; background: #111319; border: 1px solid #292c34; border-radius: 13px; cursor: pointer; }
+.selectAll > span { display: grid; gap: 1px; }
+.selectAll strong { font-size: 9px; }
+.selectAll small { color: #717986; font-size: 7px; }
+.selectAll input, .alertSwitch input { position: absolute; opacity: 0; pointer-events: none; }
+.selectAll > i, .alertSwitch > i { position: relative; width: 34px; height: 20px; flex: 0 0 auto; background: #343944; border-radius: 99px; transition: background-color 150ms ease; }
+.selectAll > i::after, .alertSwitch > i::after { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; content: ""; background: #afb5c0; border-radius: 50%; transition: transform 150ms ease, background-color 150ms ease; }
+.selectAll input:checked + i, .alertSwitch input:checked + i { background: var(--app-green); }
+.selectAll input:checked + i::after, .alertSwitch input:checked + i::after { background: #0b0d11; transform: translateX(14px); }
+.alertSwitch { display: flex; align-items: center; padding: 8px 0 8px 8px; cursor: pointer; }
 .alertToggleGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .alertToggleGrid button { min-width: 0; height: 37px; display: flex; align-items: center; justify-content: center; gap: 5px; color: #7d8491; background: #181b22; border: 1px solid #2c3039; border-radius: 10px; font-size: 9px; font-weight: 700; }
 .alertToggleGrid button svg { width: 13px; }
@@ -142,14 +155,17 @@
 .streamerPickerHeading > div { display: flex; gap: 3px; padding: 3px; background: #111319; border: 1px solid #292c34; border-radius: 9px; }
 .streamerPickerHeading button { min-width: 42px; padding: 5px 7px; color: #747b87; background: transparent; border: 0; border-radius: 6px; font-size: 8px; font-weight: 800; }
 .streamerPickerHeading .pickerFilterActive { color: #090a0d; background: var(--app-green); }
-.inlineStreamerPicker { display: flex; gap: 7px; margin: 0 -14px 10px; padding: 0 16px 7px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }
-.inlineStreamerPicker::-webkit-scrollbar { display: none; }
-.inlineStreamerPicker button { flex: 0 0 66px; display: grid; justify-items: center; gap: 5px; padding: 8px 4px; color: #858b97; background: transparent; border: 1px solid transparent; border-radius: 14px; scroll-snap-align: start; }
-.inlineStreamerPicker button > span { position: relative; display: grid; place-items: center; overflow: hidden; width: 44px; height: 44px; color: #fff; background: #2b3040; border-radius: 50%; font-weight: 800; }
-.inlineStreamerPicker small { width: 100%; overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
-.inlineStreamerPicker .inlineStreamerSelected { color: #fff; background: #171b26; border-color: #4a5575; }
-.inlineStreamerPicker .inlineStreamerSelected > span { box-shadow: 0 0 0 2px var(--app-green); }
-.inlineStreamerPicker .emptyLive { width: 100%; margin: 0; padding: 20px 0; color: #737a86; font-size: 9px; text-align: center; }
+.streamerIndex { display: grid; gap: 7px; }
+.streamerIndex > article { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px; background: #111319; border: 1px solid #292c34; border-radius: 15px; }
+.streamerIndex > article > div { min-width: 0; display: grid; gap: 4px; }
+.streamerIndex strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.streamerIndex small { display: flex; align-items: center; gap: 4px; overflow: hidden; color: #7e8591; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.streamerIndex small svg { width: 9px; color: #ff7187; }
+.streamerIndex button { display: flex; align-items: center; gap: 4px; min-height: 34px; padding: 0 9px; color: #d9deea; background: #1b202b; border: 1px solid #353d50; border-radius: 9px; font-size: 8px; font-weight: 800; }
+.streamerIndex button svg { width: 12px; }
+.emptyLive { margin: 0; padding: 30px; color: #737a86; font-size: 9px; text-align: center; }
+.detailBack { display: flex; align-items: center; gap: 6px; margin: 0 0 10px 1px; padding: 7px 9px; color: #bdc3cf; background: transparent; border: 0; font-size: 10px; font-weight: 700; }
+.detailBack svg { width: 15px; }
 .streamerDetail { display: grid; gap: 10px; padding: 13px; background: #111319; border: 1px solid #2b2e37; border-radius: 18px; }
 .streamerDetailHeading { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 11px; }
 .detailAvatar { width: 58px; height: 58px; font-size: 20px; }
@@ -434,7 +450,12 @@
 .guideNotice > svg { width: 20px; }
 .guideNotice strong { font-size: 9px; }
 .guideNotice p { margin: 3px 0 0; color: #80889a; font-size: 7px; line-height: 1.45; }
-.guideCarousel { min-height: 0; display: grid; grid-template-columns: minmax(0, 210px) minmax(0, 1fr); align-items: center; gap: 16px; padding: 0 17px; touch-action: pan-y; user-select: none; }
+.guideCarousel { position: relative; min-height: 0; display: grid; grid-template-columns: minmax(0, 210px) minmax(0, 1fr); align-items: center; gap: 16px; padding: 0 42px; touch-action: pan-y; user-select: none; }
+.guideArrowLeft, .guideArrowRight { position: absolute; z-index: 2; top: 50%; display: grid; place-items: center; width: 32px; height: 42px; color: #bcc2ce; background: #181b22e8; border: 1px solid #343945; border-radius: 10px; transform: translateY(-50%); }
+.guideArrowLeft { left: 6px; }
+.guideArrowRight { right: 6px; }
+.guideArrowLeft:disabled, .guideArrowRight:disabled { opacity: .2; }
+.guideArrowLeft svg, .guideArrowRight svg { width: 15px; }
 .guideScreenshot { aspect-ratio: 9 / 14.5; overflow: hidden; color: #111; background: #f5f5f3; border: 5px solid #222; border-radius: 24px; animation: guide-in 180ms ease-out both; }
 .shotStatus, .shotBrowser { display: flex; align-items: center; justify-content: space-between; }
 .shotStatus { height: 22px; padding: 0 11px; font-size: 6px; font-weight: 800; }
@@ -452,10 +473,7 @@
 .guideCaption span { color: var(--app-green); font: 700 9px ui-monospace, monospace; letter-spacing: .1em; }
 .guideCaption h3 { margin: 9px 0 7px; font-size: 19px; letter-spacing: -.045em; }
 .guideCaption p { margin: 0; color: #858b97; font-size: 10px; line-height: 1.65; word-break: keep-all; }
-.guideControls { display: grid; grid-template-columns: 36px 1fr 36px; align-items: center; gap: 10px; padding: 10px 17px; }
-.guideControls > button { display: grid; place-items: center; height: 34px; color: #a2a8b3; background: #181b22; border: 1px solid #30343e; border-radius: 10px; }
-.guideControls > button:disabled { opacity: .25; }
-.guideControls > button svg { width: 15px; }
+.guideControls { display: grid; place-items: center; padding: 10px 17px; }
 .guideControls > div { display: flex; justify-content: center; gap: 6px; }
 .guideControls > div button { width: 7px; height: 7px; padding: 0; background: #484d58; border: 0; border-radius: 50%; }
 .guideControls > div .guideDotActive { width: 20px; background: var(--app-green); border-radius: 99px; }
@@ -477,6 +495,8 @@
 .onboardingBrand { display: flex; align-items: center; gap: 8px; color: var(--app-green); font: 700 13px "DM Mono", monospace; }
 .onboardingBrand svg { width: 20px; }
 .onboardingBrand b { display: grid; place-items: center; width: 24px; height: 24px; color: #07080b; background: var(--app-green); border-radius: 8px; font-size: 13px; }
+.onboardingImport { position: absolute; top: calc(24px + env(safe-area-inset-top)); right: 20px; display: flex; align-items: center; gap: 5px; min-height: 34px; padding: 0 10px; color: #d8deed; background: #171b25; border: 1px solid #343b4d; border-radius: 10px; font-size: 10px; font-weight: 700; }
+.onboardingImport svg { width: 14px; }
 .onboardingCopy { align-self: center; }
 .onboardingCopy > span { color: var(--app-green); font: 500 9px "DM Mono", monospace; letter-spacing: .16em; }
 .onboardingCopy h1 { margin: 15px 0 15px; font-size: clamp(33px, 9vw, 46px); line-height: 1.16; letter-spacing: -.075em; }
@@ -493,6 +513,7 @@
 .guestChoice { color: #e6e8ed; background: #111319; border: 1px solid #30333c; }
 .guestChoice small { color: #7f8591; }
 .entryError { margin: -9px 0 0; color: #ffab98; font-size: 9px; text-align: center; }
+.importDisclosure { margin: -7px 4px 0; color: #707682; font-size: 8px; line-height: 1.5; text-align: center; }
 .onboardingPrivacy { display: flex; align-items: center; justify-content: center; gap: 6px; color: #65776d; font-size: 8px; }
 .onboardingPrivacy svg { width: 12px; }
 .appLoading { grid-row: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #72857a; font-size: 11px; }
@@ -508,9 +529,12 @@
 .calendarView > header button svg { width: 13px; }
 .compactCalendar { min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: auto repeat(6, 1fr); padding: 7px; }
 .compactCalendar > span { display: grid; place-items: center; color: #65786d; font: 500 7px "DM Mono", monospace; }
-.compactCalendar > div { position: relative; display: grid; place-items: center; min-height: 0; color: #9bacA2; border-radius: 8px; font: 500 9px "DM Mono", monospace; }
+.compactCalendar > div { position: relative; display: grid; place-items: center; min-height: 0; overflow: hidden; color: #9bacA2; border-radius: 8px; font: 500 9px "DM Mono", monospace; }
 .compactCalendar .outsideDay { opacity: .25; }
-.compactCalendar .broadcastDay { color: #090a0d; background: var(--app-green); box-shadow: inset 0 0 0 1px #6479b8; }
+.compactCalendar .broadcastDay { color: #fff; background: #232936; box-shadow: inset 0 0 0 1px #56627f; }
+.compactCalendar .broadcastDay > span { position: absolute; z-index: 2; top: 2px; left: 3px; padding: 1px 3px; color: #fff; background: #090b0fc7; border-radius: 4px; font-size: 7px; }
+.compactCalendar .broadcastDay img { width: 100%; height: 100%; object-fit: cover; }
+.compactCalendar .broadcastDay b { position: absolute; z-index: 2; right: 2px; bottom: 2px; min-width: 13px; padding: 1px 3px; color: #0b0d11; background: var(--app-green); border-radius: 5px; font-size: 6px; text-align: center; }
 .compactCalendar .broadcastDay i { position: absolute; right: 3px; bottom: 2px; color: #35436e; font-size: 6px; font-style: normal; }
 .calendarView > footer { display: flex; justify-content: space-between; padding: 9px 13px; color: #777e8a; border-top: 1px solid #292c34; font-size: 7px; }
 .calendarView > footer span { display: flex; align-items: center; gap: 4px; }
@@ -545,9 +569,11 @@
 }
 
 @media (max-width: 420px) {
-  .guideCarousel { grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 11px; }
+  .guideCarousel { grid-template-columns: minmax(0, 145px) minmax(0, 1fr); gap: 9px; padding-inline: 36px; }
   .guideCaption h3 { font-size: 16px; }
   .guideCaption p { font-size: 9px; }
+  .headerActions .guideButton span { display: none; }
+  .headerActions .guideButton { width: 33px; justify-content: center; padding: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

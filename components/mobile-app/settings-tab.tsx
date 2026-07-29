@@ -5,8 +5,6 @@ import {
   BellOff,
   CheckCircle2,
   CircleHelp,
-  ExternalLink,
-  LogIn,
   LogOut,
   MessageSquareText,
   RefreshCw,
@@ -31,7 +29,6 @@ export function SettingsTab({
   onDisable,
   onTest,
   onGuide,
-  onLogin,
   onLogout,
   onClearLogs
 }: {
@@ -47,7 +44,6 @@ export function SettingsTab({
   onDisable: () => void;
   onTest: () => void;
   onGuide: () => void;
-  onLogin: () => void;
   onLogout: () => void;
   onClearLogs: () => void;
 }) {
@@ -88,7 +84,7 @@ export function SettingsTab({
           <strong>{user ? user.channelName : "비로그인 사용 중"}</strong>
           <small>{user ? "선택한 스트리머를 계정에 저장합니다." : "설정은 현재 브라우저에만 남습니다."}</small>
         </div>
-        <button onClick={user ? onLogout : onLogin}>{user ? <LogOut /> : <LogIn />}{user ? "로그아웃" : "치지직 로그인"}</button>
+        {user && <button onClick={onLogout}><LogOut />로그아웃</button>}
       </article>
 
       <section className={styles.notificationLog}>
@@ -115,7 +111,7 @@ export function SettingsTab({
 
       <div className={styles.settingLinks}>
         <button onClick={onGuide}><CircleHelp />설치 및 사용 방법</button>
-        <a href="mailto:admin@iftype.store?subject=%EA%B5%AC%EB%8D%B0%EA%B8%B0%20%ED%94%BC%EB%93%9C%EB%B0%B1"><MessageSquareText />피드백 보내기<ExternalLink /></a>
+        <a href="/feedback"><MessageSquareText />피드백 보내기</a>
       </div>
     </section>
   );

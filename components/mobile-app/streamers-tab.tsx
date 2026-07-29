@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Film, Radio } from "lucide-react";
+import { ArrowLeft, CalendarDays, ExternalLink, Film, Radio } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useState } from "react";
@@ -26,54 +26,71 @@ export function StreamersTab({
     checked: boolean
   ) => void;
 }) {
-  const [liveOnly, setLiveOnly] = useState(true);
+  const [liveOnly, setLiveOnly] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
   const broadcasts = useQuery({
     queryKey: ["streamer-broadcasts", selected.channelId],
     queryFn: ({ signal }) => api.streamerBroadcasts(selected.channelId, signal),
-    staleTime: 60_000
+    staleTime: 60_000,
+    enabled: detailOpen
   });
   const liveStreamers = streamers.filter((streamer) => streamer.isLive);
   const selection = liveOnly ? liveStreamers : streamers;
 
-  return (
-    <section className={`${styles.tabScroll} ${styles.streamerTab}`}>
-      <header className={styles.tabIntro}>
-        <span>NOW & ARCHIVE</span>
-        <h1>스트리머</h1>
-        <p>방송 중인 사람을 고르고 달력과 다시보기를 한 화면에서 확인하세요.</p>
-      </header>
-      <div className={styles.streamerPickerHeading}>
-        <strong>{liveOnly ? `방송 중 ${liveStreamers.length}명` : `전체 ${streamers.length}명`}</strong>
-        <div>
-          <button className={liveOnly ? styles.pickerFilterActive : ""} onClick={() => setLiveOnly(true)}>LIVE</button>
-          <button className={!liveOnly ? styles.pickerFilterActive : ""} onClick={() => setLiveOnly(false)}>전체</button>
+  if (!detailOpen) {
+    return (
+      <section className={`${styles.tabScroll} ${styles.streamerTab}`}>
+        <header className={styles.tabIntro}>
+          <span>NOW & ARCHIVE</span>
+          <h1>스트리머</h1>
+          <p>상세 보기 버튼을 눌러 달력과 다시보기로 이동하세요.</p>
+        </header>
+        <div className={styles.streamerPickerHeading}>
+          <strong>{liveOnly ? `방송 중 ${liveStreamers.length}명` : `전체 ${streamers.length}명`}</strong>
+          <div>
+            <button className={liveOnly ? styles.pickerFilterActive : ""} onClick={() => setLiveOnly(true)}>LIVE</button>
+            <button className={!liveOnly ? styles.pickerFilterActive : ""} onClick={() => setLiveOnly(false)}>전체</button>
+          </div>
         </div>
-      </div>
-      <div className={styles.inlineStreamerPicker} aria-label="스트리머 선택">
-        {selection.length > 0 ? selection.map((streamer) => (
-            <button
-              key={streamer.channelId}
-              className={streamer.channelId === selected.channelId ? styles.inlineStreamerSelected : ""}
-              onClick={() => onSelect(streamer.channelId)}
-            >
-              <span aria-hidden="true">
+        <div className={styles.streamerIndex} aria-label="스트리머 목록">
+          {selection.length > 0 ? selection.map((streamer) => (
+            <article key={streamer.channelId}>
+              <span className={styles.rowAvatar}>
                 {streamer.channelImageUrl
                   ? <Image
                       src={streamer.channelImageUrl}
                       alt=""
-                      width={44}
-                      height={44}
-                      sizes="44px"
+                      width={46}
+                      height={46}
+                      sizes="46px"
+                      loading="lazy"
                       style={{ width: "100%", height: "100%" }}
                     />
                   : streamer.channelName.slice(0, 1)}
                 {streamer.isLive && <i />}
               </span>
-              <small>{streamer.channelName}</small>
-            </button>
+              <div>
+                <strong>{streamer.channelName}</strong>
+                <small>{streamer.isLive
+                  ? <><Radio /> {streamer.currentCategory || "카테고리 확인 중"}</>
+                  : `팔로워 순위 #${streamer.trackingRank ?? "-"}`}</small>
+              </div>
+              <button aria-label={`${streamer.channelName} 상세 보기`} onClick={() => {
+                onSelect(streamer.channelId);
+                setDetailOpen(true);
+              }}><CalendarDays />상세 보기</button>
+            </article>
           )) : <p className={styles.emptyLive}>현재 방송 중인 스트리머가 없습니다.</p>}
-      </div>
+        </div>
+      </section>
+    );
+  }
 
+  return (
+    <section className={`${styles.tabScroll} ${styles.streamerTab}`}>
+      <button className={styles.detailBack} onClick={() => setDetailOpen(false)}>
+        <ArrowLeft /> 스트리머 목록
+      </button>
       <article className={styles.streamerDetail}>
         <div className={styles.streamerDetailHeading}>
           <span className={styles.detailAvatar}>
@@ -119,7 +136,7 @@ export function StreamersTab({
                 }).format(broadcast.startedAt)} · {broadcast.category || "미분류"}</small>
               </div>
               {broadcast.vodUrl
-                ? <a href={broadcast.vodUrl} target="_blank" rel="noreferrer">보기</a>
+                ? <a href={broadcast.vodUrl} target="_blank" rel="noreferrer">다시보기</a>
                 : <span>연결 대기</span>}
             </article>
           ))}

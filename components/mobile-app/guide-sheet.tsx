@@ -88,7 +88,7 @@ export function GuideSheet({
     initialPlatform === "ios" ? "ios" : "android"
   );
   const [stepIndex, setStepIndex] = useState(0);
-  const pointerStart = useRef<number | null>(null);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const steps = guides[platform];
   const step = steps[stepIndex]!;
 
@@ -126,17 +126,25 @@ export function GuideSheet({
 
         <div
           className={styles.guideCarousel}
+          data-testid="guide-carousel"
           onPointerDown={(event) => {
-            pointerStart.current = event.clientX;
-            event.currentTarget.setPointerCapture(event.pointerId);
+            pointerStart.current = { x: event.clientX, y: event.clientY };
+            event.currentTarget.setPointerCapture?.(event.pointerId);
           }}
           onPointerUp={(event) => {
             if (pointerStart.current === null) return;
-            const distance = event.clientX - pointerStart.current;
+            const distanceX = event.clientX - pointerStart.current.x;
+            const distanceY = event.clientY - pointerStart.current.y;
             pointerStart.current = null;
-            if (Math.abs(distance) > 42) move(distance < 0 ? 1 : -1);
+            if (distanceY > 72 && Math.abs(distanceY) > Math.abs(distanceX)) {
+              onClose();
+              return;
+            }
+            if (Math.abs(distanceX) > 42) move(distanceX < 0 ? 1 : -1);
           }}
         >
+          <button className={styles.guideArrowLeft} onClick={() => move(-1)} disabled={stepIndex === 0} aria-label="이전 단계"><ChevronLeft /></button>
+          <button className={styles.guideArrowRight} onClick={() => move(1)} disabled={stepIndex === steps.length - 1} aria-label="다음 단계"><ChevronRight /></button>
           <div className={styles.guideScreenshot} key={`${platform}-${stepIndex}`}>
             <div className={styles.shotStatus}><span>9:41</span><span>●●●</span></div>
             <div className={styles.shotBrowser}>
@@ -162,7 +170,6 @@ export function GuideSheet({
         </div>
 
         <div className={styles.guideControls}>
-          <button onClick={() => move(-1)} disabled={stepIndex === 0} aria-label="이전 단계"><ChevronLeft /></button>
           <div>{steps.map((item, index) => (
             <button
               key={item.title}
@@ -171,7 +178,6 @@ export function GuideSheet({
               aria-label={`${index + 1}단계`}
             />
           ))}</div>
-          <button onClick={() => move(1)} disabled={stepIndex === steps.length - 1} aria-label="다음 단계"><ChevronRight /></button>
         </div>
 
         {platform === "android" && canPrompt && !installed && (
