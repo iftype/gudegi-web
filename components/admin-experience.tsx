@@ -17,6 +17,7 @@ import {
   Send,
   Server,
   Smartphone,
+  Trash2,
   Users
 } from "lucide-react";
 import styles from "@/app/admin/admin.module.css";
@@ -34,6 +35,8 @@ type Streamer = {
   rankingSource: string | null;
   rankingSnapshotAt: number | null;
   profileCheckedAt: number | null;
+  currentTitle: string | null;
+  currentCategory: string | null;
 };
 
 type Broadcast = {
@@ -60,6 +63,9 @@ type ScheduledCollector = {
 type Overview = {
   streamers: Streamer[];
   broadcasts: Broadcast[];
+  limits: {
+    maxActiveStreamers: number;
+  };
   feedback: Array<{
     id: number;
     category: string;
@@ -168,11 +174,15 @@ type Overview = {
 };
 
 async function adminApi<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (init?.body != null && !headers.has("content-type")) {
+    headers.set("content-type", "application/json");
+  }
   const response = await fetch(`/api/admin${path}`, {
     ...init,
     credentials: "include",
     cache: "no-store",
-    headers: { "content-type": "application/json", ...init?.headers }
+    headers
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null) as { error?: string } | null;
@@ -274,6 +284,9 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
   const [refreshing, setRefreshing] = useState(false);
   const [testSending, setTestSending] = useState(false);
   const [testResult, setTestResult] = useState("");
+  const [streamerQuery, setStreamerQuery] = useState("");
+  const [streamerBusy, setStreamerBusy] = useState("");
+  const [streamerResult, setStreamerResult] = useState("");
 
   const load = useCallback(async (manual = false) => {
     if (manual) setRefreshing(true);
@@ -323,6 +336,12 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
   const analyticsVisitors = (eventName: string) =>
     analytics.events.find((event) => event.eventName === eventName)?.visitorCount ?? 0;
   const activeStreamers = streamers.filter((streamer) => streamer.enabled);
+  const visibleStreamers = streamers.filter((streamer) => {
+    const query = streamerQuery.trim().toLowerCase();
+    return !query
+      || streamer.channelName.toLowerCase().includes(query)
+      || streamer.channelId.includes(query);
+  });
   const scheduleByChannel = new Map(
     (collector?.schedule ?? []).map((item) => [item.channelId, item])
   );
@@ -437,7 +456,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
       <section className={styles.panel}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>PUSH DELIVERY TEST</span><h2>테스트 메시지 보내기</h2></div>
-          <span className={styles.pill}>가장 최근에 연결한 기기 1대</span>
+          <span className={styles.pill}>연결 기기 {rows.pushSubscriptionCount ?? 0}대 · 최근 기기 1대로 발송</span>
         </div>
         <form className={styles.pushTestForm} onSubmit={async (event) => {
           event.preventDefault();
@@ -474,6 +493,120 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
           <button disabled={testSending}><Send size={15} />{testSending ? "전송 중…" : "테스트 보내기"}</button>
         </form>
         {testResult && <p className={styles.pushTestResult} role="status">{testResult}</p>}
+      </section>
+
+      <section className={styles.panel}>
+        <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>STREAMER OPERATIONS</span><h2>추적 리스트 관리</h2></div>
+          <span className={styles.pill}>
+            활성 {activeStreamers.length} / {overview.limits.maxActiveStreamers}
+          </span>
+        </div>
+        <form className={styles.streamerAddForm} onSubmit={async (event) => {
+          event.preventDefault();
+          const form = new FormData(event.currentTarget);
+          const channelId = String(form.get("channelId") ?? "").trim();
+          setStreamerBusy(channelId);
+          setStreamerResult("");
+          try {
+            await adminApi("/streamers", {
+              method: "POST",
+              body: JSON.stringify({ channelId })
+            });
+            event.currentTarget.reset();
+            setStreamerResult("채널을 추적 리스트에 추가했습니다.");
+            await load();
+          } catch (caught) {
+            const code = caught instanceof Error ? caught.message : "";
+            setStreamerResult(code === "capacity_reached"
+              ? "활성 추적 채널 한도에 도달했습니다."
+              : "채널을 추가하지 못했습니다. 32자리 채널 ID를 확인하세요.");
+          } finally {
+            setStreamerBusy("");
+          }
+        }}>
+          <input
+            name="channelId"
+            placeholder="32자리 치지직 채널 ID"
+            pattern="[a-f0-9]{32}"
+            aria-label="추가할 치지직 채널 ID"
+            required
+          />
+          <button disabled={Boolean(streamerBusy)}>채널 추가</button>
+        </form>
+        <div className={styles.streamerManagerToolbar}>
+          <input
+            type="search"
+            value={streamerQuery}
+            onChange={(event) => setStreamerQuery(event.target.value)}
+            placeholder="이름 또는 채널 ID 검색"
+            aria-label="추적 채널 검색"
+          />
+          <span>{visibleStreamers.length}개 표시</span>
+        </div>
+        {streamerResult && <p className={styles.pushTestResult} role="status">{streamerResult}</p>}
+        <div className={styles.streamerManagerList}>
+          {visibleStreamers.map((streamer) => (
+            <article key={streamer.channelId}>
+              <div>
+                <strong>{streamer.channelName}</strong>
+                <small>{streamer.channelId}</small>
+              </div>
+              <div className={styles.streamerMetadata}>
+                <strong>{streamer.currentCategory || (streamer.isLive ? "카테고리 확인 중" : "방송 없음")}</strong>
+                <small title={streamer.currentTitle ?? undefined}>
+                  {streamer.currentTitle || "현재 방송 제목 없음"}
+                </small>
+              </div>
+              <div className={styles.streamerManagerActions}>
+                <button
+                  className={`${styles.toggle} ${streamer.enabled ? styles.toggleOn : ""}`}
+                  aria-pressed={streamer.enabled}
+                  disabled={streamerBusy === streamer.channelId}
+                  onClick={async () => {
+                    setStreamerBusy(streamer.channelId);
+                    setStreamerResult("");
+                    try {
+                      await adminApi(`/streamers/${streamer.channelId}`, {
+                        method: "PATCH",
+                        body: JSON.stringify({ enabled: !streamer.enabled })
+                      });
+                      await load();
+                    } catch {
+                      setStreamerResult("추적 상태를 바꾸지 못했습니다.");
+                    } finally {
+                      setStreamerBusy("");
+                    }
+                  }}
+                >
+                  {streamer.enabled ? "추적 중" : "추적 꺼짐"}
+                </button>
+                <button
+                  className={styles.danger}
+                  aria-label={`${streamer.channelName} 추적 데이터 삭제`}
+                  disabled={streamerBusy === streamer.channelId}
+                  onClick={async () => {
+                    if (!window.confirm(
+                      `${streamer.channelName} 채널과 수집된 방송 기록을 모두 삭제할까요?`
+                    )) return;
+                    setStreamerBusy(streamer.channelId);
+                    try {
+                      await adminApi(`/streamers/${streamer.channelId}`, { method: "DELETE" });
+                      setStreamerResult("채널과 관련 기록을 삭제했습니다.");
+                      await load();
+                    } catch {
+                      setStreamerResult("채널을 삭제하지 못했습니다.");
+                    } finally {
+                      setStreamerBusy("");
+                    }
+                  }}
+                >
+                  <Trash2 size={14} />삭제
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className={styles.panel}>
