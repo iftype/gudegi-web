@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, LayoutGrid, Type } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import type { PushPreference } from "@/lib/types";
 import styles from "./mobile-app.module.css";
 
@@ -16,22 +16,10 @@ export function AlertToggleGrid({
 }) {
   const options = [
     {
-      key: "enabled" as const,
-      label: "알림",
-      icon: Bell,
-      checked: preference.enabled
-    },
-    {
       key: "categoryChanged" as const,
       label: "카테고리",
       icon: LayoutGrid,
       checked: preference.enabled && preference.categoryChanged
-    },
-    {
-      key: "titleChanged" as const,
-      label: "방제",
-      icon: Type,
-      checked: preference.enabled && preference.titleChanged
     }
   ];
 

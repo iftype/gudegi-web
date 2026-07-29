@@ -58,8 +58,8 @@ export function FollowTab({
         <span>MY ALERTS</span>
         <h1>알림 관리</h1>
         <p>{user
-          ? `계정에 저장한 ${enabledCount}명의 카테고리·제목 알림을 관리합니다.`
-          : `이 기기에 저장한 ${enabledCount}명의 카테고리·제목 알림을 관리합니다.`}</p>
+          ? `계정에 저장한 ${enabledCount}명의 카테고리 변경 알림을 관리합니다.`
+          : `이 기기에 저장한 ${enabledCount}명의 카테고리 변경 알림을 관리합니다.`}</p>
       </header>
       <button className={styles.followPushBanner} disabled={pushBusy} onClick={onConnect}>
         {pushBusy ? <RefreshCw className={styles.spinning} /> : pushActive ? <CheckCircle2 /> : <Bell />}
@@ -67,7 +67,7 @@ export function FollowTab({
           <strong>{pushActive ? "이 기기 알림 연결됨" : "이 기기에서 알림 받기"}</strong>
           <small>{pushActive
             ? enabledCount > 0
-              ? `선택한 ${enabledCount}명의 카테고리·방제 변경을 알려드려요.`
+              ? `선택한 ${enabledCount}명의 카테고리 변경을 알려드려요.`
               : "아래에서 알림 받을 스트리머를 선택하세요."
             : "PWA 앱에서 한 번만 연결하면 됩니다."}</small>
         </span>

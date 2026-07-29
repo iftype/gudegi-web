@@ -9,7 +9,7 @@ import {
   Settings,
   UsersRound
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
 import { authApi, type AppUser } from "@/lib/auth-api";
@@ -31,8 +31,10 @@ import { usePwaInstall } from "./use-pwa-install";
 import styles from "./mobile-app.module.css";
 
 type AppTab = "follow" | "streamers" | "settings";
+const TAB_STORAGE_KEY = "gudegi-active-tab";
 
 export function MobileApp({ streamers }: { streamers: Streamer[] }) {
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<AppTab>("follow");
   const [guideOpen, setGuideOpen] = useState(false);
   const [suggestionType, setSuggestionType] = useState<"idea" | "streamer_request" | null>(null);
@@ -78,6 +80,10 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     const timer = window.setTimeout(() => {
       const mode = window.localStorage.getItem("gudegi-entry-mode")
         ?? window.localStorage.getItem("trackline-entry-mode");
+      const savedTab = window.localStorage.getItem(TAB_STORAGE_KEY);
+      if (savedTab === "follow" || savedTab === "streamers" || savedTab === "settings") {
+        setTab(savedTab);
+      }
       setGuestMode(mode === "guest");
       setEntryReady(true);
       if (!mode) trackEvent("onboarding_viewed");
@@ -125,13 +131,21 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     try {
       await authApi.logout();
       window.localStorage.setItem("gudegi-entry-mode", "guest");
+      window.localStorage.setItem(TAB_STORAGE_KEY, "settings");
       setGuestMode(true);
+      queryClient.setQueryData(["app-session"], null);
       await session.refetch();
+      window.location.replace("/");
     } catch {
       setLogoutMessage("로그아웃하지 못했습니다. 네트워크를 확인하고 다시 눌러 주세요.");
     } finally {
       setLogoutBusy(false);
     }
+  }
+
+  function selectTab(next: AppTab) {
+    setTab(next);
+    window.localStorage.setItem(TAB_STORAGE_KEY, next);
   }
 
   function connectPush() {
@@ -153,7 +167,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     <main className={`${styles.app} mobile-app-shell standalone-route`}>
       <header className={styles.appHeader}>
         <div className={styles.brandActions}>
-          <div className={styles.logo}><BrandMark className={styles.brandMark} /><div><strong>구데기</strong><small>원하는 방송만 골라보기</small></div></div>
+          <button className={styles.logo} aria-label="알림 관리로 이동" onClick={() => selectTab("follow")}><BrandMark className={styles.brandMark} /><span><strong>구데기</strong><small>원하는 방송만 골라보기</small></span></button>
           <button
             className={styles.refreshButton}
             aria-label="새로고침"
@@ -180,7 +194,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             pushActive={push.active}
             pushBusy={push.connecting}
             pushMessage={push.message}
-            onConnect={push.active ? () => setTab("settings") : connectPush}
+            onConnect={push.active ? () => selectTab("settings") : connectPush}
             onChange={preferences.updatePreference}
             onChangeAll={(checked) => preferences.updateAll(checked, personal.channelIds)}
             onAdd={() => setPickerOpen(true)}
@@ -216,7 +230,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             pushMessage={push.message}
             permission={push.permission}
             targetCount={preferences.preferences.filter((item) =>
-              item.enabled && (item.categoryChanged || item.titleChanged)
+              item.enabled && item.categoryChanged
             ).length}
             logs={pushLogs.logs}
             logoutBusy={logoutBusy}
@@ -233,9 +247,9 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
       </section>
 
       <nav className={styles.bottomNav} aria-label="앱 메뉴">
-        <TabButton active={tab === "follow"} onClick={() => setTab("follow")} icon={<Heart />} label="알림 관리" />
-        <TabButton active={tab === "streamers"} onClick={() => setTab("streamers")} icon={<UsersRound />} label="스트리머" />
-        <TabButton active={tab === "settings"} onClick={() => setTab("settings")} icon={<Settings />} label="설정" badge={push.active} />
+        <TabButton active={tab === "follow"} onClick={() => selectTab("follow")} icon={<Heart />} label="알림 관리" />
+        <TabButton active={tab === "streamers"} onClick={() => selectTab("streamers")} icon={<UsersRound />} label="스트리머" />
+        <TabButton active={tab === "settings"} onClick={() => selectTab("settings")} icon={<Settings />} label="설정" badge={push.active} />
       </nav>
 
       {guideOpen && (
@@ -258,10 +272,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
       {suggestionType && (
         <SuggestionSheet
           initialType={suggestionType}
-          onSubmitted={(request, supportedChannelId) => {
-            if (request) personal.rememberUnsupported(request);
-            if (supportedChannelId) personal.add(supportedChannelId);
-          }}
+          onSubmitted={() => undefined}
           onClose={() => setSuggestionType(null)}
         />
       )}

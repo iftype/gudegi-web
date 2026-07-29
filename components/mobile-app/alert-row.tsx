@@ -1,6 +1,6 @@
 "use client";
 
-import { Radio, X } from "lucide-react";
+import { Radio, Trash2 } from "lucide-react";
 import Image from "next/image";
 import type { PushPreference, Streamer } from "@/lib/types";
 import styles from "./mobile-app.module.css";
@@ -20,11 +20,10 @@ export function AlertRow({
   ) => void;
   onRemove?: (channelId: string) => void;
 }) {
-  const active = preference.categoryChanged || preference.titleChanged;
+  const active = preference.categoryChanged;
 
   return (
     <article className={`${styles.alertRow} ${active ? styles.followActive : ""}`}>
-      {onRemove && <button className={styles.removeStreamer} aria-label={`${streamer.channelName} 내 목록에서 제거`} onClick={() => onRemove(streamer.channelId)}><X /></button>}
       <div className={styles.alertRowContent}>
         <span className={styles.rowAvatar}>
           {streamer.channelImageUrl
@@ -60,19 +59,12 @@ export function AlertRow({
           >
             카테고리
           </button>
-          <button
+          {onRemove && <button
             type="button"
-            className={preference.titleChanged ? styles.rowAlertToggleActive : ""}
-            aria-pressed={preference.titleChanged}
-            aria-label={`${streamer.channelName} 제목 변경 알림`}
-            onClick={() => onChange(
-              streamer.channelId,
-              "titleChanged",
-              !preference.titleChanged
-            )}
-          >
-            제목 변경
-          </button>
+            className={styles.rowDeleteButton}
+            aria-label={`${streamer.channelName} 알림 목록에서 삭제`}
+            onClick={() => onRemove(streamer.channelId)}
+          ><Trash2 />삭제</button>}
         </span>
       </div>
     </article>

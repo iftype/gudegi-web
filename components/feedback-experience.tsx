@@ -15,9 +15,8 @@ export function FeedbackExperience() {
     const form = new FormData(event.currentTarget);
     try {
       await api.submitFeedback({
-        category: String(form.get("category")) as "idea" | "bug" | "usability" | "other",
+        category: "idea",
         message: String(form.get("message")),
-        contact: String(form.get("contact") ?? ""),
         website: String(form.get("website") ?? "")
       });
       setStatus("sent");
@@ -43,23 +42,10 @@ export function FeedbackExperience() {
         <form onSubmit={submit}>
           <span className={styles.eyebrow}>TELL US WHAT HAPPENED</span>
           <h1>구데기를 더 쓰기 좋게<br />만들어 주세요.</h1>
-          <p>오류, 불편한 흐름, 추가했으면 하는 기능을 편하게 남겨 주세요.</p>
-          <label>
-            <span>종류</span>
-            <select name="category" defaultValue="usability">
-              <option value="usability">사용하기 불편해요</option>
-              <option value="bug">오류가 있어요</option>
-              <option value="idea">기능 아이디어</option>
-              <option value="other">기타</option>
-            </select>
-          </label>
+          <p>구데기에 원하는 점을 편하게 남겨 주세요.</p>
           <label>
             <span>내용</span>
             <textarea name="message" minLength={5} maxLength={1000} placeholder="어떤 상황에서 무엇이 불편했는지 알려 주세요." required />
-          </label>
-          <label>
-            <span>답변 받을 연락처 <small>선택</small></span>
-            <input name="contact" maxLength={120} placeholder="이메일 또는 커뮤니티 닉네임" />
           </label>
           <input className={styles.honeypot} name="website" tabIndex={-1} autoComplete="off" />
           {status === "error" && <p className={styles.error}>전송하지 못했습니다. 잠시 후 다시 시도해 주세요.</p>}
@@ -67,7 +53,7 @@ export function FeedbackExperience() {
             {status === "sending" ? <LoaderCircle className={styles.spin} /> : <Send />}
             {status === "sending" ? "보내는 중" : "피드백 보내기"}
           </button>
-          <small className={styles.privacy}>연락처는 선택 사항이며 피드백 확인 외의 용도로 사용하지 않습니다.</small>
+          <small className={styles.privacy}>보내주신 내용은 서비스 개선을 위해서만 확인합니다.</small>
         </form>
       )}
     </main>

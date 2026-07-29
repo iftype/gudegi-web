@@ -67,7 +67,8 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
       const current = byChannel.get(streamer.channelId);
       return current ? {
         ...current,
-        enabled: current.enabled ?? (current.categoryChanged || current.titleChanged)
+        enabled: current.categoryChanged,
+        titleChanged: false
       } : {
         channelId: streamer.channelId,
         enabled: false,
@@ -110,9 +111,9 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
           : { ...preference, enabled: checked };
       }
       const updated = { ...preference, enabled: checked ? true : preference.enabled, [key]: checked };
-      return updated.categoryChanged || updated.titleChanged
+      return updated.categoryChanged
         ? updated
-        : { ...updated, enabled: false };
+        : { ...updated, enabled: false, titleChanged: false };
     });
     void persist(next);
   }, [persist, preferences]);
@@ -125,7 +126,7 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
           ...preference,
           enabled: checked,
           categoryChanged: checked,
-          titleChanged: checked
+          titleChanged: false
         }));
   }, [persist, preferences]);
 

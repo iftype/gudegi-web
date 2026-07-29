@@ -38,7 +38,7 @@ export function OnboardingGate({
       <div className={styles.onboardingCopy}>
         <span>CHZZK CHANGE ALERT</span>
         <h1>원하는 방송으로<br />바뀌는 순간 알려드려요.</h1>
-        <p>원하는 스트리머의 카테고리와 방제 변경을 휴대폰 알림으로 확인하세요.</p>
+        <p>원하는 스트리머의 카테고리 변경을 휴대폰 알림으로 확인하세요.</p>
       </div>
       <div className={styles.entryChoices}>
         <button className={styles.guestChoice} onClick={() => {

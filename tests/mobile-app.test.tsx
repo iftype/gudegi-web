@@ -5,6 +5,7 @@ import { GuideSheet } from "@/components/mobile-app/guide-sheet";
 import { FollowTab } from "@/components/mobile-app/follow-tab";
 import { OnboardingGate } from "@/components/mobile-app/onboarding-gate";
 import { StreamersTab } from "@/components/mobile-app/streamers-tab";
+import { SuggestionSheet } from "@/components/mobile-app/suggestion-sheet";
 import { api } from "@/lib/api";
 import type { Streamer } from "@/lib/types";
 
@@ -66,13 +67,13 @@ describe("mobile-first entry and guidance", () => {
     expect(names).toEqual(["라이브 스트리머", "오프라인 스트리머"]);
     fireEvent.click(screen.getByRole("button", { name: /라이브 스트리머 카테고리 변경 알림/ }));
     expect(onChange).toHaveBeenCalledWith(streamers[0]!.channelId, "categoryChanged", true);
-    fireEvent.click(screen.getByRole("button", { name: /라이브 스트리머 제목 변경 알림/ }));
-    expect(onChange).toHaveBeenCalledWith(streamers[0]!.channelId, "titleChanged", true);
+    expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("checkbox", { name: /전체 선택/ }));
     expect(onChangeAll).toHaveBeenCalledWith(true);
   });
 
-  it("keeps alert rows fixed without swipe-to-delete controls", () => {
+  it("shows only category and delete actions on alert rows", () => {
+    const onRemove = vi.fn();
     render(
       <FollowTab
         streamers={streamers}
@@ -89,12 +90,14 @@ describe("mobile-first entry and guidance", () => {
         onConnect={() => undefined}
         onChange={() => undefined}
         onChangeAll={() => undefined}
+        onRemove={onRemove}
       />
     );
 
-    expect(screen.queryByRole("button", {
-      name: /라이브 스트리머 알림 설정 삭제/
-    })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", {
+      name: /라이브 스트리머 알림 목록에서 삭제/
+    })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))
       .toEqual(["라이브 스트리머", "오프라인 스트리머"]);
   });
@@ -138,6 +141,16 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.getByText(/이 브라우저에만 저장/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /비로그인으로 시작/ }));
     expect(onGuest).toHaveBeenCalledOnce();
+  });
+
+  it("collects only an idea or a streamer name in the suggestion sheet", () => {
+    render(<SuggestionSheet initialType="idea" onSubmitted={() => undefined} onClose={() => undefined} />);
+    expect(screen.getByRole("textbox", { name: "원하는 점" })).toBeInTheDocument();
+    expect(screen.queryByText(/연락처/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "스트리머 추가" }));
+    expect(screen.getByRole("textbox", { name: "스트리머 이름" })).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "원하는 점" })).not.toBeInTheDocument();
   });
 
   it("opens streamer detail only from an explicit button and provides back", async () => {
@@ -191,9 +204,8 @@ describe("mobile-first entry and guidance", () => {
     expect(await screen.findByText("방송일 1일 · 다시보기 0개")).toBeInTheDocument();
     expect(screen.getByText("talk")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /스트리머 목록/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "알림" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "카테고리" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "방제" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "방제" })).not.toBeInTheDocument();
   });
 
   it("shows different Android and iPhone installation steps", () => {
@@ -235,16 +247,9 @@ describe("mobile-first entry and guidance", () => {
       expect.stringContaining("iphone-1.jpg")
     );
     expect(screen.getByText(/기본 Safari로 열어야/)).toBeInTheDocument();
-    fireEvent.pointerDown(screen.getByTestId("guide-carousel"), {
-      clientX: 120,
-      clientY: 120,
-      pointerId: 1
-    });
-    fireEvent.pointerUp(screen.getByTestId("guide-carousel"), {
-      clientX: 125,
-      clientY: 230,
-      pointerId: 1
-    });
-    expect(onClose).toHaveBeenCalledOnce();
+    fireEvent.pointerDown(screen.getByTestId("guide-carousel"), { clientX: 120, clientY: 120 });
+    fireEvent.pointerUp(screen.getByTestId("guide-carousel"), { clientX: 20, clientY: 120 });
+    expect(screen.getByText("Safari 메뉴에서 공유")).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
   });
 });

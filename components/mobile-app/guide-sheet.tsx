@@ -12,7 +12,7 @@ import {
   X
 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import type { MobilePlatform } from "@/lib/device";
 import { GUIDE_SCREENSHOTS } from "./guide-assets";
 import styles from "./mobile-app.module.css";
@@ -102,7 +102,6 @@ export function GuideSheet({
     initialPlatform === "ios" ? "ios" : "android"
   );
   const [stepIndex, setStepIndex] = useState(0);
-  const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const steps = guides[platform];
   const step = steps[stepIndex]!;
 
@@ -138,38 +137,13 @@ export function GuideSheet({
               : platform === "android"
                 ? "삼성 인터넷으로 열어야 설치할 수 있어요"
                 : "기본 Safari로 열어야 설치할 수 있어요"}</strong>
-            <p>화살표를 누르거나 화면을 좌우로 넘겨 설치 순서를 확인하세요.</p>
+            <p>화살표를 직접 눌러 설치 순서를 확인하세요. 단계는 자동으로 넘어가지 않습니다.</p>
           </div>
         </div>
 
         <div
           className={styles.guideCarousel}
           data-testid="guide-carousel"
-          onPointerDown={(event) => {
-            if ((event.target as HTMLElement).closest("button")) {
-              pointerStart.current = null;
-              return;
-            }
-            pointerStart.current = { x: event.clientX, y: event.clientY };
-          }}
-          onPointerCancel={() => {
-            pointerStart.current = null;
-          }}
-          onPointerUp={(event) => {
-            if ((event.target as HTMLElement).closest("button")) {
-              pointerStart.current = null;
-              return;
-            }
-            if (pointerStart.current === null) return;
-            const distanceX = event.clientX - pointerStart.current.x;
-            const distanceY = event.clientY - pointerStart.current.y;
-            pointerStart.current = null;
-            if (distanceY > 72 && Math.abs(distanceY) > Math.abs(distanceX)) {
-              onClose();
-              return;
-            }
-            if (Math.abs(distanceX) > 42) move(distanceX < 0 ? 1 : -1);
-          }}
         >
           <button
             type="button"

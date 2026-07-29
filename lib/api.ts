@@ -96,11 +96,12 @@ export const api = {
   }),
   submitFeedback: (feedback: {
     category: "idea" | "bug" | "usability" | "other" | "streamer_request";
-    message: string;
+    message?: string;
     contact?: string;
     anonymousId?: string;
     website?: string;
     targetChannel?: string;
+    streamerName?: string;
   }) => mutate<{
     data: {
       id: number | null;
