@@ -105,13 +105,21 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
       return stored ? {
         ...stored,
         enabled: stored.enabled ?? (stored.liveStarted || stored.categoryChanged || stored.titleChanged),
-        liveStarted: Boolean(stored.liveStarted)
+        liveStarted: Boolean(stored.liveStarted),
+        categoryFilter: stored.categoryFilter ?? {
+          allCategories: true,
+          categoryKeys: []
+        }
       } : {
         channelId: streamer.channelId,
         enabled: false,
         liveStarted: false,
         categoryChanged: false,
-        titleChanged: false
+        titleChanged: false,
+        categoryFilter: {
+          allCategories: true,
+          categoryKeys: []
+        }
       };
     });
   }, [storedPreferences, visibleStreamers]);
@@ -146,10 +154,7 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
     window.localStorage.setItem(STORAGE_PREFERENCES, JSON.stringify(next));
     if (!subscriptionId) return;
     try {
-      await api.savePushPreferences(subscriptionId, next, {
-        allCategories: true,
-        categoryKeys: []
-      });
+      await api.savePushPreferences(subscriptionId, next);
       const selected = next.find((item) => item.enabled);
       trackEvent("notification_preference_saved", { channelId: selected?.channelId });
       setNotificationState("알림 설정을 저장했습니다.");
@@ -211,10 +216,7 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
         applicationServerKey: base64ToUint8Array(pushConfig.data.data.publicKey)
       });
       const result = await api.createPushSubscription(subscription.toJSON());
-      await api.savePushPreferences(result.data.id, preferences, {
-        allCategories: true,
-        categoryKeys: []
-      });
+      await api.savePushPreferences(result.data.id, preferences);
       setSubscriptionId(result.data.id);
       window.localStorage.setItem(STORAGE_ID, result.data.id);
       trackEvent("notification_enabled", {

@@ -119,12 +119,6 @@
 .followImportButton { width: 100%; min-height: 31px; display: flex; align-items: center; justify-content: center; gap: 4px; margin: -1px 0 9px; color: #aeb7ca; background: #141822; border: 1px solid #30394d; border-radius: 9px; font-size: 8px; font-weight: 700; }
 .followImportButton svg { width: 10px; }
 .followPushMessage { margin: -2px 3px 9px; color: #c3c9d4; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
-.categoryFilterButton { width: 100%; min-height: 48px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 9px; margin-bottom: 9px; padding: 8px 10px; color: #e7e9ee; background: #141820; border: 1px solid #303745; border-radius: 13px; text-align: left; }
-.categoryFilterButton > svg { width: 17px; color: var(--app-green); }
-.categoryFilterButton > span { min-width: 0; display: grid; gap: 2px; }
-.categoryFilterButton strong { font-size: 12px; }
-.categoryFilterButton small { color: #9aa1ae; font-size: 10px; }
-.categoryFilterButton > i { color: #737b89; font-size: 9px; font-style: normal; white-space: nowrap; }
 .followTools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-bottom: 9px; }
 .inlineSearch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 0; padding: 0 11px; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .inlineSearch svg { width: 15px; color: #767c88; }
@@ -141,7 +135,7 @@
 .removeStreamer svg { width: 12px; }
 .alertRow {
   position: relative;
-  min-height: 70px;
+  min-height: 122px;
   overflow: hidden;
   background: var(--app-card);
   border: 1px solid var(--app-line);
@@ -152,7 +146,7 @@
 .followList > .followActive { border-color: rgb(255 255 255 / 30%); }
 .alertRowContent {
   position: relative;
-  min-height: 70px;
+  min-height: 122px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -178,31 +172,85 @@
 .followCopy strong { overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
 .followCopy small { display: flex; align-items: center; gap: 4px; overflow: hidden; color: #838a96; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .followCopy small svg { width: 10px; color: #ff7085; }
-.rowAlertToggles {
+.rowDeleteIcon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: #8b6670;
+  background: #1c1619;
+  border: 1px solid #3e292f;
+  border-radius: 9px;
+}
+.rowDeleteIcon svg { width: 13px; }
+.rowAlertControls {
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
+  gap: 6px;
 }
-.rowAlertToggles button {
-  width: 55px;
-  min-height: 34px;
-  padding: 0 4px;
-  color: #7d8491;
+.rowAlertControls button {
+  min-width: 0;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #aab0bb;
   background: #181b22;
   border: 1px solid #30343e;
-  border-radius: 9px;
-  font-size: 10px;
+  border-radius: 10px;
+  font-size: 11px;
   font-weight: 800;
-  line-height: 1.15;
-  word-break: keep-all;
 }
-.rowAlertToggles .rowAlertToggleActive {
-  color: #0b0c0f;
-  background: var(--app-green);
-  border-color: var(--app-green);
+.rowAlertControls button > svg { width: 13px; }
+.rowAlarmToggle > i {
+  position: relative;
+  width: 28px;
+  height: 17px;
+  margin-left: auto;
+  background: #343944;
+  border-radius: 99px;
 }
-.rowAlertToggles .rowDeleteButton { grid-column: 1 / -1; width: 100%; display: flex; align-items: center; justify-content: center; gap: 3px; color: #c98d95; }
-.rowDeleteButton svg { width: 11px; }
+.rowAlarmToggle > i::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 11px;
+  height: 11px;
+  content: "";
+  background: #9ba2ae;
+  border-radius: 50%;
+  transition: transform 150ms ease;
+}
+.rowAlertControls .rowAlarmToggleActive {
+  color: #dfffa0;
+  background: #1e261c;
+  border-color: #4e6148;
+}
+.rowAlarmToggleActive > i { background: var(--app-green); }
+.rowAlarmToggleActive > i::after { background: #0b0d11; transform: translateX(11px); }
+.rowCategoryButton { color: #d9dde6 !important; }
+.rowCategoryTags, .detailCategoryTags {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 1px;
+  scrollbar-width: none;
+}
+.rowCategoryTags::-webkit-scrollbar, .detailCategoryTags::-webkit-scrollbar { display: none; }
+.rowCategoryTags span, .detailCategoryTags span {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  color: #a9bd9e;
+  background: #172019;
+  border: 1px solid #344437;
+  border-radius: 99px;
+  font-size: 9px;
+  font-weight: 750;
+}
 .selectAll { min-width: 106px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px; color: #dededb; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; cursor: pointer; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .selectAll > span { display: grid; gap: 1px; }
 .selectAll strong { font-size: 11px; }
@@ -216,6 +264,7 @@
 .alertToggleGrid button { min-width: 0; height: 37px; display: flex; align-items: center; justify-content: center; gap: 5px; color: #7d8491; background: #181b22; border: 1px solid #2c3039; border-radius: 10px; font-size: 11px; font-weight: 700; }
 .alertToggleGrid button svg { width: 13px; }
 .alertToggleGrid .toggleSelected { color: #0b0c0f; background: var(--app-green); border-color: var(--app-green); }
+.detailCategoryTags { margin-top: -3px; }
 
 .streamerTab { padding-bottom: 30px; }
 .streamerSearch { margin-bottom: 9px; }

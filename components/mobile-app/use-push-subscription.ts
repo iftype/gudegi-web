@@ -4,14 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { trackEvent } from "@/lib/analytics";
-import type { CategoryFilter, PushPreference } from "@/lib/types";
+import type { PushPreference } from "@/lib/types";
 
 const STORAGE_ID = "trackline-push-subscription-id";
 
-export function usePushSubscription(
-  preferences: PushPreference[],
-  categoryFilter: CategoryFilter
-) {
+export function usePushSubscription(preferences: PushPreference[]) {
   const [subscriptionId, setSubscriptionId] = useState(() =>
     typeof window === "undefined" ? "" : window.localStorage.getItem(STORAGE_ID) ?? ""
   );
@@ -61,12 +58,12 @@ export function usePushSubscription(
   useEffect(() => {
     if (!subscriptionId) return;
     const timer = window.setTimeout(() => {
-      void api.savePushPreferences(subscriptionId, preferences, categoryFilter).catch(() => {
+      void api.savePushPreferences(subscriptionId, preferences).catch(() => {
         setMessage("기기 알림 설정을 동기화하지 못했습니다.");
       });
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [categoryFilter, preferences, subscriptionId]);
+  }, [preferences, subscriptionId]);
 
   async function enable() {
     const selected = preferences.filter(
@@ -139,7 +136,7 @@ export function usePushSubscription(
       stage = "서버 구독 저장";
       const result = await api.createPushSubscription(serializeSubscription(subscription));
       stage = "알림 대상 저장";
-      await api.savePushPreferences(result.data.id, selected, categoryFilter);
+      await api.savePushPreferences(result.data.id, selected);
       stage = "연결 테스트";
       setMessage("연결을 확인하는 테스트 알림을 보내고 있습니다…");
       await api.testPushSubscription(result.data.id);

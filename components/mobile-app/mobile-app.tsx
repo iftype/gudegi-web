@@ -67,10 +67,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     retry: 1
   });
   const pwa = usePwaInstall();
-  const push = usePushSubscription(
-    preferences.preferences,
-    preferences.categoryFilter
-  );
+  const push = usePushSubscription(preferences.preferences);
   const pushLogs = usePushLogs();
 
   const selectedStreamer = useMemo(() => {
@@ -219,11 +216,11 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             pushBusy={push.connecting}
             pushMessage={push.message}
             categories={categories.data?.data ?? []}
-            categoryFilter={preferences.categoryFilter}
             onConnect={push.active ? () => selectTab("settings") : connectPush}
             onChange={preferences.updatePreference}
             onChangeAll={(checked) => preferences.updateAll(checked, personal.channelIds)}
-            onCategoryFilterChange={(value) => void preferences.updateCategoryFilter(value)}
+            onCategoryFilterChange={(channelId, value) =>
+              void preferences.updateCategoryFilter(channelId, value)}
             onAdd={() => selectTab("streamers")}
             onImport={() => void startLogin()}
             onClearAll={() => void resetAlertList()}
@@ -240,6 +237,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             streamers={streamers}
             selected={selectedStreamer}
             preference={selectedPreference}
+            categories={categories.data?.data ?? []}
             personalChannelIds={personal.channelIds}
             onSelect={preferences.selectPrimary}
             onChange={(key, checked) => preferences.updatePreference(
@@ -247,6 +245,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
               key,
               checked
             )}
+            onCategoryFilterChange={(value) =>
+              void preferences.updateCategoryFilter(selectedStreamer.channelId, value)}
             unsupportedRequests={personal.unsupported}
             onAddToAlerts={(channelId) => {
               personal.add(channelId);

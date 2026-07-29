@@ -76,6 +76,7 @@ export type PushPreference = {
   liveStarted: boolean;
   categoryChanged: boolean;
   titleChanged: boolean;
+  categoryFilter: CategoryFilter;
 };
 
 export type CategoryFilter = {

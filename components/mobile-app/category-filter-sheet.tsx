@@ -25,6 +25,7 @@ export function CategoryFilterSheet({
     return categories.filter((category) =>
       category.categoryValue.toLocaleLowerCase("ko-KR").includes(normalized)
       || category.categoryId.toLocaleLowerCase("ko-KR").includes(normalized)
+      || (category.categoryId === "talk" && "저챗".includes(normalized))
     );
   }, [categories, query]);
 
@@ -49,11 +50,11 @@ export function CategoryFilterSheet({
         className={`${styles.sheet} ${styles.categoryFilterSheet}`}
         role="dialog"
         aria-modal="true"
-        aria-label="받을 카테고리 선택"
+        aria-label="카테고리 태그 선택"
       >
         <div className={styles.sheetHandle} />
         <header className={styles.sheetHeader}>
-          <div><span>CHZZK CATEGORY</span><h2>받을 카테고리</h2></div>
+          <div><span>CHZZK CATEGORY</span><h2>카테고리 태그 선택</h2></div>
           <button onClick={onClose} aria-label="닫기"><X /></button>
         </header>
         <div className={styles.categoryFilterTools}>
@@ -63,7 +64,7 @@ export function CategoryFilterSheet({
             aria-pressed={draft.allCategories}
             onClick={() => setDraft({ allCategories: true, categoryKeys: [] })}
           >
-            <span><strong>전체 카테고리</strong><small>모든 방송 카테고리 알림</small></span>
+            <span><strong>전체 체크</strong><small>모든 방송 카테고리 알림</small></span>
             <i>{draft.allCategories && <Check />}</i>
           </button>
           <label>
@@ -87,7 +88,7 @@ export function CategoryFilterSheet({
                 onClick={() => toggleCategory(category.categoryKey)}
               >
                 <span>
-                  <strong>{category.categoryValue}</strong>
+                  <strong>{category.categoryId === "talk" ? "저챗" : category.categoryValue}</strong>
                   <small>{categoryTypeLabel(category.categoryType)} · 라이브 {category.openLiveCount.toLocaleString()}개</small>
                 </span>
                 <i>{checked && <Check />}</i>
@@ -105,7 +106,7 @@ export function CategoryFilterSheet({
           }}
         >
           {draft.allCategories
-            ? "전체 카테고리로 적용"
+            ? "전체 체크로 적용"
             : `${draft.categoryKeys.length}개 카테고리로 적용`}
         </button>
       </section>

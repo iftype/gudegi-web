@@ -53,9 +53,12 @@ describe("API mutations", () => {
         enabled: true,
         liveStarted: true,
         categoryChanged: true,
-        titleChanged: false
-      }],
-      { allCategories: false, categoryKeys: ["ETC:talk"] }
+        titleChanged: false,
+        categoryFilter: {
+          allCategories: false,
+          categoryKeys: ["ETC:talk"]
+        }
+      }]
     );
 
     const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
@@ -64,12 +67,12 @@ describe("API mutations", () => {
         channelId: "a".repeat(32),
         liveStarted: true,
         categoryChanged: true,
-        titleChanged: false
-      }],
-      categoryFilter: {
-        allCategories: false,
-        categoryKeys: ["ETC:talk"]
-      }
+        titleChanged: false,
+        categoryFilter: {
+          allCategories: false,
+          categoryKeys: ["ETC:talk"]
+        }
+      }]
     });
   });
 

@@ -1,6 +1,5 @@
 import type {
   Broadcast,
-  CategoryFilter,
   LiveCategory,
   MonthlyStreamer,
   PushPreference,
@@ -68,21 +67,20 @@ export const api = {
     }),
   savePushPreferences: (
     id: string,
-    channels: PushPreference[],
-    categoryFilter: CategoryFilter
+    channels: PushPreference[]
   ) =>
     mutate<{ ok: true }>(`/v1/push/subscriptions/${id}/preferences`, {
       method: "PUT",
       body: JSON.stringify({
         channels: channels
           .filter((channel) => channel.enabled)
-          .map(({ channelId, liveStarted, categoryChanged, titleChanged }) => ({
+          .map(({ channelId, liveStarted, categoryChanged, titleChanged, categoryFilter }) => ({
             channelId,
             liveStarted,
             categoryChanged,
-            titleChanged
-          })),
-        categoryFilter
+            titleChanged,
+            categoryFilter
+          }))
       })
     }),
   deletePushSubscription: (id: string) =>

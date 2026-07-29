@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import type { PushPreference, Streamer } from "@/lib/types";
+import type { CategoryFilter, LiveCategory, PushPreference, Streamer } from "@/lib/types";
 import { AlertToggleGrid } from "./alert-toggle-grid";
 import { CompactCalendar } from "./compact-calendar";
 import { UnsupportedList } from "./unsupported-list";
@@ -15,9 +15,11 @@ export function StreamersTab({
   streamers,
   selected,
   preference,
+  categories,
   personalChannelIds,
   onSelect,
   onChange,
+  onCategoryFilterChange,
   unsupportedRequests = [],
   onAddToAlerts,
   onRemoveFromAlerts,
@@ -27,12 +29,11 @@ export function StreamersTab({
   streamers: Streamer[];
   selected: Streamer;
   preference: PushPreference;
+  categories: LiveCategory[];
   personalChannelIds: string[];
   onSelect: (channelId: string) => void;
-  onChange: (
-    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
-    checked: boolean
-  ) => void;
+  onChange: (key: "enabled", checked: boolean) => void;
+  onCategoryFilterChange: (value: CategoryFilter) => void;
   unsupportedRequests?: import("@/lib/types").UnsupportedStreamerRequest[];
   onAddToAlerts: (channelId: string) => void;
   onRemoveFromAlerts: (channelId: string) => void;
@@ -179,8 +180,13 @@ export function StreamersTab({
           {selectedInAlerts ? "내 알림 목록에서 빼기" : "내 알림 목록에 추가"}
         </button>
         {selectedInAlerts
-          ? <AlertToggleGrid preference={preference} onChange={onChange} />
-          : <p className={styles.detailAlertHint}>알림 목록에 추가하면 방송 시작과 카테고리 변경 알림을 설정할 수 있습니다.</p>}
+          ? <AlertToggleGrid
+              preference={preference}
+              categories={categories}
+              onChange={onChange}
+              onCategoryFilterChange={onCategoryFilterChange}
+            />
+          : <p className={styles.detailAlertHint}>알림 목록에 추가하면 원하는 방송 카테고리를 설정할 수 있습니다.</p>}
       </article>
 
       <CompactCalendar streamer={selected} />

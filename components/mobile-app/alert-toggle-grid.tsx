@@ -1,47 +1,58 @@
 "use client";
 
-import { LayoutGrid, Radio } from "lucide-react";
-import type { PushPreference } from "@/lib/types";
+import { Bell, ListFilter } from "lucide-react";
+import { useState } from "react";
+import type { CategoryFilter, LiveCategory, PushPreference } from "@/lib/types";
+import { CategoryFilterSheet } from "./category-filter-sheet";
 import styles from "./mobile-app.module.css";
 
 export function AlertToggleGrid({
   preference,
-  onChange
+  categories,
+  onChange,
+  onCategoryFilterChange
 }: {
   preference: PushPreference;
-  onChange: (
-    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
-    checked: boolean
-  ) => void;
+  categories: LiveCategory[];
+  onChange: (key: "enabled", checked: boolean) => void;
+  onCategoryFilterChange: (value: CategoryFilter) => void;
 }) {
-  const options = [
-    {
-      key: "liveStarted" as const,
-      label: "방송 시작",
-      icon: Radio,
-      checked: preference.enabled && preference.liveStarted
-    },
-    {
-      key: "categoryChanged" as const,
-      label: "카테고리",
-      icon: LayoutGrid,
-      checked: preference.enabled && preference.categoryChanged
-    }
-  ];
+  const [categorySheetOpen, setCategorySheetOpen] = useState(false);
 
   return (
-    <div className={styles.alertToggleGrid}>
-      {options.map((option) => (
+    <>
+      <div className={styles.alertToggleGrid}>
         <button
-          key={option.key}
-          className={option.checked ? styles.toggleSelected : ""}
-          aria-pressed={option.checked}
-          onClick={() => onChange(option.key, !option.checked)}
+          className={preference.enabled ? styles.toggleSelected : ""}
+          aria-pressed={preference.enabled}
+          onClick={() => onChange("enabled", !preference.enabled)}
         >
-          <option.icon />
-          <span>{option.label}</span>
+          <Bell />
+          <span>알림 받기</span>
         </button>
-      ))}
-    </div>
+        <button onClick={() => setCategorySheetOpen(true)}>
+          <ListFilter />
+          <span>카테고리</span>
+        </button>
+      </div>
+      <div className={styles.detailCategoryTags}>
+        {preference.categoryFilter.allCategories
+          ? <span>전체 카테고리</span>
+          : preference.categoryFilter.categoryKeys.map((key) => {
+              const category = categories.find((item) => item.categoryKey === key);
+              return <span key={key}>{category?.categoryId === "talk"
+                ? "저챗"
+                : category?.categoryValue ?? key.split(":").slice(1).join(":")}</span>;
+            })}
+      </div>
+      {categorySheetOpen && (
+        <CategoryFilterSheet
+          categories={categories}
+          value={preference.categoryFilter}
+          onApply={onCategoryFilterChange}
+          onClose={() => setCategorySheetOpen(false)}
+        />
+      )}
+    </>
   );
 }

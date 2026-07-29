@@ -41,6 +41,7 @@ const streamers: Streamer[] = [
     trackingRank: 2
   }
 ];
+const allCategoryFilter = { allCategories: true as const, categoryKeys: [] as string[] };
 
 describe("mobile-first entry and guidance", () => {
   it("keeps ranking order while toggling alerts and supports select all", () => {
@@ -51,8 +52,8 @@ describe("mobile-first entry and guidance", () => {
       <FollowTab
         streamers={streamers}
         preferences={[
-          { channelId: streamers[0]!.channelId, enabled: false, liveStarted: false, categoryChanged: false, titleChanged: false },
-          { channelId: streamers[1]!.channelId, enabled: true, liveStarted: true, categoryChanged: true, titleChanged: true }
+          { channelId: streamers[0]!.channelId, enabled: false, liveStarted: false, categoryChanged: false, titleChanged: false, categoryFilter: allCategoryFilter },
+          { channelId: streamers[1]!.channelId, enabled: true, liveStarted: true, categoryChanged: true, titleChanged: true, categoryFilter: allCategoryFilter }
         ]}
         user={null}
         pushActive
@@ -67,8 +68,8 @@ describe("mobile-first entry and guidance", () => {
 
     const names = screen.getAllByText(/스트리머$/).map((element) => element.textContent);
     expect(names).toEqual(["라이브 스트리머", "오프라인 스트리머"]);
-    fireEvent.click(screen.getByRole("button", { name: /라이브 스트리머 카테고리 변경 알림/ }));
-    expect(onChange).toHaveBeenCalledWith(streamers[0]!.channelId, "categoryChanged", true);
+    fireEvent.click(screen.getByRole("button", { name: "라이브 스트리머 알림 받기" }));
+    expect(onChange).toHaveBeenCalledWith(streamers[0]!.channelId, "enabled", true);
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("checkbox", { name: /전체 선택/ }));
     expect(onChangeAll).toHaveBeenCalledWith(true);
@@ -76,7 +77,7 @@ describe("mobile-first entry and guidance", () => {
     expect(onClearAll).toHaveBeenCalledOnce();
   });
 
-  it("shows broadcast start, category, and delete actions on alert rows", () => {
+  it("shows alert, category, tag, and delete actions on alert rows", () => {
     const onRemove = vi.fn();
     render(
       <FollowTab
@@ -86,7 +87,8 @@ describe("mobile-first entry and guidance", () => {
           enabled: true,
           liveStarted: true,
           categoryChanged: true,
-          titleChanged: true
+          titleChanged: true,
+          categoryFilter: allCategoryFilter
         }))}
         user={null}
         pushActive
@@ -102,9 +104,11 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.getByRole("button", {
       name: /라이브 스트리머 알림 목록에서 삭제/
     })).toBeInTheDocument();
-    expect(screen.getByRole("button", {
-      name: /라이브 스트리머 방송 시작 알림/
-    })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "라이브 스트리머 알림 받기" }))
+      .toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "라이브 스트리머 카테고리 선택" }))
+      .toBeInTheDocument();
+    expect(screen.getAllByText("전체 카테고리")).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))
       .toEqual(["라이브 스트리머", "오프라인 스트리머"]);
@@ -120,7 +124,8 @@ describe("mobile-first entry and guidance", () => {
           enabled: true,
           liveStarted: true,
           categoryChanged: true,
-          titleChanged: false
+          titleChanged: false,
+          categoryFilter: allCategoryFilter
         }]}
         user={null}
         pushActive
@@ -148,7 +153,6 @@ describe("mobile-first entry and guidance", () => {
             syncedAt: 1
           }
         ]}
-        categoryFilter={{ allCategories: true, categoryKeys: [] }}
         onConnect={() => undefined}
         onChange={() => undefined}
         onChangeAll={() => undefined}
@@ -156,15 +160,18 @@ describe("mobile-first entry and guidance", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /받을 카테고리/ }));
-    expect(screen.getByRole("button", { name: "전체 카테고리 모든 방송 카테고리 알림" }))
+    fireEvent.click(screen.getByRole("button", { name: "라이브 스트리머 카테고리 선택" }));
+    expect(screen.getByRole("button", { name: "전체 체크 모든 방송 카테고리 알림" }))
       .toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("button", { name: /talk.*기타/ }));
+    fireEvent.click(screen.getByRole("button", { name: /저챗.*기타/ }));
     fireEvent.click(screen.getByRole("button", { name: "1개 카테고리로 적용" }));
-    expect(onCategoryFilterChange).toHaveBeenCalledWith({
-      allCategories: false,
-      categoryKeys: ["ETC:talk"]
-    });
+    expect(onCategoryFilterChange).toHaveBeenCalledWith(
+      streamers[0]!.channelId,
+      {
+        allCategories: false,
+        categoryKeys: ["ETC:talk"]
+      }
+    );
   });
 
   it("shows unsupported personal streamers separately and routes them to suggestions", () => {
@@ -258,11 +265,14 @@ describe("mobile-first entry and guidance", () => {
             enabled: true,
             liveStarted: true,
             categoryChanged: true,
-            titleChanged: true
+            titleChanged: true,
+            categoryFilter: allCategoryFilter
           }}
+          categories={[]}
           personalChannelIds={streamers.map((streamer) => streamer.channelId)}
           onSelect={onSelect}
           onChange={() => undefined}
+          onCategoryFilterChange={() => undefined}
           onAddToAlerts={() => undefined}
           onRemoveFromAlerts={() => undefined}
         />
