@@ -238,17 +238,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
           <StreamersTab
             streamers={streamers}
             selected={selectedStreamer}
-            preference={selectedPreference}
-            categories={categories.data?.data ?? []}
             personalChannelIds={personal.channelIds}
             onSelect={preferences.selectPrimary}
-            onChange={(key, checked) => preferences.updatePreference(
-              selectedStreamer.channelId,
-              key,
-              checked
-            )}
-            onCategoryFilterChange={(value) =>
-              void preferences.updateCategoryFilter(selectedStreamer.channelId, value)}
             unsupportedRequests={personal.unsupported}
             onAddToAlerts={(channelId) => {
               personal.add(channelId);

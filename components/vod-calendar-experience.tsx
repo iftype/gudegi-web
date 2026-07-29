@@ -2,33 +2,20 @@
 
 import Link from "next/link";
 import {
-  Bell,
-  BellOff,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   Clock3,
-  Settings2,
   X
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { trackEvent } from "@/lib/analytics";
-import type { CalendarBroadcast, PushPreference, Streamer } from "@/lib/types";
+import type { CalendarBroadcast, Streamer } from "@/lib/types";
 
 const KOREA_TIMEZONE = "Asia/Seoul";
 const CATEGORY_COLORS = ["#00e676", "#0b4c2c", "#ffb000", "#ff6b35", "#6f8f7e", "#8d70d6"];
-const STORAGE_ID = "trackline-push-subscription-id";
-const STORAGE_PREFERENCES = "trackline-push-preferences";
-const LEGACY_STORAGE_ID = "chatline-push-subscription-id";
-const LEGACY_STORAGE_PREFERENCES = "chatline-push-preferences";
-
-function readStorage(primary: string, legacy: string) {
-  const value = window.localStorage.getItem(primary) ?? window.localStorage.getItem(legacy);
-  if (value && !window.localStorage.getItem(primary)) window.localStorage.setItem(primary, value);
-  return value;
-}
 
 function currentKoreaMonth() {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -81,48 +68,8 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
   const [selectedChannelId, setSelectedChannelId] = useState("");
   const [month, setMonth] = useState(currentKoreaMonth);
   const [selectedDay, setSelectedDay] = useState<CalendarBroadcast[] | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !readStorage(STORAGE_ID, LEGACY_STORAGE_ID);
-  });
-  const [storedPreferences, setStoredPreferences] = useState<PushPreference[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      return JSON.parse(readStorage(STORAGE_PREFERENCES, LEGACY_STORAGE_PREFERENCES) ?? "[]") as PushPreference[];
-    } catch {
-      return [];
-    }
-  });
-  const [subscriptionId, setSubscriptionId] = useState(() =>
-    typeof window === "undefined" ? "" : readStorage(STORAGE_ID, LEGACY_STORAGE_ID) ?? ""
-  );
-  const [notificationState, setNotificationState] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const activeChannelId = selectedChannelId || visibleStreamers[0]?.channelId || "";
-  const preferences = useMemo(() => {
-    const byChannel = new Map(storedPreferences.map((item) => [item.channelId, item]));
-    return visibleStreamers.map((streamer) => {
-      const stored = byChannel.get(streamer.channelId);
-      return stored ? {
-        ...stored,
-        enabled: stored.enabled ?? (stored.liveStarted || stored.categoryChanged || stored.titleChanged),
-        liveStarted: Boolean(stored.liveStarted),
-        categoryFilter: stored.categoryFilter ?? {
-          allCategories: true,
-          categoryKeys: []
-        }
-      } : {
-        channelId: streamer.channelId,
-        enabled: false,
-        liveStarted: false,
-        categoryChanged: false,
-        titleChanged: false,
-        categoryFilter: {
-          allCategories: true,
-          categoryKeys: []
-        }
-      };
-    });
-  }, [storedPreferences, visibleStreamers]);
 
   const monthly = useQuery({
     queryKey: ["monthly-streamer", activeChannelId, month],
@@ -130,118 +77,46 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
     enabled: Boolean(activeChannelId),
     staleTime: 60_000
   });
-  const pushConfig = useQuery({
-    queryKey: ["push-config"],
-    queryFn: ({ signal }) => api.pushConfig(signal),
-    staleTime: 10 * 60_000
-  });
+  const categoryOptions = useMemo(() => Array.from(new Set(
+    (monthly.data?.data.broadcasts ?? []).map((broadcast) => broadcast.category || "미분류")
+  )).sort((left, right) => left.localeCompare(right, "ko-KR")), [monthly.data]);
+  const effectiveCategory = selectedCategory === "all"
+    || categoryOptions.includes(selectedCategory)
+    ? selectedCategory
+    : "all";
+  const filteredBroadcasts = useMemo(() => (
+    (monthly.data?.data.broadcasts ?? []).filter((broadcast) => (
+      effectiveCategory === "all"
+      || (broadcast.category || "미분류") === effectiveCategory
+    ))
+  ), [effectiveCategory, monthly.data]);
   const broadcastsByDay = useMemo(() => {
     const grouped = new Map<number, CalendarBroadcast[]>();
-    for (const broadcast of monthly.data?.data.broadcasts ?? []) {
+    for (const broadcast of filteredBroadcasts) {
       const day = Number(koreaDateKey(broadcast.startedAt).slice(8, 10));
       grouped.set(day, [...(grouped.get(day) ?? []), broadcast]);
     }
     return grouped;
-  }, [monthly.data]);
+  }, [filteredBroadcasts]);
   const statusByDay = useMemo(() => new Map(
     (monthly.data?.data.dayStatuses ?? []).map((item) => [Number(item.date.slice(8, 10)), item.status])
   ), [monthly.data]);
   const cells = useMemo(() => monthCells(month), [month]);
   const selectedStreamer = visibleStreamers.find((item) => item.channelId === activeChannelId);
-
-  async function persistPreferences(next: PushPreference[]) {
-    setStoredPreferences(next);
-    window.localStorage.setItem(STORAGE_PREFERENCES, JSON.stringify(next));
-    if (!subscriptionId) return;
-    try {
-      await api.savePushPreferences(subscriptionId, next);
-      const selected = next.find((item) => item.enabled);
-      trackEvent("notification_preference_saved", { channelId: selected?.channelId });
-      setNotificationState("알림 설정을 저장했습니다.");
-    } catch {
-      setNotificationState("알림 설정을 저장하지 못했습니다.");
+  const filteredCategorySummary = useMemo(() => {
+    const categories = monthly.data?.data.categoryDurations ?? [];
+    if (effectiveCategory === "all") {
+      return {
+        categories,
+        totalDurationMs: monthly.data?.data.totalDurationMs ?? 0
+      };
     }
-  }
-
-  function changePreference(
-    channelId: string,
-    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
-    checked: boolean
-  ) {
-    const next = preferences.map((item) => {
-      if (item.channelId !== channelId) return item;
-      if (key === "enabled") {
-        return checked && !item.liveStarted && !item.categoryChanged && !item.titleChanged
-          ? { ...item, enabled: true, categoryChanged: true }
-          : { ...item, enabled: checked };
-      }
-      const updated = { ...item, enabled: checked ? true : item.enabled, [key]: checked };
-      return !updated.liveStarted && !updated.categoryChanged && !updated.titleChanged
-        ? { ...updated, enabled: false }
-        : updated;
-    });
-    void persistPreferences(next);
-  }
-
-  async function enableNotifications() {
-    const enabledPreferences = preferences.filter(
-      (preference) =>
-        preference.enabled &&
-        (preference.liveStarted || preference.categoryChanged || preference.titleChanged),
-    );
-    if (enabledPreferences.length === 0) {
-      setNotificationState("먼저 알림 받을 스트리머를 선택해 주세요.");
-      return;
-    }
-    if (!pushConfig.data?.data.enabled || !pushConfig.data.data.publicKey) {
-      setNotificationState("서버의 푸시 알림 키가 아직 설정되지 않았습니다.");
-      return;
-    }
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      setNotificationState("이 브라우저는 웹 푸시 알림을 지원하지 않습니다.");
-      return;
-    }
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      trackEvent("notification_permission_denied");
-      setNotificationState("브라우저 알림 권한이 필요합니다.");
-      return;
-    }
-    try {
-      await navigator.serviceWorker.register("/sw.js");
-      const registration = await navigator.serviceWorker.ready;
-      const existing = await registration.pushManager.getSubscription();
-      const subscription = existing ?? await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: base64ToUint8Array(pushConfig.data.data.publicKey)
-      });
-      const result = await api.createPushSubscription(subscription.toJSON());
-      await api.savePushPreferences(result.data.id, preferences);
-      setSubscriptionId(result.data.id);
-      window.localStorage.setItem(STORAGE_ID, result.data.id);
-      trackEvent("notification_enabled", {
-        channelId: preferences.find((item) => item.enabled)?.channelId
-      });
-      setNotificationState("이 기기에서 변경 알림을 받습니다.");
-    } catch {
-      setNotificationState("알림 구독을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.");
-    }
-  }
-
-  async function disableNotifications() {
-    try {
-      const registration = await navigator.serviceWorker.getRegistration();
-      const subscription = await registration?.pushManager.getSubscription();
-      await subscription?.unsubscribe();
-      if (subscriptionId) await api.deletePushSubscription(subscriptionId);
-    } finally {
-      setSubscriptionId("");
-      window.localStorage.removeItem(STORAGE_ID);
-      window.localStorage.removeItem(LEGACY_STORAGE_ID);
-      trackEvent("notification_disabled");
-      setNotificationState("이 기기의 알림을 껐습니다.");
-    }
-  }
+    const selected = categories.find((item) => item.category === effectiveCategory);
+    return {
+      categories: selected ? [{ ...selected, percentage: 100 }] : [],
+      totalDurationMs: selected?.durationMs ?? 0
+    };
+  }, [effectiveCategory, monthly.data]);
 
   return (
     <section id="calendar" className="content-section calendar-section">
@@ -250,30 +125,9 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
         <div>
           <span className="kicker">VOD CALENDAR</span>
           <h2>방송을 달력으로 돌아보세요.</h2>
-          <p>스트리머별 VOD와 카테고리 방송 시간을 한눈에 확인합니다.</p>
+          <p>스트리머와 카테고리를 골라 다시보기 기록만 탐색합니다.</p>
         </div>
-        <button className="notification-settings-button" onClick={() => {
-          setSettingsOpen((open) => {
-            if (!open) trackEvent("notification_settings_opened");
-            return !open;
-          });
-        }}>
-          <Settings2 /> 알림 설정
-        </button>
       </div>
-
-      {settingsOpen && (
-        <NotificationSettings
-          streamers={visibleStreamers}
-          preferences={preferences}
-          active={Boolean(subscriptionId)}
-          state={notificationState}
-          onChange={changePreference}
-          onEnable={() => void enableNotifications()}
-          onDisable={() => void disableNotifications()}
-          onClose={() => setSettingsOpen(false)}
-        />
-      )}
 
       <div className="streamer-picker">
         <label htmlFor="calendar-streamer">스트리머</label>
@@ -282,6 +136,7 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
           value={activeChannelId}
           onChange={(event) => {
             setSelectedChannelId(event.target.value);
+            setSelectedCategory("all");
             trackEvent("calendar_streamer_selected", { channelId: event.target.value });
           }}
         >
@@ -289,7 +144,20 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
             <option value={streamer.channelId} key={streamer.channelId}>{streamer.channelName}</option>
           ))}
         </select>
-        <span>{visibleStreamers.length}개 채널 추적 중</span>
+        <label htmlFor="calendar-category">카테고리</label>
+        <select
+          id="calendar-category"
+          value={effectiveCategory}
+          onChange={(event) => {
+            setSelectedCategory(event.target.value);
+            setSelectedDay(null);
+          }}
+        >
+          <option value="all">전체 카테고리</option>
+          {categoryOptions.map((category) => (
+            <option value={category} key={category}>{category}</option>
+          ))}
+        </select>
       </div>
 
       <div className="calendar-shell">
@@ -328,7 +196,8 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
                     fallbackImage={selectedStreamer?.channelImageUrl}
                     onMore={() => setSelectedDay(dayBroadcasts)}
                   />}
-                  {day && dayBroadcasts.length === 0 && dayStatus && (
+                  {day && dayBroadcasts.length === 0 && dayStatus
+                    && (effectiveCategory === "all" || dayStatus !== "broadcast") && (
                     <DayStatus status={dayStatus} />
                   )}
                 </div>
@@ -339,8 +208,8 @@ export function VodCalendarExperience({ streamers }: { streamers: Streamer[] }) 
       </div>
 
       <CategoryChart
-        categories={monthly.data?.data.categoryDurations ?? []}
-        totalDurationMs={monthly.data?.data.totalDurationMs ?? 0}
+        categories={filteredCategorySummary.categories}
+        totalDurationMs={filteredCategorySummary.totalDurationMs}
       />
 
       {selectedDay && (
@@ -449,59 +318,6 @@ function CategoryChart({ categories, totalDurationMs }: {
   );
 }
 
-function NotificationSettings({ streamers, preferences, active, state, onChange, onEnable, onDisable, onClose }: {
-  streamers: Streamer[];
-  preferences: PushPreference[];
-  active: boolean;
-  state: string;
-  onChange: (
-    channelId: string,
-    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
-    checked: boolean
-  ) => void;
-  onEnable: () => void;
-  onDisable: () => void;
-  onClose: () => void;
-}) {
-  return (
-    <div className="notification-panel">
-      <div className="notification-panel-heading">
-        <div><Bell /><span><strong>변경 알림</strong><small>이 기기에만 설정이 저장됩니다.</small></span></div>
-        <button onClick={onClose} aria-label="알림 설정 닫기"><X /></button>
-      </div>
-      <p className="notification-steps">
-        1. 스트리머 선택 · 2. 변경 항목 선택 · 3. 알림 켜기
-      </p>
-      <div className="notification-grid">
-        <span className="notification-grid-label">스트리머</span>
-        <span className="notification-grid-label">선택</span>
-        <span className="notification-grid-label">카테고리</span>
-        <span className="notification-grid-label">방제</span>
-        {streamers.map((streamer) => {
-          const preference = preferences.find((item) => item.channelId === streamer.channelId);
-          return (
-            <div className="notification-row" key={streamer.channelId}>
-              <strong>{streamer.channelName}</strong>
-              <label><input type="checkbox" checked={preference?.enabled ?? false} onChange={(event) => onChange(streamer.channelId, "enabled", event.target.checked)} /><span /></label>
-              <label className={!preference?.enabled ? "disabled" : ""}><input type="checkbox" disabled={!preference?.enabled} checked={preference?.categoryChanged ?? false} onChange={(event) => onChange(streamer.channelId, "categoryChanged", event.target.checked)} /><span /></label>
-              <label className={!preference?.enabled ? "disabled" : ""}><input type="checkbox" disabled={!preference?.enabled} checked={preference?.titleChanged ?? false} onChange={(event) => onChange(streamer.channelId, "titleChanged", event.target.checked)} /><span /></label>
-            </div>
-          );
-        })}
-      </div>
-      <div className="notification-panel-footer">
-        <div>
-          <p>{state || (active ? "이 기기에서 알림을 받고 있습니다." : "방송 중 변경은 약 1분 안에 확인합니다.")}</p>
-          <small>iPhone·iPad는 홈 화면에 설치한 앱에서만 웹 푸시를 받을 수 있습니다.</small>
-        </div>
-        <button className={`button ${active ? "ghost" : "primary"}`} onClick={active ? onDisable : onEnable}>
-          {active ? <BellOff /> : <Bell />}{active ? "알림 끄기" : "알림 켜기"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function DayBroadcastModal({ broadcasts, fallbackImage, onClose }: {
   broadcasts: CalendarBroadcast[];
   fallbackImage?: string | null;
@@ -531,11 +347,4 @@ function DayBroadcastModal({ broadcasts, fallbackImage, onClose }: {
       </section>
     </div>
   );
-}
-
-function base64ToUint8Array(value: string) {
-  const padding = "=".repeat((4 - value.length % 4) % 4);
-  const base64 = (value + padding).replaceAll("-", "+").replaceAll("_", "/");
-  const raw = window.atob(base64);
-  return Uint8Array.from(raw, (character) => character.charCodeAt(0));
 }

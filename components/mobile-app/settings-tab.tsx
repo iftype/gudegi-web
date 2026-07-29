@@ -89,7 +89,7 @@ export function SettingsTab({
 
       <article className={styles.accountCard}>
         <div>
-          <strong>{user ? user.channelName : "비로그인 사용 중"}</strong>
+          <strong>{user ? "치지직 계정으로 로그인됨" : "비로그인 사용 중"}</strong>
           <small>{user ? "선택한 스트리머를 계정에 저장합니다." : "설정은 현재 브라우저에만 남습니다."}</small>
         </div>
         {user && (

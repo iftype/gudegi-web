@@ -38,15 +38,29 @@ function monthCells(month: string) {
 
 export function CompactCalendar({ streamer }: { streamer: Streamer }) {
   const [month, setMonth] = useState(currentMonth);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const monthly = useQuery({
     queryKey: ["mobile-month", streamer.channelId, month],
     queryFn: ({ signal }) => api.monthlyStreamer(streamer.channelId, month, signal),
     staleTime: 60_000
   });
   const cells = useMemo(() => monthCells(month), [month]);
+  const categoryOptions = useMemo(() => Array.from(new Set(
+    (monthly.data?.data.broadcasts ?? []).map((broadcast) => broadcast.category || "미분류")
+  )).sort((left, right) => left.localeCompare(right, "ko-KR")), [monthly.data]);
+  const effectiveCategory = selectedCategory === "all"
+    || categoryOptions.includes(selectedCategory)
+    ? selectedCategory
+    : "all";
+  const filteredBroadcasts = useMemo(() => (
+    (monthly.data?.data.broadcasts ?? []).filter((broadcast) => (
+      effectiveCategory === "all"
+      || (broadcast.category || "미분류") === effectiveCategory
+    ))
+  ), [effectiveCategory, monthly.data]);
   const broadcastsByDay = useMemo(() => {
     const grouped = new Map<number, CalendarBroadcast[]>();
-    for (const broadcast of monthly.data?.data.broadcasts ?? []) {
+    for (const broadcast of filteredBroadcasts) {
       const parts = new Intl.DateTimeFormat("en-US", {
         timeZone: KOREA_TIMEZONE,
         day: "2-digit"
@@ -55,7 +69,7 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
       grouped.set(day, [...(grouped.get(day) ?? []), broadcast]);
     }
     return grouped;
-  }, [monthly.data]);
+  }, [filteredBroadcasts]);
   const statusByDay = useMemo(() => new Map(
     (monthly.data?.data.dayStatuses ?? []).map((item) => [
       Number(item.date.slice(8, 10)),
@@ -77,6 +91,18 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
           <button onClick={() => setMonth((value) => shiftMonth(value, 1))} aria-label="다음 달"><ChevronRight /></button>
         </div>
       </header>
+      <label className={styles.calendarCategoryFilter}>
+        <span>다시보기 필터</span>
+        <select
+          value={effectiveCategory}
+          onChange={(event) => setSelectedCategory(event.target.value)}
+        >
+          <option value="all">전체 카테고리</option>
+          {categoryOptions.map((category) => (
+            <option value={category} key={category}>{category}</option>
+          ))}
+        </select>
+      </label>
       {monthly.isLoading ? (
         <div className={styles.calendarLoading}><LoaderCircle />달력을 불러오는 중</div>
       ) : (
@@ -84,7 +110,10 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
           {["일", "월", "화", "수", "목", "금", "토"].map((day) => <span className={styles.weekday} key={day}>{day}</span>)}
           {cells.map((day, index) => {
             const broadcasts = day ? broadcastsByDay.get(day) ?? [] : [];
-            const hasBroadcast = Boolean(day && (broadcasts.length > 0 || statusByDay.get(day) === "broadcast"));
+            const hasBroadcast = Boolean(day && (
+              broadcasts.length > 0
+              || (effectiveCategory === "all" && statusByDay.get(day) === "broadcast")
+            ));
             const categoryImage = broadcasts.find((item) => item.categoryImageUrl)?.categoryImageUrl;
             const category = broadcasts.find((item) => item.category)?.category;
             return (
@@ -109,7 +138,7 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
       <footer>
         <span><i />방송 기록</span>
         <strong>방송일 {broadcastDayCount}일 · 다시보기 {
-          monthly.data?.data.broadcasts.filter((broadcast) => broadcast.vodUrl).length ?? 0
+          filteredBroadcasts.filter((broadcast) => broadcast.vodUrl).length
         }개</strong>
       </footer>
     </section>

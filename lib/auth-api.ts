@@ -2,7 +2,6 @@ import type { PushPreference, UnsupportedStreamerRequest } from "./types";
 
 export type AppUser = {
   channelId: string;
-  channelName: string;
 };
 
 async function request<T>(path: string, init?: RequestInit) {

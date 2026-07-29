@@ -22,21 +22,38 @@ afterEach(() => {
 });
 
 describe("VodCalendarExperience", () => {
-  it("does not request notification permission before a streamer is selected", async () => {
+  it("filters replay entries by category without exposing notification controls", async () => {
     vi.spyOn(api, "monthlyStreamer").mockResolvedValue({
       data: {
         month: "2026-07",
         timezone: "Asia/Seoul",
-        broadcasts: [],
-        categoryDurations: [],
-        totalDurationMs: 0,
+        broadcasts: [{
+          id: "game",
+          title: "게임 다시보기",
+          category: "게임",
+          startedAt: Date.parse("2026-07-14T10:00:00+09:00"),
+          endedAt: Date.parse("2026-07-14T11:00:00+09:00"),
+          vodUrl: "https://chzzk.naver.com/video/game",
+          thumbnailUrl: null,
+          channelImageUrl: null
+        }, {
+          id: "music",
+          title: "음악 다시보기",
+          category: "음악",
+          startedAt: Date.parse("2026-07-15T10:00:00+09:00"),
+          endedAt: Date.parse("2026-07-15T11:00:00+09:00"),
+          vodUrl: "https://chzzk.naver.com/video/music",
+          thumbnailUrl: null,
+          channelImageUrl: null
+        }],
+        categoryDurations: [
+          { category: "게임", durationMs: 3_600_000, percentage: 50 },
+          { category: "음악", durationMs: 3_600_000, percentage: 50 }
+        ],
+        totalDurationMs: 7_200_000,
         dayStatuses: []
       }
     });
-    vi.spyOn(api, "pushConfig").mockResolvedValue({
-      data: { enabled: true, publicKey: "test-key" }
-    });
-    const createSubscription = vi.spyOn(api, "createPushSubscription");
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } }
     });
@@ -47,12 +64,14 @@ describe("VodCalendarExperience", () => {
       </QueryClientProvider>
     );
 
-    fireEvent.click(await screen.findByRole("button", { name: "알림 켜기" }));
-
-    expect(
-      screen.getByText("먼저 알림 받을 스트리머를 선택해 주세요.")
-    ).toBeInTheDocument();
-    expect(createSubscription).not.toHaveBeenCalled();
+    expect(await screen.findByText("게임 다시보기")).toBeInTheDocument();
+    expect(screen.getByText("음악 다시보기")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /알림/ })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole("combobox", { name: "카테고리" }), {
+      target: { value: "음악" }
+    });
+    expect(screen.queryByText("게임 다시보기")).not.toBeInTheDocument();
+    expect(screen.getByText("음악 다시보기")).toBeInTheDocument();
   });
 
   it("shows three calendar partitions as two VODs plus a more button and opens the full day list", async () => {
@@ -79,9 +98,6 @@ describe("VodCalendarExperience", () => {
           { date: "2026-07-16", status: "uncollected" }
         ]
       }
-    });
-    vi.spyOn(api, "pushConfig").mockResolvedValue({
-      data: { enabled: false, publicKey: "" }
     });
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } }

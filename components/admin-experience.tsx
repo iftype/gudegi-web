@@ -78,8 +78,6 @@ type Overview = {
     requestCount: number;
   }>;
   followImportAttempts: Array<{
-    channelId: string;
-    channelName: string;
     firstAttemptAt: number;
     lastAttemptAt: number;
     attemptCount: number;
@@ -161,6 +159,7 @@ type Overview = {
       checksLastMinute: number;
       checksLastHour: number;
       failuresLastHour: number;
+      pendingVodMatchCount: number;
       nextDueAt: number | null;
       lastCycleStartedAt: number | null;
       lastCycleCompletedAt: number | null;
@@ -491,7 +490,11 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
           <strong className={collectionHealthy ? styles.good : styles.warn}>
             {collectionHealthy ? "정상" : "확인 필요"}
           </strong>
-          <small>{collector?.activeCount ?? 0}개 LIVE · 최대 {collector?.maxActiveStreamers ?? 0}채널</small>
+          <small>
+            추적 {collector?.trackedCount ?? 0}/{collector?.maxActiveStreamers ?? 0}
+            {" · "}LIVE {collector?.activeCount ?? 0}
+            {" · "}VOD 대기 {collector?.pendingVodMatchCount ?? 0}
+          </small>
         </article>
         <article>
           <span><MemoryStick size={15} />서버 메모리</span>
@@ -518,12 +521,10 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         {followImportAttempts.length ? (
           <div className={styles.tableWrap}>
             <table>
-              <thead><tr><th>최근 시도</th><th>사용자</th><th>채널 ID</th><th>횟수</th></tr></thead>
-              <tbody>{followImportAttempts.map((item) => (
-                <tr key={item.channelId}>
+              <thead><tr><th>최근 시도</th><th>횟수</th></tr></thead>
+              <tbody>{followImportAttempts.map((item, index) => (
+                <tr key={`${item.lastAttemptAt}-${index}`}>
                   <td>{formatTime(item.lastAttemptAt)}</td>
-                  <td><strong>{item.channelName}</strong></td>
-                  <td><small>{item.channelId}</small></td>
                   <td>{item.attemptCount.toLocaleString()}회</td>
                 </tr>
               ))}</tbody>

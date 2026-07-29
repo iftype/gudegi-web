@@ -329,7 +329,7 @@ main { min-height: calc(100vh - 220px); }
 .anchor-target { position: relative; top: -96px; visibility: hidden; }
 .notification-settings-button:hover { color: white; background: var(--deep-green); border-color: var(--deep-green); }
 .notification-settings-button svg { width: 15px; }
-.streamer-picker { display: grid; grid-template-columns: auto minmax(220px, 420px) 1fr; align-items: center; gap: 10px; margin-bottom: 14px; }
+.streamer-picker { display: grid; grid-template-columns: auto minmax(180px, 1fr) auto minmax(180px, 1fr); align-items: center; gap: 10px; margin-bottom: 14px; }
 .streamer-picker label { color: #59645e; font-size: 11px; font-weight: 700; }
 .streamer-picker select { min-height: 42px; padding: 0 12px; color: #eef8f2; background: var(--dark); border: 1px solid #31483b; border-radius: 9px; font-size: 12px; font-weight: 700; }
 .streamer-picker > span { color: #7a837e; font: 500 9px "DM Mono", monospace; }

@@ -67,7 +67,7 @@ export function SuggestionSheet({
             {type === "streamer_request" && (
               <label>
                 <span>스트리머 이름</span>
-                <input name="streamerName" minLength={1} maxLength={80} required placeholder="추가를 원하는 스트리머 이름" />
+                <input name="streamerName" minLength={1} maxLength={80} required placeholder="추가할 스트리머를 편하게 써주세요" />
               </label>
             )}
             {type === "idea" && <label>

@@ -111,13 +111,7 @@ export function CategoryFilterSheet({
             onClose();
           }}
         >
-          {scope === "all"
-            ? draft.allCategories
-              ? "전체 카테고리로 모두 적용"
-              : `${draft.categoryKeys.length}개 카테고리를 모두 적용`
-            : draft.allCategories
-              ? "전체 체크로 적용"
-              : `${draft.categoryKeys.length}개 카테고리로 적용`}
+          {scope === "all" ? "전체에 카테고리 적용" : "카테고리 선택"}
         </button>
       </section>
     </div>,

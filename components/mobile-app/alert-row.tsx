@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Clock3, Ellipsis, ListFilter, Trash2 } from "lucide-react";
+import { Bell, BellRing, Clock3, Ellipsis, ListFilter, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { formatDuration } from "@/lib/format";
@@ -72,9 +72,7 @@ export function AlertRow({
                 aria-label={`${streamer.channelName} 알림 받기`}
                 onClick={() => onChange(streamer.channelId, "enabled", !preference.enabled)}
               >
-                <Bell />
-                <span>알람</span>
-                <i aria-hidden="true" />
+                {preference.enabled ? <BellRing /> : <Bell />}
               </button>
               {onRemove && (
                 <div

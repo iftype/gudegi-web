@@ -7,14 +7,24 @@ import { VercelAnalytics } from "@/components/vercel-analytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://gudegi.vercel.app"),
   title: {
-    default: "구데기 · 원하는 방송만 골라보기",
+    default: "치지직 카테고리 변경 알림 | 구데기",
     template: "%s · 구데기"
   },
-  description: "치지직 스트리머의 최신 카테고리와 방제 변경을 기록하고 휴대폰으로 알려드립니다.",
+  description: "구데기는 치지직 스트리머의 카테고리와 방송 제목 변경을 기록하고 휴대폰으로 알려주는 서비스입니다.",
+  keywords: [
+    "치지직",
+    "구데기",
+    "치지직 구데기",
+    "치지직 알림",
+    "치지직 카테고리 알림",
+    "치지직 방제 변경",
+    "치지직 다시보기"
+  ],
   manifest: "/manifest.webmanifest",
   applicationName: "구데기",
+  category: "entertainment",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -28,17 +38,22 @@ export const metadata: Metadata = {
     apple: [{ url: "/gudegi-apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
   },
   robots: { index: true, follow: true },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+  },
   openGraph: {
-    title: "구데기 · 원하는 방송만 골라보기",
-    description: "최신 카테고리와 방제 변경을 놓치지 마세요.",
+    title: "치지직 카테고리 변경 알림 | 구데기",
+    description: "치지직 스트리머의 카테고리와 방송 제목 변경을 기록하고 휴대폰으로 알려드립니다.",
+    url: "/",
+    siteName: "구데기",
     type: "website",
     locale: "ko_KR",
     images: [{ url: "/og-gudegi.png", width: 1200, height: 630, alt: "구데기 카테고리·방제 변경 알림" }]
   },
   twitter: {
     card: "summary_large_image",
-    title: "구데기 · 원하는 방송만 골라보기",
-    description: "최신 카테고리와 방제 변경을 놓치지 마세요.",
+    title: "치지직 카테고리 변경 알림 | 구데기",
+    description: "치지직 스트리머의 카테고리와 방송 제목 변경을 기록하고 휴대폰으로 알려드립니다.",
     images: ["/og-gudegi.png"]
   }
 };

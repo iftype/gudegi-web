@@ -127,7 +127,8 @@ describe("mobile-first entry and guidance", () => {
     expect(categoryButton.parentElement).toContainElement(
       screen.getByLabelText("라이브 스트리머 선택 카테고리")
     );
-    expect(alertButton).toHaveTextContent("알람");
+    expect(alertButton).toHaveAttribute("aria-pressed", "true");
+    expect(alertButton.querySelector(".lucide-bell-ring")).toBeInTheDocument();
     expect(screen.getByText("LIVE")).toBeInTheDocument();
     expect(screen.getByText("1시간 30분")).toBeInTheDocument();
     expect(screen.queryByText(/팔로워 순위/)).not.toBeInTheDocument();
@@ -191,7 +192,7 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.getByRole("button", { name: "전체 체크 모든 방송 카테고리 알림" }))
       .toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: /저챗.*기타/ }));
-    fireEvent.click(screen.getByRole("button", { name: "1개 카테고리로 적용" }));
+    fireEvent.click(screen.getByRole("button", { name: "카테고리 선택" }));
     expect(onCategoryFilterChange).toHaveBeenCalledWith(
       streamers[0]!.channelId,
       {
@@ -203,7 +204,7 @@ describe("mobile-first entry and guidance", () => {
     fireEvent.click(screen.getByRole("button", { name: "전체 카테고리 필터" }));
     expect(screen.getByRole("dialog", { name: "전체 카테고리 필터" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /리그 오브 레전드.*게임/ }));
-    fireEvent.click(screen.getByRole("button", { name: "1개 카테고리를 모두 적용" }));
+    fireEvent.click(screen.getByRole("button", { name: "전체에 카테고리 적용" }));
     expect(onCategoryFilterChangeAll).toHaveBeenCalledWith({
       allCategories: false,
       categoryKeys: ["GAME:League_of_Legends"]
@@ -217,7 +218,7 @@ describe("mobile-first entry and guidance", () => {
       <FollowTab
         streamers={[]}
         preferences={[]}
-        user={{ channelId: "c".repeat(32), channelName: "테스터" }}
+        user={{ channelId: "c".repeat(32) }}
         pushActive={false}
         pushBusy={false}
         pushMessage=""
@@ -261,7 +262,10 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.queryByText(/연락처/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "스트리머 추가" }));
-    expect(screen.getByRole("textbox", { name: "스트리머 이름" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "스트리머 이름" })).toHaveAttribute(
+      "placeholder",
+      "추가할 스트리머를 편하게 써주세요"
+    );
     expect(screen.queryByRole("textbox", { name: "원하는 점" })).not.toBeInTheDocument();
   });
 
@@ -296,19 +300,8 @@ describe("mobile-first entry and guidance", () => {
         <StreamersTab
           streamers={streamers}
           selected={streamers[0]!}
-          preference={{
-            channelId: streamers[0]!.channelId,
-            enabled: true,
-            liveStarted: true,
-            categoryChanged: true,
-            titleChanged: true,
-            categoryFilter: allCategoryFilter
-          }}
-          categories={[]}
           personalChannelIds={streamers.map((streamer) => streamer.channelId)}
           onSelect={onSelect}
-          onChange={() => undefined}
-          onCategoryFilterChange={() => undefined}
           onAddToAlerts={() => undefined}
           onRemoveFromAlerts={() => undefined}
         />
@@ -322,10 +315,11 @@ describe("mobile-first entry and guidance", () => {
     fireEvent.click(screen.getByRole("button", { name: "오프라인 스트리머 상세 보기" }));
     expect(onSelect).toHaveBeenCalledWith(streamers[1]!.channelId);
     expect(await screen.findByText("방송일 1일 · 다시보기 0개")).toBeInTheDocument();
-    expect(screen.getByText("talk")).toBeInTheDocument();
+    expect(screen.getAllByText("talk").length).toBeGreaterThan(0);
+    expect(screen.getByRole("combobox", { name: "다시보기 필터" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /스트리머 목록/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "카테고리" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "방제" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "알림 받기" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "카테고리" })).not.toBeInTheDocument();
   });
 
   it("shows the detected platform guide without platform navigation or redundant notice", () => {
