@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
-import { Activity } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { Providers } from "./providers";
 import { PwaRegistration } from "@/components/pwa-registration";
 import "./globals.css";
@@ -9,10 +9,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: {
-    default: "치지직 방송 변경 알림",
-    template: "%s · 치지직 방송 변경 알림"
+    default: "구데기 · 원하는 방송만 골라보기",
+    template: "%s · 구데기"
   },
-  description: "스트리머의 카테고리와 방제 변경을 기록하고 알려드립니다.",
+  description: "치지직 스트리머의 최신 카테고리와 방제 변경을 기록하고 휴대폰으로 알려드립니다.",
   manifest: "/manifest.webmanifest",
   applicationName: "구데기",
   appleWebApp: {
@@ -21,21 +21,25 @@ export const metadata: Metadata = {
     title: "구데기"
   },
   icons: {
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
+    icon: [
+      { url: "/gudegi-icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/gudegi-icon-512.png", sizes: "512x512", type: "image/png" }
+    ],
+    apple: [{ url: "/gudegi-apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
   },
   robots: { index: true, follow: true },
   openGraph: {
-    title: "치지직 방송 변경 알림",
-    description: "카테고리와 방제 변경을 놓치지 마세요.",
+    title: "구데기 · 원하는 방송만 골라보기",
+    description: "최신 카테고리와 방제 변경을 놓치지 마세요.",
     type: "website",
     locale: "ko_KR",
-    images: [{ url: "/og.png", width: 1731, height: 909, alt: "치지직 방송 카테고리·방제 변경 알림" }]
+    images: [{ url: "/og-gudegi.png", width: 1200, height: 630, alt: "구데기 카테고리·방제 변경 알림" }]
   },
   twitter: {
     card: "summary_large_image",
-    title: "치지직 방송 변경 알림",
-    description: "카테고리와 방제 변경을 놓치지 마세요.",
-    images: ["/og.png"]
+    title: "구데기 · 원하는 방송만 골라보기",
+    description: "최신 카테고리와 방제 변경을 놓치지 마세요.",
+    images: ["/og-gudegi.png"]
   }
 };
 
@@ -47,7 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <PwaRegistration />
           <header className="site-header sticky top-0 z-50 mx-auto flex h-[76px] w-[min(1240px,calc(100%-40px))] items-center justify-between border-b border-[#cbcfc8] bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-[14px] max-[600px]:h-[66px] max-[600px]:w-[calc(100%-28px)]">
             <Link href="/" className="inline-flex items-center gap-2.5 font-mono text-[19px] font-bold tracking-[-0.08em]" aria-label="치지직 방송 타임라인 홈">
-              <span className="grid size-[34px] place-items-center rounded-[10px_10px_10px_2px] bg-signal text-[#03150b]"><Activity size={18} /></span>
+              <BrandMark className="size-[34px]" />
               <span>구데기</span>
             </Link>
             <nav className="flex gap-[30px] text-[13px] font-semibold max-[600px]:gap-3.5 max-[600px]:text-[11px]" aria-label="주요 메뉴">

@@ -2,6 +2,7 @@
 
 import { ArrowRight, CloudDownload, HardDrive, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { BrandMark } from "@/components/brand-mark";
 import { authApi } from "@/lib/auth-api";
 import { trackEvent } from "@/lib/analytics";
 import styles from "./mobile-app.module.css";
@@ -30,7 +31,7 @@ export function OnboardingGate({
   return (
     <div className={styles.onboarding}>
       <div className={styles.onboardingGlow} />
-      <div className={styles.onboardingBrand}><b>ㄱ</b><span>구데기</span></div>
+      <div className={styles.onboardingBrand}><BrandMark /><span>구데기</span></div>
       <button className={styles.onboardingImport} onClick={() => void login()}>
         <CloudDownload /> 팔로우 불러오기
       </button>

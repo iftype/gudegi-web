@@ -25,6 +25,8 @@ export function SettingsTab({
   permission,
   targetCount,
   logs,
+  logoutBusy,
+  logoutMessage,
   onEnable,
   onDisable,
   onTest,
@@ -40,6 +42,8 @@ export function SettingsTab({
   permission: NotificationPermission | "unsupported";
   targetCount: number;
   logs: PushLogEntry[];
+  logoutBusy: boolean;
+  logoutMessage: string;
   onEnable: () => void;
   onDisable: () => void;
   onTest: () => void;
@@ -84,8 +88,14 @@ export function SettingsTab({
           <strong>{user ? user.channelName : "비로그인 사용 중"}</strong>
           <small>{user ? "선택한 스트리머를 계정에 저장합니다." : "설정은 현재 브라우저에만 남습니다."}</small>
         </div>
-        {user && <button onClick={onLogout}><LogOut />로그아웃</button>}
+        {user && (
+          <button disabled={logoutBusy} onClick={onLogout}>
+            {logoutBusy ? <RefreshCw className={styles.spinning} /> : <LogOut />}
+            {logoutBusy ? "로그아웃 중" : "로그아웃"}
+          </button>
+        )}
       </article>
+      {logoutMessage && <p className={styles.accountMessage}>{logoutMessage}</p>}
 
       <section className={styles.notificationLog}>
         <header>

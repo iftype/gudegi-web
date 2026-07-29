@@ -80,7 +80,7 @@ describe("push service worker", () => {
       expect.objectContaining({
         icon: "https://example.test/paka.png",
         image: "https://example.test/paka.png",
-        badge: "/icon-192.png"
+        badge: "/gudegi-icon-192.png"
       })
     );
   });

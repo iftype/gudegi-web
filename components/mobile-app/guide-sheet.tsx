@@ -22,30 +22,39 @@ const guides = {
   ios: [
     {
       icon: Share,
-      title: "Safari에서 공유 열기",
-      body: "Safari 하단의 공유 버튼을 눌러 주세요.",
+      title: "Safari 메뉴에서 공유",
+      body: "구데기 페이지를 연 뒤 Safari 메뉴에서 ‘공유’를 눌러 주세요.",
       browser: "Safari",
       action: "공유",
-      hint: "하단 가운데 ↑ 버튼",
+      hint: "공유 아이콘이 있는 첫 항목",
       imageSrc: GUIDE_SCREENSHOTS.ios[0]
     },
     {
       icon: Smartphone,
-      title: "홈 화면에 추가",
-      body: "공유 목록을 위로 올리고 ‘홈 화면에 추가’를 선택합니다.",
+      title: "공유 시트를 펼치기",
+      body: "공유 화면 아래쪽의 ‘더 보기’를 누르거나 시트를 위로 끌어올립니다.",
       browser: "공유 메뉴",
-      action: "홈 화면에 추가",
-      hint: "＋ 아이콘이 있는 항목",
+      action: "더 보기",
+      hint: "아래쪽 화살표",
       imageSrc: GUIDE_SCREENSHOTS.ios[1]
     },
     {
-      icon: BellRing,
-      title: "앱에서 알림 켜기",
-      body: "홈 화면의 구데기를 열고 첫 화면의 알림 버튼을 누릅니다.",
-      browser: "구데기",
-      action: "변경 알림 켜기",
-      hint: "알림 허용을 선택",
+      icon: Smartphone,
+      title: "홈 화면에 추가",
+      body: "펼친 목록에서 ‘홈 화면에 추가’를 선택해 주세요.",
+      browser: "공유 메뉴",
+      action: "홈 화면에 추가",
+      hint: "＋ 아이콘이 있는 항목",
       imageSrc: GUIDE_SCREENSHOTS.ios[2]
+    },
+    {
+      icon: BellRing,
+      title: "웹 앱으로 열고 추가",
+      body: "‘웹 앱으로 열기’를 켠 상태로 오른쪽 위 ‘추가’를 누른 뒤, 홈 화면의 구데기에서 알림을 켜세요.",
+      browser: "홈 화면에 추가",
+      action: "추가",
+      hint: "웹 앱으로 열기 켜짐",
+      imageSrc: GUIDE_SCREENSHOTS.ios[3]
     }
   ],
   android: [
@@ -171,7 +180,7 @@ export function GuideSheet({
                   <MoreVertical />
                 </div>
                 <div className={styles.shotApp}>
-                  <div className={styles.shotLogo}>ㄱ</div>
+                  <div className={styles.shotLogo}>구</div>
                   <small>구데기</small>
                   <strong>카테고리 변경을<br />놓치지 마세요</strong>
                 </div>

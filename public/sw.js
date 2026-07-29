@@ -25,7 +25,7 @@ self.addEventListener("push", (event) => {
     ? `/open/chzzk/${encodeURIComponent(channelId)}?source=push`
     : payload.url || "/";
   const body = payload.body || "방송 정보가 변경되었습니다.";
-  const icon = safeNotificationImage(payload.icon, "/icon-192.png");
+  const icon = safeNotificationImage(payload.icon, "/gudegi-icon-192.png");
   const image = safeNotificationImage(payload.image);
   const logId = typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()
@@ -42,7 +42,7 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(title, {
       body,
       icon,
-      badge: "/icon-192.png",
+      badge: "/gudegi-icon-192.png",
       ...(image ? { image } : {}),
       tag: payload.tag || "gudegi-notification",
       data: { url: targetPath }

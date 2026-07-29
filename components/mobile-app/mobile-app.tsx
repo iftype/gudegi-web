@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { BrandMark } from "@/components/brand-mark";
 import { authApi, type AppUser } from "@/lib/auth-api";
 import { trackEvent } from "@/lib/analytics";
 import type { Streamer } from "@/lib/types";
@@ -31,6 +32,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   const [guideOpen, setGuideOpen] = useState(false);
   const [entryReady, setEntryReady] = useState(false);
   const [guestMode, setGuestMode] = useState(false);
+  const [logoutBusy, setLogoutBusy] = useState(false);
+  const [logoutMessage, setLogoutMessage] = useState("");
 
   const session = useQuery({
     queryKey: ["app-session"],
@@ -105,10 +108,18 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   }
 
   async function logout() {
-    await authApi.logout();
-    window.localStorage.setItem("gudegi-entry-mode", "guest");
-    setGuestMode(true);
-    await session.refetch();
+    setLogoutBusy(true);
+    setLogoutMessage("");
+    try {
+      await authApi.logout();
+      window.localStorage.setItem("gudegi-entry-mode", "guest");
+      setGuestMode(true);
+      await session.refetch();
+    } catch {
+      setLogoutMessage("로그아웃하지 못했습니다. 네트워크를 확인하고 다시 눌러 주세요.");
+    } finally {
+      setLogoutBusy(false);
+    }
   }
 
   function connectPush() {
@@ -122,7 +133,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   return (
     <main className={`${styles.app} mobile-app-shell standalone-route`}>
       <header className={styles.appHeader}>
-        <div className={styles.logo}><span>ㄱ</span><div><strong>구데기</strong><small>원하는 방송만 골라보기</small></div></div>
+        <div className={styles.logo}><BrandMark className={styles.brandMark} /><div><strong>구데기</strong><small>원하는 방송만 골라보기</small></div></div>
         <div className={styles.headerActions}>
           {!user && <button className={styles.importButton} onClick={() => void startLogin()}><CloudDownload /><span>팔로우 불러오기</span></button>}
           <button className={styles.guideButton} onClick={() => {
@@ -171,6 +182,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
               item.enabled && (item.categoryChanged || item.titleChanged)
             ).length}
             logs={pushLogs.logs}
+            logoutBusy={logoutBusy}
+            logoutMessage={logoutMessage}
             onEnable={connectPush}
             onDisable={() => void push.disable()}
             onTest={() => void push.test()}

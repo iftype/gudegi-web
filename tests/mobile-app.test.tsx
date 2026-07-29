@@ -175,7 +175,11 @@ describe("mobile-first entry and guidance", () => {
     );
     expect(screen.getByText("Chrome 메뉴 열기")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "iPhone" }));
-    expect(screen.getByText("Safari에서 공유 열기")).toBeInTheDocument();
+    expect(screen.getByText("Safari 메뉴에서 공유")).toBeInTheDocument();
+    expect(screen.getByAltText("Safari 메뉴에서 공유 실제 기기 화면")).toHaveAttribute(
+      "src",
+      expect.stringContaining("iphone-1.jpg")
+    );
     expect(screen.getByText(/PWA 설치 후/)).toBeInTheDocument();
     fireEvent.pointerDown(screen.getByTestId("guide-carousel"), {
       clientX: 120,
