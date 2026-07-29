@@ -49,17 +49,17 @@
 .suggestButton svg { width: 14px; }
 .headerActions { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; }
 .headerActions .importButton {
-  height: 32px;
+  height: 29px;
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
   gap: 4px;
-  padding: 0 8px;
+  padding: 0 6px;
   color: #dededb;
   background: rgb(28 28 30 / 72%);
   border: 1px solid var(--app-line);
   border-radius: 10px;
-  font-size: 10px;
+  font-size: 7px;
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
@@ -135,8 +135,8 @@
   animation: install-attention 2.4s ease-in-out infinite;
 }
 .followPushBannerAttention > svg:first-child { color: var(--app-lime); }
-.followImportButton { width: 100%; min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; margin: -1px 0 9px; color: #cdd5e8; background: #141822; border: 1px solid #30394d; border-radius: 11px; font-size: 8px; font-weight: 800; }
-.followImportButton svg { width: 13px; }
+.followImportButton { width: 100%; min-height: 31px; display: flex; align-items: center; justify-content: center; gap: 4px; margin: -1px 0 9px; color: #aeb7ca; background: #141822; border: 1px solid #30394d; border-radius: 9px; font-size: 6px; font-weight: 700; }
+.followImportButton svg { width: 10px; }
 .followPushMessage { margin: -2px 3px 9px; color: #c3c9d4; font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
 .followTools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-bottom: 9px; }
 .inlineSearch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 0; padding: 0 11px; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
@@ -147,8 +147,8 @@
 .personalListActions button { min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #dce3f5; background: #151923; border: 1px solid #343b50; border-radius: 13px; font-size: 10px; font-weight: 800; }
 .personalListActions button:last-child { color: #0b0c0f; background: var(--app-green); border-color: var(--app-green); }
 .personalListActions svg { width: 15px; }
-.clearAllAlertsButton { width: 100%; min-height: 34px; display: flex; align-items: center; justify-content: center; gap: 5px; margin: -1px 0 9px; color: #d998a2; background: #21171a; border: 1px solid #503038; border-radius: 10px; font-size: 7px; font-weight: 800; }
-.clearAllAlertsButton svg { width: 13px; }
+.clearAllAlertsButton { width: 100%; min-height: 30px; display: flex; align-items: center; justify-content: center; gap: 4px; margin: -1px 0 9px; color: #bd858e; background: #21171a; border: 1px solid #503038; border-radius: 9px; font-size: 6px; font-weight: 700; }
+.clearAllAlertsButton svg { width: 10px; }
 .personalEmpty { margin: 12px 0; padding: 22px 16px; text-align: center; color: #858c99; background: #101217; border: 1px dashed #343844; border-radius: 16px; font-size: 10px; line-height: 1.6; }
 .removeStreamer { position: absolute; top: 5px; right: 5px; z-index: 2; display: grid; place-items: center; width: 22px; height: 22px; color: #777f8e; background: #191c23; border: 0; border-radius: 50%; }
 .removeStreamer svg { width: 12px; }
