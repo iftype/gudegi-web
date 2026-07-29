@@ -1,6 +1,6 @@
 "use client";
 
-import { Radio } from "lucide-react";
+import { Radio, X } from "lucide-react";
 import Image from "next/image";
 import type { PushPreference, Streamer } from "@/lib/types";
 import styles from "./mobile-app.module.css";
@@ -8,7 +8,8 @@ import styles from "./mobile-app.module.css";
 export function AlertRow({
   streamer,
   preference,
-  onChange
+  onChange,
+  onRemove
 }: {
   streamer: Streamer;
   preference: PushPreference;
@@ -17,11 +18,13 @@ export function AlertRow({
     key: "categoryChanged" | "titleChanged",
     checked: boolean
   ) => void;
+  onRemove?: (channelId: string) => void;
 }) {
   const active = preference.categoryChanged || preference.titleChanged;
 
   return (
     <article className={`${styles.alertRow} ${active ? styles.followActive : ""}`}>
+      {onRemove && <button className={styles.removeStreamer} aria-label={`${streamer.channelName} 내 목록에서 제거`} onClick={() => onRemove(streamer.channelId)}><X /></button>}
       <div className={styles.alertRowContent}>
         <span className={styles.rowAvatar}>
           {streamer.channelImageUrl

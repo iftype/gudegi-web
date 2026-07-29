@@ -4,6 +4,7 @@ import {
   CircleHelp,
   CloudDownload,
   Heart,
+  MessageSquarePlus,
   RefreshCw,
   Settings,
   UsersRound
@@ -19,7 +20,11 @@ import { GuideSheet } from "./guide-sheet";
 import { OnboardingGate } from "./onboarding-gate";
 import { SettingsTab } from "./settings-tab";
 import { StreamersTab } from "./streamers-tab";
+import { StreamerPickerSheet } from "./streamer-picker-sheet";
+import { SuggestionSheet } from "./suggestion-sheet";
 import { useMobilePreferences } from "./use-mobile-preferences";
+import { PREFERENCE_IMPORT_KEY } from "./use-mobile-preferences";
+import { STREAMER_IMPORT_KEY, usePersonalStreamers } from "./use-personal-streamers";
 import { usePushLogs } from "./use-push-logs";
 import { usePushSubscription } from "./use-push-subscription";
 import { usePwaInstall } from "./use-pwa-install";
@@ -30,6 +35,8 @@ type AppTab = "follow" | "streamers" | "settings";
 export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   const [tab, setTab] = useState<AppTab>("follow");
   const [guideOpen, setGuideOpen] = useState(false);
+  const [suggestionType, setSuggestionType] = useState<"idea" | "streamer_request" | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [entryReady, setEntryReady] = useState(false);
   const [guestMode, setGuestMode] = useState(false);
   const [logoutBusy, setLogoutBusy] = useState(false);
@@ -50,15 +57,19 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   });
   const user = session.data ?? null;
   const preferences = useMobilePreferences(streamers, user);
+  const personal = usePersonalStreamers(streamers, user);
   const pwa = usePwaInstall();
   const push = usePushSubscription(preferences.preferences);
   const pushLogs = usePushLogs();
 
   const selectedStreamer = useMemo(() => {
-    return streamers.find((streamer) => streamer.channelId === preferences.primaryChannelId)
+    return personal.supportedStreamers.find((streamer) => streamer.channelId === preferences.primaryChannelId)
+      ?? personal.supportedStreamers.find((streamer) => streamer.isLive)
+      ?? personal.supportedStreamers[0]
+      ?? streamers.find((streamer) => streamer.channelId === preferences.primaryChannelId)
       ?? streamers.find((streamer) => streamer.isLive)
       ?? streamers[0];
-  }, [preferences.primaryChannelId, streamers]);
+  }, [personal.supportedStreamers, preferences.primaryChannelId, streamers]);
   const selectedPreference = preferences.preferences.find(
     (preference) => preference.channelId === selectedStreamer?.channelId
   );
@@ -93,13 +104,14 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     );
   }
 
-  if (!selectedStreamer || !selectedPreference || !entryReady || !preferences.ready) {
+  if (!selectedStreamer || !selectedPreference || !entryReady || !preferences.ready || !personal.ready) {
     return <main className={`${styles.app} mobile-app-shell standalone-route`}><div className={styles.appLoading}><RefreshCw />구데기를 준비하고 있습니다.</div></main>;
   }
 
   async function startLogin() {
+    window.localStorage.setItem(PREFERENCE_IMPORT_KEY, "1");
+    window.localStorage.setItem(STREAMER_IMPORT_KEY, "1");
     try {
-      window.localStorage.setItem("gudegi-import-all-after-login", "1");
       const result = await authApi.begin();
       window.location.assign(result.data.authorizationUrl);
     } catch {
@@ -130,12 +142,28 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     void push.enable();
   }
 
+  async function resetAlertList() {
+    if (!window.confirm("알림 목록과 스트리머별 알림 설정을 모두 초기화할까요?")) return;
+    const currentIds = [...personal.channelIds];
+    await preferences.clear(currentIds);
+    await personal.clear();
+  }
+
   return (
     <main className={`${styles.app} mobile-app-shell standalone-route`}>
       <header className={styles.appHeader}>
-        <div className={styles.logo}><BrandMark className={styles.brandMark} /><div><strong>구데기</strong><small>원하는 방송만 골라보기</small></div></div>
+        <div className={styles.brandActions}>
+          <div className={styles.logo}><BrandMark className={styles.brandMark} /><div><strong>구데기</strong><small>원하는 방송만 골라보기</small></div></div>
+          <button
+            className={styles.refreshButton}
+            aria-label="새로고침"
+            title="새로고침"
+            onClick={() => window.location.reload()}
+          ><RefreshCw /></button>
+        </div>
         <div className={styles.headerActions}>
           {!user && <button className={styles.importButton} onClick={() => void startLogin()}><CloudDownload /><span>팔로우 불러오기</span></button>}
+          <button className={styles.suggestButton} onClick={() => setSuggestionType("idea")}><MessageSquarePlus /><span>제안</span></button>
           <button className={styles.guideButton} onClick={() => {
             trackEvent("pwa_guide_opened");
             setGuideOpen(true);
@@ -146,15 +174,19 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
       <section className={styles.viewport}>
         {tab === "follow" && (
           <FollowTab
-            streamers={streamers}
-            preferences={preferences.preferences}
+            streamers={personal.supportedStreamers}
+            preferences={preferences.preferences.filter((item) => personal.channelIds.includes(item.channelId))}
             user={user}
             pushActive={push.active}
             pushBusy={push.connecting}
             pushMessage={push.message}
             onConnect={push.active ? () => setTab("settings") : connectPush}
             onChange={preferences.updatePreference}
-            onChangeAll={preferences.updateAll}
+            onChangeAll={(checked) => preferences.updateAll(checked, personal.channelIds)}
+            onAdd={() => setPickerOpen(true)}
+            onRemove={personal.remove}
+            unsupportedRequests={personal.unsupported}
+            onSuggest={() => setSuggestionType("streamer_request")}
           />
         )}
         {tab === "streamers" && (
@@ -162,12 +194,17 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             streamers={streamers}
             selected={selectedStreamer}
             preference={selectedPreference}
+            personalChannelIds={personal.channelIds}
             onSelect={preferences.selectPrimary}
             onChange={(key, checked) => preferences.updatePreference(
               selectedStreamer.channelId,
               key,
               checked
             )}
+            unsupportedRequests={personal.unsupported}
+            onAddToAlerts={personal.add}
+            onRemoveFromAlerts={personal.remove}
+            onSuggest={() => setSuggestionType("streamer_request")}
           />
         )}
         {tab === "settings" && (
@@ -190,12 +227,13 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onGuide={() => setGuideOpen(true)}
             onLogout={() => void logout()}
             onClearLogs={() => void pushLogs.clear()}
+            onResetAlerts={() => void resetAlertList()}
           />
         )}
       </section>
 
       <nav className={styles.bottomNav} aria-label="앱 메뉴">
-        <TabButton active={tab === "follow"} onClick={() => setTab("follow")} icon={<Heart />} label="팔로우 설정" />
+        <TabButton active={tab === "follow"} onClick={() => setTab("follow")} icon={<Heart />} label="알림 관리" />
         <TabButton active={tab === "streamers"} onClick={() => setTab("streamers")} icon={<UsersRound />} label="스트리머" />
         <TabButton active={tab === "settings"} onClick={() => setTab("settings")} icon={<Settings />} label="설정" badge={push.active} />
       </nav>
@@ -207,6 +245,24 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
           installed={pwa.installed}
           onInstall={pwa.install}
           onClose={() => setGuideOpen(false)}
+        />
+      )}
+      {pickerOpen && (
+        <StreamerPickerSheet
+          streamers={streamers.filter((streamer) => !personal.channelIds.includes(streamer.channelId))}
+          selectedChannelId=""
+          onSelect={personal.add}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
+      {suggestionType && (
+        <SuggestionSheet
+          initialType={suggestionType}
+          onSubmitted={(request, supportedChannelId) => {
+            if (request) personal.rememberUnsupported(request);
+            if (supportedChannelId) personal.add(supportedChannelId);
+          }}
+          onClose={() => setSuggestionType(null)}
         />
       )}
     </main>

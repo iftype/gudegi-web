@@ -1,4 +1,4 @@
-import type { PushPreference } from "./types";
+import type { PushPreference, UnsupportedStreamerRequest } from "./types";
 
 export type AppUser = {
   channelId: string;
@@ -43,6 +43,16 @@ export const authApi = {
   me: () => request<{ data: { user: AppUser } }>("/me"),
   logout: () => request<void>("/session", { method: "DELETE" }),
   preferences: () => request<{ data: { channels: PushPreference[] } }>("/preferences"),
+  myStreamers: () => request<{
+    data: {
+      supported: string[];
+      unsupportedRequests: UnsupportedStreamerRequest[];
+    };
+  }>("/my-streamers"),
+  saveMyStreamers: (channelIds: string[]) => request<{ ok: true }>("/my-streamers", {
+    method: "PUT",
+    body: JSON.stringify({ channelIds })
+  }),
   savePreferences: (preferences: PushPreference[]) => request<{ ok: true }>("/preferences", {
     method: "PUT",
     body: JSON.stringify({

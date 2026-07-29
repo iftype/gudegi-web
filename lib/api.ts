@@ -95,12 +95,23 @@ export const api = {
     keepalive: true
   }),
   submitFeedback: (feedback: {
-    category: "idea" | "bug" | "usability" | "other";
+    category: "idea" | "bug" | "usability" | "other" | "streamer_request";
     message: string;
     contact?: string;
     anonymousId?: string;
     website?: string;
-  }) => mutate<{ data: { id: number } }>("/v1/feedback", {
+    targetChannel?: string;
+  }) => mutate<{
+    data: {
+      id: number | null;
+      supported?: boolean;
+      streamer?: {
+        channelId: string;
+        channelName: string;
+        channelImageUrl: string | null;
+      };
+    };
+  }>("/v1/feedback", {
     method: "POST",
     body: JSON.stringify(feedback)
   })

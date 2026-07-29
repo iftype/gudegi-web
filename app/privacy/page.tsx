@@ -1,0 +1,44 @@
+import { ArrowLeft, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import styles from "./privacy.module.css";
+
+export const metadata = {
+  title: "개인정보처리방침 | 구데기"
+};
+
+export default function PrivacyPage() {
+  return (
+    <main className={`${styles.shell} standalone-route`}>
+      <article>
+        <Link href="/"><ArrowLeft />구데기로 돌아가기</Link>
+        <header><ShieldCheck /><div><span>PRIVACY</span><h1>개인정보처리방침</h1><p>시행일 2026년 7월 29일</p></div></header>
+
+        <section>
+          <h2>1. 수집하는 정보</h2>
+          <p>로그인 시 치지직 채널 ID와 채널명, 로그인 시도 시각과 횟수를 처리합니다. 서비스 이용 과정에서 사용자가 고른 스트리머 목록, 알림 설정, 푸시 구독 정보, 제안 내용과 선택 연락처가 저장될 수 있습니다.</p>
+          <p>OAuth 액세스 토큰, 네이버 쿠키와 인증 코드는 저장하거나 로그에 남기지 않습니다.</p>
+        </section>
+        <section>
+          <h2>2. 이용 목적</h2>
+          <p>계정별 알림 목록 동기화, 방송 알림 전송, 스트리머 추가 요청과 서비스 개선 의견 처리, 서비스 안정성 확인에만 사용합니다.</p>
+        </section>
+        <section>
+          <h2>3. 보관과 삭제</h2>
+          <p>계정 정보와 설정은 서비스 이용 중 보관하며, 피드백과 스트리머 요청은 운영 이력 확인을 위해 보관할 수 있습니다. 삭제를 원하면 아래 연락처로 요청해 주세요. 확인 후 관련 법령이나 운영상 필요한 최소 기록을 제외하고 삭제합니다.</p>
+        </section>
+        <section>
+          <h2>4. 외부 서비스</h2>
+          <p>서비스 제공을 위해 Vercel 등 호스팅 사업자와 치지직 공식 API를 이용합니다. 각 사업자는 서비스 제공에 필요한 범위에서 정보를 처리할 수 있습니다.</p>
+        </section>
+        <section>
+          <h2>5. 이용자의 선택</h2>
+          <p>비로그인 상태로도 사용할 수 있으며, 설정에서 알림 목록을 초기화하고 브라우저 또는 운영체제에서 알림 권한을 철회할 수 있습니다.</p>
+        </section>
+        <section>
+          <h2>6. 문의</h2>
+          <p><a href="mailto:admin@iftype.store">admin@iftype.store</a></p>
+        </section>
+      </article>
+    </main>
+  );
+}

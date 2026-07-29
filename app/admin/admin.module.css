@@ -30,6 +30,23 @@
 }
 .shell button:disabled, .loginCard button:disabled { cursor: wait; opacity: .6; }
 .shell .secondary, .shell .toggle { color: #bdcbc4; background: #16231c; border: 1px solid #314239; }
+.adminTabs {
+  position: sticky;
+  top: 10px;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+  margin-top: 26px;
+  padding: 7px;
+  overflow-x: auto;
+  background: #0b1610ee;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  backdrop-filter: blur(16px);
+}
+.adminTabs button { flex: 0 0 auto; color: #8fa097; background: transparent; border: 1px solid transparent; }
+.adminTabs .adminTabActive { color: #07110d; background: var(--admin-green); }
+.panel[hidden], .metrics[hidden] { display: none; }
 .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 34px 0 18px; }
 .metrics article, .panel { border: 1px solid var(--admin-border); background: #0b1610e8; border-radius: 17px; }
 .metrics article { display: grid; gap: 13px; padding: 20px; }

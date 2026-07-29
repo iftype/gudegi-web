@@ -73,6 +73,24 @@ type Overview = {
     contact: string | null;
     status: string;
     createdAt: number;
+    targetChannelId: string | null;
+    targetChannelName: string | null;
+    requestCount: number;
+  }>;
+  followImportAttempts: Array<{
+    channelId: string;
+    channelName: string;
+    firstAttemptAt: number;
+    lastAttemptAt: number;
+    attemptCount: number;
+  }>;
+  streamerRequestDemand: Array<{
+    channelId: string;
+    channelName: string;
+    channelImageUrl: string | null;
+    requesterCount: number;
+    requestCount: number;
+    lastRequestedAt: number;
   }>;
   analytics: {
     since: number;
@@ -287,6 +305,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
   const [streamerQuery, setStreamerQuery] = useState("");
   const [streamerBusy, setStreamerBusy] = useState("");
   const [streamerResult, setStreamerResult] = useState("");
+  const [tab, setTab] = useState<"overview" | "streamers" | "requests" | "push" | "broadcasts">("overview");
 
   const load = useCallback(async (manual = false) => {
     if (manual) setRefreshing(true);
@@ -318,7 +337,15 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
     return <main className={styles.loading}>{error || "서버 상태를 확인하고 있습니다."}</main>;
   }
 
-  const { analytics, system, streamers, broadcasts, feedback } = overview;
+  const {
+    analytics,
+    system,
+    streamers,
+    broadcasts,
+    feedback,
+    followImportAttempts,
+    streamerRequestDemand
+  } = overview;
   const now = system.generatedAt;
   const rows = system.database.rows;
   const collector = system.collector;
@@ -395,7 +422,19 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
 
       {error && <div className={styles.error}>{error}</div>}
 
-      <section className={styles.metrics}>
+      <nav className={styles.adminTabs} aria-label="관리 메뉴">
+        {([
+          ["overview", "운영 현황"],
+          ["streamers", "수집 리스트"],
+          ["requests", "사용자 요청"],
+          ["push", "푸시"],
+          ["broadcasts", "방송 기록"]
+        ] as const).map(([value, label]) => (
+          <button className={tab === value ? styles.adminTabActive : ""} key={value} onClick={() => setTab(value)}>{label}</button>
+        ))}
+      </nav>
+
+      <section className={styles.metrics} hidden={tab !== "overview"}>
         <article>
           <span><Activity size={15} />수집 상태</span>
           <strong className={collectionHealthy ? styles.good : styles.warn}>
@@ -420,7 +459,69 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </article>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "requests"}>
+        <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>FOLLOW DEMAND</span><h2>팔로우 가져오기 수요</h2></div>
+          <span className={styles.pill}>{followImportAttempts.length}명</span>
+        </div>
+        {followImportAttempts.length ? (
+          <div className={styles.tableWrap}>
+            <table>
+              <thead><tr><th>최근 시도</th><th>사용자</th><th>채널 ID</th><th>횟수</th></tr></thead>
+              <tbody>{followImportAttempts.map((item) => (
+                <tr key={item.channelId}>
+                  <td>{formatTime(item.lastAttemptAt)}</td>
+                  <td><strong>{item.channelName}</strong></td>
+                  <td><small>{item.channelId}</small></td>
+                  <td>{item.attemptCount.toLocaleString()}회</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ) : <p className={styles.empty}>아직 로그인 시도가 없습니다.</p>}
+      </section>
+
+      <section className={styles.panel} hidden={tab !== "requests"}>
+        <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>STREAMER REQUESTS</span><h2>스트리머 추가 수요</h2></div>
+          <span className={styles.pill}>{streamerRequestDemand.length}개 채널</span>
+        </div>
+        {streamerRequestDemand.length ? (
+          <div className={styles.tableWrap}>
+            <table>
+              <thead><tr><th>최근 요청</th><th>스트리머</th><th>채널 ID</th><th>요청자</th><th>누적 요청</th><th>관리</th></tr></thead>
+              <tbody>{streamerRequestDemand.map((item) => (
+                <tr key={item.channelId}>
+                  <td>{formatTime(item.lastRequestedAt)}</td>
+                  <td><strong>{item.channelName}</strong></td>
+                  <td><small>{item.channelId}</small></td>
+                  <td>{item.requesterCount.toLocaleString()}명</td>
+                  <td>{item.requestCount.toLocaleString()}회</td>
+                  <td>{activeStreamers.some((streamer) => streamer.channelId === item.channelId)
+                    ? <span className={`${styles.status} ${styles.statusLive}`}>추적 중</span>
+                    : <button disabled={streamerBusy === item.channelId} onClick={async () => {
+                      setStreamerBusy(item.channelId);
+                      try {
+                        await adminApi("/streamers", {
+                          method: "POST",
+                          body: JSON.stringify({ channelId: item.channelId })
+                        });
+                        setStreamerResult(`${item.channelName} 채널을 추적 리스트에 추가했습니다.`);
+                        await load();
+                      } catch {
+                        setStreamerResult("요청 채널을 추가하지 못했습니다.");
+                      } finally {
+                        setStreamerBusy("");
+                      }
+                    }}>추적 추가</button>}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ) : <p className={styles.empty}>아직 스트리머 추가 요청이 없습니다.</p>}
+      </section>
+
+      <section className={styles.panel} hidden={tab !== "overview"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>COLLECTOR LOAD</span><h2>상위 50명 수집 현황</h2></div>
           <span className={styles.pill}>
@@ -453,7 +554,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "push"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>PUSH DELIVERY TEST</span><h2>테스트 메시지 보내기</h2></div>
           <span className={styles.pill}>연결 기기 {rows.pushSubscriptionCount ?? 0}대 · 최근 기기 1대로 발송</span>
@@ -495,7 +596,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         {testResult && <p className={styles.pushTestResult} role="status">{testResult}</p>}
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "streamers"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>STREAMER OPERATIONS</span><h2>추적 리스트 관리</h2></div>
           <span className={styles.pill}>
@@ -609,7 +710,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "overview"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>OPERATIONS</span><h2>API 호출·서버 부하·장애 감시</h2></div>
           <span className={styles.pill}>최근 1시간 롤링 지표</span>
@@ -667,7 +768,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "overview"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>7 DAY FUNNEL</span><h2>커뮤니티 실험 지표</h2></div>
           <span className={styles.pill}>익명 방문자 · 이벤트 {analytics.eventCount.toLocaleString()}건</span>
@@ -710,7 +811,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "overview"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>DATA FRESHNESS</span><h2>변경 기록 상태</h2></div>
           <span className={styles.pill}>채팅 미수집 · 가동 {Math.floor(system.uptimeSeconds / 3600)}시간</span>
@@ -726,7 +827,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "requests"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>USER FEEDBACK</span><h2>서비스 피드백</h2></div>
           <span className={styles.pill}>최근 {feedback.length}건</span>
@@ -734,11 +835,14 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         {feedback.length ? (
           <div className={styles.tableWrap}>
             <table>
-              <thead><tr><th>시각</th><th>종류</th><th>내용</th><th>연락처</th></tr></thead>
+              <thead><tr><th>시각</th><th>종류</th><th>대상</th><th>내용</th><th>연락처</th></tr></thead>
               <tbody>{feedback.map((item) => (
                 <tr key={item.id}>
                   <td>{formatTime(item.createdAt)}</td>
                   <td><span className={styles.status}>{feedbackLabel(item.category)}</span></td>
+                  <td>{item.targetChannelName
+                    ? <><strong>{item.targetChannelName}</strong><small>{item.targetChannelId}</small></>
+                    : "-"}</td>
                   <td><strong>{item.message}</strong></td>
                   <td>{item.contact || "없음"}</td>
                 </tr>
@@ -748,7 +852,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         ) : <p className={styles.empty}>아직 받은 피드백이 없습니다.</p>}
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "overview"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>LIVE TRACKING</span><h2>현재 방송</h2></div>
           <span className={styles.pill}>방송 중 {formatInterval(collector?.livePollIntervalMs ?? 0)} 주기</span>
@@ -773,7 +877,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         ) : <p className={styles.empty}>현재 수집 중인 방송이 없습니다.</p>}
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "streamers"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>TOP STREAMERS</span><h2>팔로워 상위 50명</h2></div>
           <span className={styles.pill}>순위 기준일 {formatTime(rankingSnapshotAt)}</span>
@@ -802,7 +906,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={tab !== "broadcasts"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>RECENT BROADCASTS</span><h2>최근 방송</h2></div>
           <span className={styles.pill}>{rows.broadcastCount}개 기록</span>
@@ -826,6 +930,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
 }
 
 function feedbackLabel(category: string) {
+  if (category === "streamer_request") return "스트리머 요청";
   if (category === "bug") return "오류";
   if (category === "idea") return "아이디어";
   if (category === "usability") return "사용성";

@@ -32,12 +32,17 @@
   -webkit-backdrop-filter: blur(20px) saturate(115%);
 }
 .logo { display: flex; align-items: center; gap: 9px; color: #fff; }
+.brandActions { min-width: 0; display: flex; align-items: center; gap: 7px; }
 .brandMark { width: 31px; height: 31px; flex: 0 0 auto; }
 .logo > div { display: grid; gap: 1px; }
 .logo strong { font-size: 15px; letter-spacing: -.04em; }
 .logo small { color: #747986; font-size: 8px; font-weight: 600; }
+.refreshButton { width: 32px; height: 32px; flex: 0 0 auto; display: grid; place-items: center; padding: 0; color: #b7b8b5; background: rgb(28 28 30 / 72%); border: 1px solid var(--app-line); border-radius: 10px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.refreshButton svg { width: 14px; }
 .guideButton { height: 33px; display: flex; align-items: center; gap: 5px; padding: 0 9px; color: #bbbcb8; background: rgb(28 28 30 / 72%); border: 1px solid var(--app-line); border-radius: 10px; font-size: 10px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 .guideButton svg { width: 14px; }
+.suggestButton { height: 33px; display: flex; align-items: center; gap: 5px; padding: 0 9px; color: #dbe2f6; background: #171b25; border: 1px solid #343b4d; border-radius: 10px; font-size: 10px; }
+.suggestButton svg { width: 14px; }
 .headerActions { display: flex; align-items: center; gap: 6px; }
 .headerActions .importButton {
   height: 32px;
@@ -120,6 +125,13 @@
 .inlineSearch svg { width: 15px; color: #767c88; }
 .inlineSearch input { min-width: 0; height: 44px; color: #f2f3f6; background: transparent; border: 0; outline: 0; font-size: 16px; }
 .followList { display: grid; gap: 8px; }
+.personalListActions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 9px 0; }
+.personalListActions button { min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #dce3f5; background: #151923; border: 1px solid #343b50; border-radius: 13px; font-size: 10px; font-weight: 800; }
+.personalListActions button:last-child { color: #0b0c0f; background: var(--app-green); border-color: var(--app-green); }
+.personalListActions svg { width: 15px; }
+.personalEmpty { margin: 12px 0; padding: 22px 16px; text-align: center; color: #858c99; background: #101217; border: 1px dashed #343844; border-radius: 16px; font-size: 10px; line-height: 1.6; }
+.removeStreamer { position: absolute; top: 5px; right: 5px; z-index: 2; display: grid; place-items: center; width: 22px; height: 22px; color: #777f8e; background: #191c23; border: 0; border-radius: 50%; }
+.removeStreamer svg { width: 12px; }
 .alertRow {
   position: relative;
   min-height: 70px;
@@ -210,6 +222,10 @@
 .streamerIndex small svg { width: 9px; color: #ff7187; }
 .streamerIndex button { display: flex; align-items: center; gap: 4px; min-height: 34px; padding: 0 9px; color: #dededb; background: rgb(255 255 255 / 5%); border: 1px solid var(--app-line); border-radius: 9px; font-size: 8px; font-weight: 800; }
 .streamerIndex button svg { width: 12px; }
+.streamerIndex .streamerRowActions { display: flex; gap: 5px; }
+.streamerIndex .streamerRowActions button { padding-inline: 7px; }
+.streamerIndex .streamerRowActions .alertAdded { color: #0b0c0f; background: var(--app-green); border-color: var(--app-green); }
+.streamerTab .personalListActions { grid-template-columns: 1fr; }
 .emptyLive { margin: 0; padding: 30px; color: #737a86; font-size: 9px; text-align: center; }
 .detailBack { display: flex; align-items: center; gap: 6px; margin: 0 0 10px 1px; padding: 7px 9px; color: #bdc3cf; background: transparent; border: 0; font-size: 10px; font-weight: 700; }
 .detailBack svg { width: 15px; }
@@ -226,6 +242,10 @@
 .offlineLabel { color: #777e8b; }
 .liveLabel svg { width: 9px; }
 .currentTitle { overflow: hidden; margin: 0; padding: 9px 10px; color: #c7cbd4; background: #0b0d11; border-radius: 10px; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.detailAlertAction { min-height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #07110c; background: var(--app-green); border: 1px solid var(--app-green); border-radius: 11px; font-size: 10px; font-weight: 800; }
+.detailAlertAction svg { width: 14px; }
+.detailAlertAction.detailAlertAdded { color: #b7bdc9; background: #181b22; border-color: #30343e; }
+.detailAlertHint { margin: 0; padding: 11px; color: #838a97; background: #0d0f13; border-radius: 10px; font-size: 9px; line-height: 1.55; text-align: center; }
 .vodSection { margin-top: 10px; overflow: hidden; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 17px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .vodSection > header { display: flex; align-items: center; justify-content: space-between; padding: 11px 12px; border-bottom: 1px solid #272a32; }
 .vodSection > header div { display: flex; align-items: center; gap: 7px; }
@@ -242,7 +262,7 @@
 .vodSection article > span { color: #737985; background: #1a1d23; }
 .vodSection > div > p { padding: 18px; color: #747a85; font-size: 9px; text-align: center; }
 
-.deviceCard, .accountCard, .notificationLog { margin-bottom: 9px; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 17px; backdrop-filter: blur(18px) saturate(115%); -webkit-backdrop-filter: blur(18px) saturate(115%); }
+.deviceCard, .accountCard, .accountManagement, .notificationLog { margin-bottom: 9px; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 17px; backdrop-filter: blur(18px) saturate(115%); -webkit-backdrop-filter: blur(18px) saturate(115%); }
 .deviceCard { padding: 13px; }
 .deviceHeading { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; }
 .deviceHeading > span { display: grid; place-items: center; width: 38px; height: 38px; color: var(--app-lime); background: rgb(255 255 255 / 6%); border-radius: 12px; }
@@ -261,6 +281,15 @@
 .accountCard button { display: flex; align-items: center; gap: 5px; padding: 8px 9px; color: #d9dce2; background: #1a1d24; border: 1px solid #30343e; border-radius: 9px; font-size: 8px; }
 .accountCard button svg { width: 13px; }
 .accountMessage { grid-column: 1 / -1; margin: -2px 0 0; color: #ff9c90; font-size: 9px; line-height: 1.45; }
+.accountManagement { padding: 12px 13px; }
+.accountManagement > header { display: grid; gap: 3px; margin-bottom: 10px; }
+.accountManagement > header strong { font-size: 11px; }
+.accountManagement > header small { color: #7b828e; font-size: 8px; line-height: 1.45; }
+.resetAlertsButton { width: 100%; min-height: 43px; display: flex; align-items: center; gap: 9px; padding: 8px 10px; color: #efb3b9; background: rgb(106 31 44 / 18%); border: 1px solid rgb(211 91 109 / 25%); border-radius: 11px; text-align: left; }
+.resetAlertsButton > svg { width: 15px; }
+.resetAlertsButton > span { display: grid; gap: 2px; }
+.resetAlertsButton strong { font-size: 9px; }
+.resetAlertsButton small { color: #9a737a; font-size: 7px; }
 .notificationLog { overflow: hidden; }
 .notificationLog > header { display: flex; align-items: center; justify-content: space-between; padding: 11px 12px; border-bottom: 1px solid #272a32; }
 .notificationLog > header div { display: flex; align-items: center; gap: 7px; }
@@ -277,6 +306,7 @@
 .emptyLog { margin: 0; padding: 24px 12px; color: #737985; font-size: 9px; text-align: center; }
 .settingLinks { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .settingLinks button, .settingLinks a { min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #aaa; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 12px; font-size: 9px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.settingLinks a:last-child { grid-column: 1 / -1; }
 .settingLinks svg { width: 14px; }
 .settingLinks a svg:last-child { width: 10px; }
 .streamerButton {
@@ -479,6 +509,46 @@
 .sheetHeader h2 { margin: 4px 0 0; font-size: 20px; letter-spacing: -.04em; }
 .sheetHeader > button { display: grid; place-items: center; width: 34px; height: 34px; color: #9a9faa; background: #181b22; border: 1px solid #30343e; border-radius: 11px; }
 .sheetHeader > button svg { width: 15px; }
+.suggestionSheet { max-height: min(88dvh, 680px); }
+.suggestionForm { display: grid; gap: 12px; padding: 4px 17px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; }
+.suggestionTypes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; background: #101217; border-radius: 12px; }
+.suggestionTypes button { min-height: 38px; color: #858c99; background: transparent; border: 0; border-radius: 9px; font-size: 10px; font-weight: 800; }
+.suggestionTypes .suggestionTypeActive { color: #0b0c0f; background: var(--app-green); }
+.suggestionForm label { display: grid; gap: 6px; color: #c9ced8; font-size: 10px; font-weight: 700; }
+.suggestionForm label small { color: #737a87; font-weight: 500; }
+.suggestionForm input, .suggestionForm textarea { width: 100%; color: #f2f4f8; background: #111319; border: 1px solid #30343e; border-radius: 12px; font-size: 16px; }
+.suggestionForm input { height: 44px; padding: 0 11px; }
+.suggestionForm textarea { min-height: 96px; padding: 11px; resize: vertical; }
+.suggestionSubmit { min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 7px; color: #0b0c0f; background: var(--app-green); border: 0; border-radius: 13px; font-size: 11px; font-weight: 900; }
+.suggestionSubmit svg { width: 16px; }
+.suggestionError { margin: 0; color: #ff8c9d; font-size: 10px; }
+.suggestionSent { display: grid; justify-items: center; gap: 8px; padding: 25px 18px calc(24px + env(safe-area-inset-bottom)); text-align: center; }
+.suggestionSent > svg { width: 34px; color: var(--app-green); }
+.suggestionSent strong { font-size: 17px; }
+.suggestionSent p { margin: 0; color: #858c99; font-size: 10px; }
+.suggestionSent button { min-width: 120px; height: 42px; margin-top: 8px; color: #0b0c0f; background: var(--app-green); border: 0; border-radius: 12px; font-weight: 900; }
+.honeypot { position: absolute !important; left: -9999px !important; width: 1px !important; height: 1px !important; }
+.unsupportedSection { display: grid; gap: 9px; margin-top: 14px; padding: 12px; background: #151317; border: 1px solid #3a3037; border-radius: 16px; }
+.unsupportedSection > header { display: flex; align-items: center; justify-content: space-between; color: #f0c8cf; }
+.unsupportedSection > header div { display: flex; align-items: center; gap: 6px; }
+.unsupportedSection > header svg { width: 15px; }
+.unsupportedSection > header strong { font-size: 11px; }
+.unsupportedSection > header > span { color: #9d858b; font-size: 9px; }
+.unsupportedSection > p { margin: 0; color: #8d7f84; font-size: 9px; line-height: 1.55; }
+.unsupportedSection > div { display: grid; gap: 6px; }
+.unsupportedSection article { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 9px; padding: 8px; background: #101116; border-radius: 12px; }
+.unsupportedSection article > span:last-child { display: grid; gap: 3px; }
+.unsupportedSection article strong { font-size: 11px; }
+.unsupportedSection article small { color: #a57982; font-size: 8px; }
+.unsupportedSection > button { min-height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #e8cad0; background: #241b20; border: 1px solid #4b353e; border-radius: 11px; font-size: 10px; font-weight: 800; }
+.unsupportedSection > button svg { width: 14px; }
+
+@media (max-width: 410px) {
+  .appHeader { padding-inline: 10px; }
+  .headerActions { gap: 4px; }
+  .headerActions button { width: 33px; padding-inline: 0; justify-content: center; }
+  .headerActions button span { display: none; }
+}
 .pickerTools { display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 0 17px 10px; }
 .pickerTools label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 7px; padding: 0 10px; background: rgb(255 255 255 / 5%); border: 1px solid var(--app-line); border-radius: 11px; }
 .pickerTools label svg { width: 14px; color: #75887e; }
@@ -501,7 +571,7 @@
 .choiceCheck svg { width: 11px; }
 .noResult { grid-column: 1 / -1; padding: 35px; color: #72847a; font-size: 10px; text-align: center; }
 
-.guideSheet { height: min(760px, 94dvh); max-height: 94dvh; grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto; }
+.guideSheet { height: min(760px, 94dvh); max-height: 94dvh; grid-template-rows: auto auto auto auto minmax(0, 1fr) auto; }
 .platformTabs { display: grid; grid-template-columns: 1fr 1fr; margin: 0 17px 10px; padding: 3px; background: rgb(255 255 255 / 4%); border: 1px solid var(--app-line); border-radius: 12px; }
 .platformTabs button { height: 34px; color: #777d89; background: transparent; border: 0; border-radius: 9px; font-size: 10px; font-weight: 700; }
 .platformTabs .platformActive { color: #07110c; background: var(--app-green); }
@@ -650,6 +720,7 @@
   .guideCaption p { font-size: 9px; }
   .headerActions .guideButton span { display: none; }
   .headerActions .guideButton { width: 33px; justify-content: center; padding: 0; }
+  .logo small { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

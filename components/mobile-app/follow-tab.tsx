@@ -1,11 +1,12 @@
 "use client";
 
-import { Bell, CheckCircle2, RefreshCw, Search } from "lucide-react";
+import { Bell, CheckCircle2, Plus, RefreshCw, Search, Send } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AppUser } from "@/lib/auth-api";
 import type { PushPreference, Streamer } from "@/lib/types";
 import styles from "./mobile-app.module.css";
 import { AlertRow } from "./alert-row";
+import { UnsupportedList } from "./unsupported-list";
 
 export function FollowTab({
   streamers,
@@ -16,7 +17,11 @@ export function FollowTab({
   pushMessage,
   onConnect,
   onChange,
-  onChangeAll
+  onChangeAll,
+  onAdd = () => undefined,
+  onRemove,
+  unsupportedRequests = [],
+  onSuggest = () => undefined
 }: {
   streamers: Streamer[];
   preferences: PushPreference[];
@@ -31,6 +36,10 @@ export function FollowTab({
     checked: boolean
   ) => void;
   onChangeAll: (checked: boolean) => void;
+  onAdd?: () => void;
+  onRemove?: (channelId: string) => void;
+  unsupportedRequests?: import("@/lib/types").UnsupportedStreamerRequest[];
+  onSuggest?: () => void;
 }) {
   const [query, setQuery] = useState("");
   const preferenceByChannel = useMemo(
@@ -47,7 +56,7 @@ export function FollowTab({
     <section className={styles.tabScroll}>
       <header className={styles.tabIntro}>
         <span>MY ALERTS</span>
-        <h1>알림 설정</h1>
+        <h1>알림 관리</h1>
         <p>{user
           ? `계정에 저장한 ${enabledCount}명의 카테고리·제목 알림을 관리합니다.`
           : `이 기기에 저장한 ${enabledCount}명의 카테고리·제목 알림을 관리합니다.`}</p>
@@ -92,10 +101,17 @@ export function FollowTab({
               streamer={streamer}
               preference={preference}
               onChange={onChange}
+              onRemove={onRemove}
             />
           );
         })}
       </div>
+      {!streamers.length && <p className={styles.personalEmpty}>내 알림 목록이 비어 있습니다.<br />스트리머 탭에서 검색해 추가하거나 원하는 스트리머를 제안해 주세요.</p>}
+      <div className={styles.personalListActions}>
+        <button onClick={onAdd}><Plus />알림 목록에 추가</button>
+        <button onClick={onSuggest}><Send />스트리머 제안</button>
+      </div>
+      <UnsupportedList requests={unsupportedRequests} onSuggest={onSuggest} />
     </section>
   );
 }

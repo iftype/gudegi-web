@@ -6,8 +6,8 @@ export const GUIDE_SCREENSHOTS: Record<"ios" | "android", Array<string | null>> 
     "/guide/iphone-4.jpg"  // 웹 앱으로 열기
   ],
   android: [
-    null, // Chrome 메뉴
-    null, // 앱 설치
-    null  // 구데기 알림 허용
+    "/guide/samsung-5.jpg", // 삼성 브라우저에서 열기
+    "/guide/samsung-6.jpg", // 삼성 인터넷 설치 아이콘
+    "/guide/samsung-7.jpg"  // Play Protect 확인
   ]
 };

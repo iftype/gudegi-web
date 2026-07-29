@@ -6,7 +6,7 @@ import type { PushPreference, Streamer } from "@/lib/types";
 
 const STORAGE_KEY = "trackline-push-preferences";
 const PRIMARY_KEY = "trackline-primary-streamer";
-export const IMPORT_ALL_KEY = "gudegi-import-all-after-login";
+export const PREFERENCE_IMPORT_KEY = "gudegi-import-local-preferences-after-login";
 
 function readGuestPreferences() {
   try {
@@ -32,24 +32,22 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
         return;
       }
       setReady(false);
-      authApi.preferences().then((result) => {
+      authApi.preferences().then(async (result) => {
         if (cancelled) return;
-        if (window.localStorage.getItem(IMPORT_ALL_KEY) === "1") {
-          const imported = streamers.map((streamer) => ({
-            channelId: streamer.channelId,
-            enabled: true,
-            categoryChanged: true,
-            titleChanged: true
-          }));
-          window.localStorage.removeItem(IMPORT_ALL_KEY);
-          setStored(imported);
-          setSaveState("saving");
-          void authApi.savePreferences(imported)
-            .then(() => setSaveState("saved"))
-            .catch(() => setSaveState("error"));
-        } else {
-          setStored(result.data.channels);
+        window.localStorage.removeItem("gudegi-import-all-after-login");
+        let channels = result.data.channels;
+        if (window.localStorage.getItem(PREFERENCE_IMPORT_KEY) === "1") {
+          const byChannel = new Map(channels.map((item) => [item.channelId, item]));
+          for (const guest of readGuestPreferences()) {
+            if (!guest.enabled) continue;
+            byChannel.set(guest.channelId, guest);
+          }
+          channels = [...byChannel.values()];
+          await authApi.savePreferences(channels);
+          window.localStorage.removeItem(PREFERENCE_IMPORT_KEY);
         }
+        if (cancelled) return;
+        setStored(channels);
         setReady(true);
       }).catch(() => {
         if (cancelled) return;
@@ -119,13 +117,28 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
     void persist(next);
   }, [persist, preferences]);
 
-  const updateAll = useCallback((checked: boolean) => {
-    void persist(preferences.map((preference) => ({
-      ...preference,
-      enabled: checked,
-      categoryChanged: checked,
-      titleChanged: checked
-    })));
+  const updateAll = useCallback((checked: boolean, channelIds?: string[]) => {
+    const targets = channelIds ? new Set(channelIds) : null;
+    void persist(preferences.map((preference) => targets && !targets.has(preference.channelId)
+      ? preference
+      : {
+          ...preference,
+          enabled: checked,
+          categoryChanged: checked,
+          titleChanged: checked
+        }));
+  }, [persist, preferences]);
+
+  const clear = useCallback((channelIds?: string[]) => {
+    const targets = channelIds ? new Set(channelIds) : null;
+    return persist(preferences.map((preference) => targets && !targets.has(preference.channelId)
+      ? preference
+      : {
+          ...preference,
+          enabled: false,
+          categoryChanged: false,
+          titleChanged: false
+        }));
   }, [persist, preferences]);
 
   return {
@@ -134,6 +147,7 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
     selectPrimary,
     updatePreference,
     updateAll,
+    clear,
     ready,
     saveState
   };

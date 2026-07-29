@@ -58,6 +58,7 @@ describe("push service worker", () => {
     });
     const source = fs.readFileSync(path.join(process.cwd(), "public/sw.js"), "utf8");
     vm.runInContext(source, context);
+    expect(listeners.has("fetch")).toBe(true);
 
     let completion: Promise<unknown> | undefined;
     listeners.get("push")?.({

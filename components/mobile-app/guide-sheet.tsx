@@ -14,7 +14,6 @@ import {
 import Image from "next/image";
 import { useRef, useState } from "react";
 import type { MobilePlatform } from "@/lib/device";
-import { trackEvent } from "@/lib/analytics";
 import { GUIDE_SCREENSHOTS } from "./guide-assets";
 import styles from "./mobile-app.module.css";
 
@@ -23,7 +22,7 @@ const guides = {
     {
       icon: Share,
       title: "Safari 메뉴에서 공유",
-      body: "구데기 페이지를 연 뒤 Safari 메뉴에서 ‘공유’를 눌러 주세요.",
+      body: "반드시 iPhone의 기본 Safari로 구데기 페이지를 연 뒤 아래쪽 ‘공유’ 버튼을 눌러 주세요.",
       browser: "Safari",
       action: "공유",
       hint: "공유 아이콘이 있는 첫 항목",
@@ -60,29 +59,29 @@ const guides = {
   android: [
     {
       icon: MoreVertical,
-      title: "Chrome 메뉴 열기",
-      body: "Chrome 오른쪽 위의 점 세 개 메뉴를 눌러 주세요.",
+      title: "삼성 브라우저에서 열기",
+      body: "Chrome이나 카카오톡 안에서 열었다면 메뉴를 누른 뒤 ‘삼성 브라우저에서 열기’를 선택하세요.",
       browser: "Chrome",
-      action: "⋮ 메뉴",
-      hint: "오른쪽 위 점 세 개",
+      action: "삼성 브라우저에서 열기",
+      hint: "Chrome 오른쪽 위 메뉴",
       imageSrc: GUIDE_SCREENSHOTS.android[0]
     },
     {
       icon: Download,
-      title: "앱 설치 선택",
-      body: "메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택합니다.",
-      browser: "Chrome 메뉴",
-      action: "앱 설치",
-      hint: "설치 확인을 한 번 더 눌러요",
+      title: "웹 애플리케이션 설치",
+      body: "삼성 인터넷에서 주소창 오른쪽의 설치 아이콘을 누르고 ‘웹 애플리케이션 설치’를 선택하세요.",
+      browser: "삼성 인터넷",
+      action: "웹 애플리케이션 설치",
+      hint: "주소창 오른쪽 다운로드 모양",
       imageSrc: GUIDE_SCREENSHOTS.android[1]
     },
     {
-      icon: BellRing,
-      title: "앱에서 알림 켜기",
-      body: "설치된 구데기를 열고 첫 화면의 알림 버튼을 누릅니다.",
-      browser: "구데기",
-      action: "변경 알림 켜기",
-      hint: "알림 허용을 선택",
+      icon: Check,
+      title: "경고에서 설치 계속하기",
+      body: "Play Protect 화면이 나오면 ‘무시하고 설치하기’를 누른 뒤 확인하세요. 설치된 구데기를 열어 알림을 연결하면 됩니다.",
+      browser: "Google Play 프로텍트",
+      action: "무시하고 설치하기",
+      hint: "아래 확인 버튼까지 누르기",
       imageSrc: GUIDE_SCREENSHOTS.android[2]
     }
   ]
@@ -90,9 +89,7 @@ const guides = {
 
 export function GuideSheet({
   initialPlatform,
-  canPrompt,
   installed,
-  onInstall,
   onClose
 }: {
   initialPlatform: MobilePlatform;
@@ -121,14 +118,14 @@ export function GuideSheet({
         <div className={styles.sheetHandle} />
         <header className={styles.sheetHeader}>
           <div><span>QUICK START</span><h2>설치 및 사용 방법</h2></div>
-          <button onClick={onClose} aria-label="닫기"><X /></button>
+          <button type="button" onClick={onClose} aria-label="닫기"><X /></button>
         </header>
         <div className={styles.platformTabs}>
-          <button className={platform === "android" ? styles.platformActive : ""} onClick={() => {
+          <button type="button" className={platform === "android" ? styles.platformActive : ""} onClick={() => {
             setPlatform("android");
             setStepIndex(0);
-          }}>Android</button>
-          <button className={platform === "ios" ? styles.platformActive : ""} onClick={() => {
+          }}>Samsung</button>
+          <button type="button" className={platform === "ios" ? styles.platformActive : ""} onClick={() => {
             setPlatform("ios");
             setStepIndex(0);
           }}>iPhone</button>
@@ -136,8 +133,12 @@ export function GuideSheet({
         <div className={styles.guideNotice}>
           {installed ? <Check /> : <BellRing />}
           <div>
-            <strong>{installed ? "앱으로 실행 중입니다" : "알림은 PWA 설치 후 사용할 수 있어요"}</strong>
-            <p>아래 화면을 좌우로 넘겨 설치 순서를 확인하세요.</p>
+            <strong>{installed
+              ? "앱으로 실행 중입니다"
+              : platform === "android"
+                ? "삼성 인터넷으로 열어야 설치할 수 있어요"
+                : "기본 Safari로 열어야 설치할 수 있어요"}</strong>
+            <p>화살표를 누르거나 화면을 좌우로 넘겨 설치 순서를 확인하세요.</p>
           </div>
         </div>
 
@@ -145,10 +146,20 @@ export function GuideSheet({
           className={styles.guideCarousel}
           data-testid="guide-carousel"
           onPointerDown={(event) => {
+            if ((event.target as HTMLElement).closest("button")) {
+              pointerStart.current = null;
+              return;
+            }
             pointerStart.current = { x: event.clientX, y: event.clientY };
-            event.currentTarget.setPointerCapture?.(event.pointerId);
+          }}
+          onPointerCancel={() => {
+            pointerStart.current = null;
           }}
           onPointerUp={(event) => {
+            if ((event.target as HTMLElement).closest("button")) {
+              pointerStart.current = null;
+              return;
+            }
             if (pointerStart.current === null) return;
             const distanceX = event.clientX - pointerStart.current.x;
             const distanceY = event.clientY - pointerStart.current.y;
@@ -160,8 +171,22 @@ export function GuideSheet({
             if (Math.abs(distanceX) > 42) move(distanceX < 0 ? 1 : -1);
           }}
         >
-          <button className={styles.guideArrowLeft} onClick={() => move(-1)} disabled={stepIndex === 0} aria-label="이전 단계"><ChevronLeft /></button>
-          <button className={styles.guideArrowRight} onClick={() => move(1)} disabled={stepIndex === steps.length - 1} aria-label="다음 단계"><ChevronRight /></button>
+          <button
+            type="button"
+            className={styles.guideArrowLeft}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => { event.stopPropagation(); move(-1); }}
+            disabled={stepIndex === 0}
+            aria-label="이전 단계"
+          ><ChevronLeft /></button>
+          <button
+            type="button"
+            className={styles.guideArrowRight}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => { event.stopPropagation(); move(1); }}
+            disabled={stepIndex === steps.length - 1}
+            aria-label="다음 단계"
+          ><ChevronRight /></button>
           <div className={styles.guideScreenshot} key={`${platform}-${stepIndex}`}>
             {step.imageSrc ? (
               <Image
@@ -202,6 +227,7 @@ export function GuideSheet({
         <div className={styles.guideControls}>
           <div>{steps.map((item, index) => (
             <button
+              type="button"
               key={item.title}
               className={index === stepIndex ? styles.guideDotActive : ""}
               onClick={() => setStepIndex(index)}
@@ -210,12 +236,6 @@ export function GuideSheet({
           ))}</div>
         </div>
 
-        {platform === "android" && canPrompt && !installed && (
-          <button className={styles.installNow} onClick={() => {
-            trackEvent("pwa_install_prompted");
-            void onInstall();
-          }}><Download /> 지금 앱 설치하기</button>
-        )}
       </section>
     </div>
   );

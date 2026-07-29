@@ -76,3 +76,13 @@ export type PushPreference = {
   categoryChanged: boolean;
   titleChanged: boolean;
 };
+
+export type UnsupportedStreamerRequest = {
+  id: number;
+  channelId: string;
+  channelName: string;
+  channelImageUrl: string | null;
+  requestCount: number;
+  requestedAt: number;
+  supported?: boolean;
+};

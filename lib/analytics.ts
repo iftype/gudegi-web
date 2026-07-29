@@ -25,7 +25,7 @@ export type AnalyticsEventName =
 const ANONYMOUS_ID_KEY = "trackline-anonymous-id";
 const ACQUISITION_SOURCE_KEY = "trackline-acquisition-source";
 
-function getAnonymousId() {
+export function getAnonymousId() {
   const existing = window.localStorage.getItem(ANONYMOUS_ID_KEY);
   if (existing) return existing;
   const id = window.crypto.randomUUID();

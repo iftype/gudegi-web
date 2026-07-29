@@ -99,6 +99,37 @@ describe("mobile-first entry and guidance", () => {
       .toEqual(["라이브 스트리머", "오프라인 스트리머"]);
   });
 
+  it("shows unsupported personal streamers separately and routes them to suggestions", () => {
+    const onSuggest = vi.fn();
+    render(
+      <FollowTab
+        streamers={[]}
+        preferences={[]}
+        user={{ channelId: "c".repeat(32), channelName: "테스터" }}
+        pushActive={false}
+        pushBusy={false}
+        pushMessage=""
+        onConnect={() => undefined}
+        onChange={() => undefined}
+        onChangeAll={() => undefined}
+        unsupportedRequests={[{
+          id: 1,
+          channelId: "d".repeat(32),
+          channelName: "아직 미지원",
+          channelImageUrl: null,
+          requestCount: 1,
+          requestedAt: Date.now()
+        }]}
+        onSuggest={onSuggest}
+      />
+    );
+
+    expect(screen.getByText("아직 미지원")).toBeInTheDocument();
+    expect(screen.getByText("제안 완료 · 현재 미지원")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "다른 스트리머 제안하기" }));
+    expect(onSuggest).toHaveBeenCalledOnce();
+  });
+
   it("clearly offers login and local-only guest mode", () => {
     const onGuest = vi.fn();
     render(<OnboardingGate user={null} oauthConfigured={true} onGuest={onGuest} />);
@@ -146,8 +177,11 @@ describe("mobile-first entry and guidance", () => {
             categoryChanged: true,
             titleChanged: true
           }}
+          personalChannelIds={streamers.map((streamer) => streamer.channelId)}
           onSelect={onSelect}
           onChange={() => undefined}
+          onAddToAlerts={() => undefined}
+          onRemoveFromAlerts={() => undefined}
         />
       </QueryClientProvider>
     );
@@ -173,14 +207,34 @@ describe("mobile-first entry and guidance", () => {
         onClose={onClose}
       />
     );
-    expect(screen.getByText("Chrome 메뉴 열기")).toBeInTheDocument();
+    expect(screen.getByText("삼성 브라우저에서 열기")).toBeInTheDocument();
+    expect(screen.getByText(/삼성 인터넷으로 열어야/)).toBeInTheDocument();
+    expect(screen.getByAltText("삼성 브라우저에서 열기 실제 기기 화면")).toHaveAttribute(
+      "src",
+      expect.stringContaining("samsung-5.jpg")
+    );
+    const nextButton = screen.getByRole("button", { name: "다음 단계" });
+    fireEvent.pointerDown(nextButton, { clientX: 300, clientY: 300, pointerId: 1 });
+    fireEvent.pointerUp(nextButton, { clientX: 300, clientY: 300, pointerId: 1 });
+    fireEvent.click(nextButton);
+    expect(screen.getByText("웹 애플리케이션 설치")).toBeInTheDocument();
+    expect(screen.getByAltText("웹 애플리케이션 설치 실제 기기 화면")).toHaveAttribute(
+      "src",
+      expect.stringContaining("samsung-6.jpg")
+    );
+    fireEvent.click(screen.getByRole("button", { name: "다음 단계" }));
+    expect(screen.getByText("경고에서 설치 계속하기")).toBeInTheDocument();
+    expect(screen.getByAltText("경고에서 설치 계속하기 실제 기기 화면")).toHaveAttribute(
+      "src",
+      expect.stringContaining("samsung-7.jpg")
+    );
     fireEvent.click(screen.getByRole("button", { name: "iPhone" }));
     expect(screen.getByText("Safari 메뉴에서 공유")).toBeInTheDocument();
     expect(screen.getByAltText("Safari 메뉴에서 공유 실제 기기 화면")).toHaveAttribute(
       "src",
       expect.stringContaining("iphone-1.jpg")
     );
-    expect(screen.getByText(/PWA 설치 후/)).toBeInTheDocument();
+    expect(screen.getByText(/기본 Safari로 열어야/)).toBeInTheDocument();
     fireEvent.pointerDown(screen.getByTestId("guide-carousel"), {
       clientX: 120,
       clientY: 120,

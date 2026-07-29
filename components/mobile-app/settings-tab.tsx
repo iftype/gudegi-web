@@ -8,7 +8,9 @@ import {
   LogOut,
   MessageSquareText,
   RefreshCw,
+  RotateCcw,
   Send,
+  ShieldCheck,
   Smartphone,
   Trash2
 } from "lucide-react";
@@ -32,7 +34,8 @@ export function SettingsTab({
   onTest,
   onGuide,
   onLogout,
-  onClearLogs
+  onClearLogs,
+  onResetAlerts
 }: {
   user: AppUser | null;
   installed: boolean;
@@ -50,6 +53,7 @@ export function SettingsTab({
   onGuide: () => void;
   onLogout: () => void;
   onClearLogs: () => void;
+  onResetAlerts: () => void;
 }) {
   return (
     <section className={styles.tabScroll}>
@@ -97,6 +101,14 @@ export function SettingsTab({
       </article>
       {logoutMessage && <p className={styles.accountMessage}>{logoutMessage}</p>}
 
+      <article className={styles.accountManagement}>
+        <header><strong>계정 관리</strong><small>{user ? "이 계정에 알림 목록과 설정이 저장됩니다." : "로그인하면 이 기기의 알림 목록과 설정을 계정에 합쳐 저장합니다."}</small></header>
+        <button className={styles.resetAlertsButton} onClick={onResetAlerts}>
+          <RotateCcw />
+          <span><strong>알림 목록 초기화</strong><small>팔로우 목록과 알림 설정을 모두 비웁니다.</small></span>
+        </button>
+      </article>
+
       <section className={styles.notificationLog}>
         <header>
           <div><MessageSquareText /><strong>받은 알림 로그</strong></div>
@@ -122,6 +134,7 @@ export function SettingsTab({
       <div className={styles.settingLinks}>
         <button onClick={onGuide}><CircleHelp />설치 및 사용 방법</button>
         <a href="/feedback"><MessageSquareText />피드백 보내기</a>
+        <a href="/privacy"><ShieldCheck />개인정보처리방침</a>
       </div>
     </section>
   );

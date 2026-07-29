@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CalendarDays, ExternalLink, Film, Radio } from "lucide-react";
+import { ArrowLeft, BellPlus, CalendarDays, Check, ExternalLink, Film, Radio, Send, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useState } from "react";
@@ -8,23 +8,34 @@ import { api } from "@/lib/api";
 import type { PushPreference, Streamer } from "@/lib/types";
 import { AlertToggleGrid } from "./alert-toggle-grid";
 import { CompactCalendar } from "./compact-calendar";
+import { UnsupportedList } from "./unsupported-list";
 import styles from "./mobile-app.module.css";
 
 export function StreamersTab({
   streamers,
   selected,
   preference,
+  personalChannelIds,
   onSelect,
-  onChange
+  onChange,
+  unsupportedRequests = [],
+  onAddToAlerts,
+  onRemoveFromAlerts,
+  onSuggest = () => undefined
 }: {
   streamers: Streamer[];
   selected: Streamer;
   preference: PushPreference;
+  personalChannelIds: string[];
   onSelect: (channelId: string) => void;
   onChange: (
     key: "enabled" | "categoryChanged" | "titleChanged",
     checked: boolean
   ) => void;
+  unsupportedRequests?: import("@/lib/types").UnsupportedStreamerRequest[];
+  onAddToAlerts: (channelId: string) => void;
+  onRemoveFromAlerts: (channelId: string) => void;
+  onSuggest?: () => void;
 }) {
   const [liveOnly, setLiveOnly] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -36,6 +47,7 @@ export function StreamersTab({
   });
   const liveStreamers = streamers.filter((streamer) => streamer.isLive);
   const selection = liveOnly ? liveStreamers : streamers;
+  const selectedInAlerts = personalChannelIds.includes(selected.channelId);
 
   if (!detailOpen) {
     return (
@@ -43,7 +55,7 @@ export function StreamersTab({
         <header className={styles.tabIntro}>
           <span>NOW & ARCHIVE</span>
           <h1>스트리머</h1>
-          <p>상세 보기 버튼을 눌러 달력과 다시보기로 이동하세요.</p>
+          <p>수집 중인 스트리머를 보고 내 알림 목록에 바로 추가하세요.</p>
         </header>
         <div className={styles.streamerPickerHeading}>
           <strong>{liveOnly ? `방송 중 ${liveStreamers.length}명` : `전체 ${streamers.length}명`}</strong>
@@ -75,13 +87,31 @@ export function StreamersTab({
                   ? <><Radio /> {streamer.currentCategory || "카테고리 확인 중"}</>
                   : `팔로워 순위 #${streamer.trackingRank ?? "-"}`}</small>
               </div>
-              <button aria-label={`${streamer.channelName} 상세 보기`} onClick={() => {
-                onSelect(streamer.channelId);
-                setDetailOpen(true);
-              }}><CalendarDays />상세 보기</button>
+              <div className={styles.streamerRowActions}>
+                <button
+                  className={personalChannelIds.includes(streamer.channelId) ? styles.alertAdded : ""}
+                  aria-label={`${streamer.channelName} ${personalChannelIds.includes(streamer.channelId) ? "알림 목록에서 제거" : "알림 목록에 추가"}`}
+                  onClick={() => personalChannelIds.includes(streamer.channelId)
+                    ? onRemoveFromAlerts(streamer.channelId)
+                    : onAddToAlerts(streamer.channelId)}
+                >
+                  {personalChannelIds.includes(streamer.channelId) ? <Check /> : <BellPlus />}
+                  {personalChannelIds.includes(streamer.channelId) ? "추가됨" : "알림 추가"}
+                </button>
+                <button aria-label={`${streamer.channelName} 상세 보기`} onClick={() => {
+                  onSelect(streamer.channelId);
+                  setDetailOpen(true);
+                }}><CalendarDays />상세</button>
+              </div>
             </article>
-          )) : <p className={styles.emptyLive}>현재 방송 중인 스트리머가 없습니다.</p>}
+          )) : streamers.length > 0
+            ? <p className={styles.emptyLive}>현재 방송 중인 스트리머가 없습니다.</p>
+            : null}
         </div>
+        <div className={styles.personalListActions}>
+          <button onClick={onSuggest}><Send />원하는 스트리머 제안하기</button>
+        </div>
+        <UnsupportedList requests={unsupportedRequests} onSuggest={onSuggest} />
       </section>
     );
   }
@@ -116,7 +146,18 @@ export function StreamersTab({
           <a href={`https://chzzk.naver.com/${selected.channelId}`} target="_blank" rel="noreferrer" aria-label="치지직에서 보기"><ExternalLink /></a>
         </div>
         {selected.currentTitle && <p className={styles.currentTitle}>{selected.currentTitle}</p>}
-        <AlertToggleGrid preference={preference} onChange={onChange} />
+        <button
+          className={`${styles.detailAlertAction} ${selectedInAlerts ? styles.detailAlertAdded : ""}`}
+          onClick={() => selectedInAlerts
+            ? onRemoveFromAlerts(selected.channelId)
+            : onAddToAlerts(selected.channelId)}
+        >
+          {selectedInAlerts ? <X /> : <BellPlus />}
+          {selectedInAlerts ? "내 알림 목록에서 빼기" : "내 알림 목록에 추가"}
+        </button>
+        {selectedInAlerts
+          ? <AlertToggleGrid preference={preference} onChange={onChange} />
+          : <p className={styles.detailAlertHint}>알림 목록에 추가하면 카테고리와 방송 제목 변경 알림을 설정할 수 있습니다.</p>}
       </article>
 
       <CompactCalendar streamer={selected} />

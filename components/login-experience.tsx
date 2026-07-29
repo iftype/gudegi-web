@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { authApi } from "@/lib/auth-api";
 import { trackEvent } from "@/lib/analytics";
+import { PREFERENCE_IMPORT_KEY } from "./mobile-app/use-mobile-preferences";
+import { STREAMER_IMPORT_KEY } from "./mobile-app/use-personal-streamers";
 import styles from "./login-experience.module.css";
 
 export function LoginExperience() {
@@ -35,8 +37,9 @@ export function LoginExperience() {
   async function startLogin() {
     setState("working");
     setMessage("");
+    window.localStorage.setItem(PREFERENCE_IMPORT_KEY, "1");
+    window.localStorage.setItem(STREAMER_IMPORT_KEY, "1");
     try {
-      window.localStorage.setItem("gudegi-import-all-after-login", "1");
       const result = await authApi.begin();
       trackEvent("chzzk_login_started");
       window.location.assign(result.data.authorizationUrl);
@@ -61,11 +64,11 @@ export function LoginExperience() {
         ) : (
           <>
             <span className={styles.icon}><ShieldCheck /></span>
-            <h1>{oauthError ? "불러오기가 취소됐어요" : "알림 목록을 불러올게요"}</h1>
-            <p>연결하면 구데기의 추적 채널 전체를 선택하고 설정을 계정에 보관합니다.</p>
+            <h1>{oauthError ? "로그인이 취소됐어요" : "내 목록을 계정에 저장하세요"}</h1>
+            <p>치지직은 실제 팔로잉 목록 조회를 지원하지 않아, 로그인 후 지원 스트리머를 직접 선택합니다.</p>
             <button onClick={() => void startLogin()} disabled={state === "working"}>
               {state === "working" ? <LoaderCircle className={styles.spin} /> : <ExternalLink />}
-              팔로우 불러오기
+              치지직으로 로그인
             </button>
             <Link href="/"><ArrowLeft /> 비로그인으로 돌아가기</Link>
           </>

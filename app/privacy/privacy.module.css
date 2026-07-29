@@ -1,0 +1,14 @@
+.shell { min-height: 100dvh; padding: max(20px, env(safe-area-inset-top)) 18px max(36px, env(safe-area-inset-bottom)); color: #f2f4f7; background: #090a0d; }
+.shell article { max-width: 680px; margin: 0 auto; }
+.shell > article > a { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 28px; color: #aeb4c0; font-size: 13px; text-decoration: none; }
+.shell > article > a svg { width: 17px; }
+.shell header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 25px; padding: 22px; background: #111319; border: 1px solid #292d36; border-radius: 20px; }
+.shell header > svg { width: 30px; height: 30px; color: #b9c5e6; }
+.shell header span { color: #8d96ac; font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.shell h1 { margin: 5px 0 4px; font-size: clamp(27px, 7vw, 38px); letter-spacing: -.05em; }
+.shell header p { margin: 0; color: #7f8693; font-size: 12px; }
+.shell section { margin-top: 10px; padding: 19px 21px; background: #111319; border: 1px solid #292d36; border-radius: 16px; }
+.shell h2 { margin: 0 0 9px; font-size: 15px; }
+.shell section p { margin: 7px 0 0; color: #a3a9b4; font-size: 13px; line-height: 1.75; }
+.shell section a { color: #dbe4ff; }
+@media (max-width: 520px) { .shell header { padding: 18px; } .shell section { padding: 17px; } }
