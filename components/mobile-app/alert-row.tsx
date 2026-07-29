@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ListFilter, Radio, Trash2 } from "lucide-react";
+import { Bell, Ellipsis, ListFilter, Radio, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import type {
@@ -28,6 +28,7 @@ export function AlertRow({
   onRemove?: (channelId: string) => void;
 }) {
   const [categorySheetOpen, setCategorySheetOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const tags = getCategoryTags(preference.categoryFilter, categories);
 
   return (
@@ -47,24 +48,55 @@ export function AlertRow({
             : streamer.channelName.slice(0, 1)}
           {streamer.isLive && <i />}
         </span>
-        <span className={styles.followCopy}>
-          <strong>{streamer.channelName}</strong>
+        <div className={styles.followCopy}>
+          <div className={styles.rowNameLine}>
+            <strong>{streamer.channelName}</strong>
+            <button
+              type="button"
+              className={`${styles.rowAlarmToggle} ${preference.enabled ? styles.rowAlarmToggleActive : ""}`}
+              aria-pressed={preference.enabled}
+              aria-label={`${streamer.channelName} 알림 받기`}
+              onClick={() => onChange(streamer.channelId, "enabled", !preference.enabled)}
+            >
+              <Bell />
+              <span>알람</span>
+              <i aria-hidden="true" />
+            </button>
+          </div>
           <small>{streamer.isLive
             ? <><Radio /> {streamer.currentCategory || "카테고리 확인 중"}</>
             : `팔로워 순위 #${streamer.trackingRank ?? "-"}`}</small>
-        </span>
-        <div className={styles.rowAlertControls}>
-          <button
-            type="button"
-            className={`${styles.rowAlarmToggle} ${preference.enabled ? styles.rowAlarmToggleActive : ""}`}
-            aria-pressed={preference.enabled}
-            aria-label={`${streamer.channelName} 알림 받기`}
-            onClick={() => onChange(streamer.channelId, "enabled", !preference.enabled)}
+        </div>
+        {onRemove && (
+          <div
+            className={styles.rowMoreMenu}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false);
+            }}
           >
-            <Bell />
-            <span>알람</span>
-            <i aria-hidden="true" />
-          </button>
+            <button
+              type="button"
+              className={styles.rowMoreButton}
+              aria-label={`${streamer.channelName} 더보기`}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <Ellipsis />
+            </button>
+            {menuOpen && (
+              <button
+                type="button"
+                className={styles.rowDeleteMenuItem}
+                aria-label={`${streamer.channelName} 알림 목록에서 삭제`}
+                onClick={() => onRemove(streamer.channelId)}
+              >
+                <Trash2 />
+                삭제
+              </button>
+            )}
+          </div>
+        )}
+        <div className={styles.rowCategoryBar}>
           <button
             type="button"
             className={styles.rowCategoryButton}
@@ -74,18 +106,9 @@ export function AlertRow({
             <ListFilter />
             카테고리
           </button>
-          {onRemove && <button
-            type="button"
-            className={styles.rowDeleteIcon}
-            aria-label={`${streamer.channelName} 알림 목록에서 삭제`}
-            onClick={() => onRemove(streamer.channelId)}
-          >
-            <Trash2 />
-            삭제
-          </button>}
-        </div>
-        <div className={styles.rowCategoryTags} aria-label={`${streamer.channelName} 선택 카테고리`}>
-          {tags.map((tag) => <span key={tag.key}>{tag.label}</span>)}
+          <div className={styles.rowCategoryTags} aria-label={`${streamer.channelName} 선택 카테고리`}>
+            {tags.map((tag) => <span key={tag.key}>{tag.label}</span>)}
+          </div>
         </div>
       </div>
       {categorySheetOpen && (

@@ -92,12 +92,21 @@ export function FollowTab({
             : "PWA 앱에서 한 번만 연결하면 됩니다."}</small>
         </span>
       </button>
-      {!user && (
-        <button className={styles.followImportButton} onClick={onImport}>
-          <CloudDownload />팔로우 불러오기
-        </button>
-      )}
       {pushMessage && <p className={styles.followPushMessage}>{pushMessage}</p>}
+      {(!user || streamers.length > 0) && (
+        <div className={styles.followListManagement}>
+          {!user && (
+            <button className={styles.followImportButton} onClick={onImport}>
+              <CloudDownload />팔로우 불러오기
+            </button>
+          )}
+          {streamers.length > 0 && (
+            <button className={styles.clearAllAlertsButton} onClick={onClearAll}>
+              <Trash2 />알림 목록 전체삭제
+            </button>
+          )}
+        </div>
+      )}
       <div className={styles.followTools}>
         <label className={styles.inlineSearch}>
           <Search />
@@ -117,11 +126,6 @@ export function FollowTab({
           <i aria-hidden="true" />
         </label>
       </div>
-      {streamers.length > 0 && (
-        <button className={styles.clearAllAlertsButton} onClick={onClearAll}>
-          <Trash2 />알림 목록 전체 삭제
-        </button>
-      )}
       <div className={styles.followList}>
         {visible.map((streamer) => {
           const preference = preferenceByChannel.get(streamer.channelId)!;

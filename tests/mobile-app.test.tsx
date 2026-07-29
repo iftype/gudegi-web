@@ -73,7 +73,10 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("checkbox", { name: /전체 선택/ }));
     expect(onChangeAll).toHaveBeenCalledWith(true);
-    fireEvent.click(screen.getByRole("button", { name: "알림 목록 전체 삭제" }));
+    const importButton = screen.getByRole("button", { name: "팔로우 불러오기" });
+    const clearButton = screen.getByRole("button", { name: "알림 목록 전체삭제" });
+    expect(importButton.parentElement).toBe(clearButton.parentElement);
+    fireEvent.click(clearButton);
     expect(onClearAll).toHaveBeenCalledOnce();
   });
 
@@ -101,20 +104,26 @@ describe("mobile-first entry and guidance", () => {
       />
     );
 
-    expect(screen.getByRole("button", {
-      name: /라이브 스트리머 알림 목록에서 삭제/
-    })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "라이브 스트리머 알림 받기" }))
       .toBeInTheDocument();
     expect(screen.getByRole("button", { name: "라이브 스트리머 카테고리 선택" }))
       .toBeInTheDocument();
     const alertButton = screen.getByRole("button", { name: "라이브 스트리머 알림 받기" });
     const categoryButton = screen.getByRole("button", { name: "라이브 스트리머 카테고리 선택" });
+    const moreButton = screen.getByRole("button", { name: "라이브 스트리머 더보기" });
+    expect(screen.queryByRole("button", {
+      name: "라이브 스트리머 알림 목록에서 삭제"
+    })).not.toBeInTheDocument();
+    fireEvent.click(moreButton);
     const deleteButton = screen.getByRole("button", {
       name: "라이브 스트리머 알림 목록에서 삭제"
     });
-    expect(alertButton.parentElement).toBe(categoryButton.parentElement);
-    expect(categoryButton.parentElement).toBe(deleteButton.parentElement);
+    fireEvent.click(deleteButton);
+    expect(onRemove).toHaveBeenCalledWith(streamers[0]!.channelId);
+    expect(alertButton.parentElement).toContainElement(screen.getByText("라이브 스트리머"));
+    expect(categoryButton.parentElement).toContainElement(
+      screen.getByLabelText("라이브 스트리머 선택 카테고리")
+    );
     expect(alertButton).toHaveTextContent("알람");
     expect(screen.getAllByText("전체 카테고리")).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();

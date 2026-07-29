@@ -116,8 +116,11 @@
   box-shadow: 0 0 0 1px rgb(215 255 102 / 8%), 0 0 18px rgb(215 255 102 / 8%);
 }
 .followPushBannerAttention > svg:first-child { color: var(--app-lime); }
-.followImportButton { width: 100%; min-height: 31px; display: flex; align-items: center; justify-content: center; gap: 4px; margin: -1px 0 9px; color: #aeb7ca; background: #141822; border: 1px solid #30394d; border-radius: 9px; font-size: 8px; font-weight: 700; }
-.followImportButton svg { width: 10px; }
+.followListManagement { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: -1px 0 9px; }
+.followListManagement > button { min-width: 0; min-height: 32px; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 9px; font-size: 9px; font-weight: 750; }
+.followListManagement > button:only-child { grid-column: 1 / -1; }
+.followImportButton { color: #aeb7ca; background: #141822; border: 1px solid #30394d; }
+.followImportButton svg { width: 11px; }
 .followPushMessage { margin: -2px 3px 9px; color: #c3c9d4; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
 .followTools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-bottom: 9px; }
 .inlineSearch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 0; padding: 0 11px; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
@@ -128,14 +131,14 @@
 .personalListActions button { min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #dce3f5; background: #151923; border: 1px solid #343b50; border-radius: 13px; font-size: 12px; font-weight: 800; }
 .personalListActions button:last-child { color: #0b0c0f; background: var(--app-green); border-color: var(--app-green); }
 .personalListActions svg { width: 15px; }
-.clearAllAlertsButton { width: 100%; min-height: 30px; display: flex; align-items: center; justify-content: center; gap: 4px; margin: -1px 0 9px; color: #bd858e; background: #21171a; border: 1px solid #503038; border-radius: 9px; font-size: 8px; font-weight: 700; }
-.clearAllAlertsButton svg { width: 10px; }
+.clearAllAlertsButton { color: #bd858e; background: #21171a; border: 1px solid #503038; }
+.clearAllAlertsButton svg { width: 11px; }
 .personalEmpty { margin: 12px 0; padding: 22px 16px; text-align: center; color: #858c99; background: #101217; border: 1px dashed #343844; border-radius: 16px; font-size: 12px; line-height: 1.6; }
 .removeStreamer { position: absolute; top: 5px; right: 5px; z-index: 2; display: grid; place-items: center; width: 22px; height: 22px; color: #777f8e; background: #191c23; border: 0; border-radius: 50%; }
 .removeStreamer svg { width: 12px; }
 .alertRow {
   position: relative;
-  min-height: 122px;
+  min-height: 104px;
   overflow: hidden;
   background: var(--app-card);
   border: 1px solid var(--app-line);
@@ -146,12 +149,12 @@
 .followList > .followActive { border-color: rgb(255 255 255 / 30%); }
 .alertRowContent {
   position: relative;
-  min-height: 122px;
+  min-height: 104px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 9px;
-  padding: 10px;
+  padding: 11px 38px 11px 10px;
   color: #eef0f4;
   background: transparent;
 }
@@ -169,42 +172,43 @@
 .rowAvatar { width: 46px; height: 46px; }
 .rowAvatar i, .inlineStreamerPicker button > span i { position: absolute; right: 0; bottom: 1px; width: 9px; height: 9px; background: #ff5f78; border: 2px solid #101217; border-radius: 50%; }
 .followCopy { min-width: 0; display: grid; gap: 4px; }
-.followCopy strong { overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.rowNameLine { min-width: 0; display: flex; align-items: center; gap: 7px; }
+.followCopy strong { min-width: 0; overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
 .followCopy small { display: flex; align-items: center; gap: 4px; overflow: hidden; color: #838a96; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .followCopy small svg { width: 10px; color: #ff7085; }
-.rowDeleteIcon {
-  padding: 0;
-  color: #8b6670;
-  background: #1c1619;
-  border: 1px solid #3e292f;
-  border-radius: 9px;
-}
-.rowDeleteIcon svg { width: 13px; }
-.rowAlertControls {
+.rowMoreMenu { position: absolute; z-index: 3; top: 7px; right: 7px; }
+.rowMoreButton { width: 27px; height: 27px; display: grid; place-items: center; padding: 0; color: #777e8a; background: transparent; border: 0; border-radius: 8px; }
+.rowMoreButton:hover, .rowMoreButton[aria-expanded="true"] { color: #d8dce4; background: #20232a; }
+.rowMoreButton svg { width: 17px; }
+.rowDeleteMenuItem { position: absolute; top: 30px; right: 0; width: 78px; min-height: 35px; display: flex; align-items: center; justify-content: center; gap: 5px; color: #e3a3ad; background: #24191d; border: 1px solid #56323b; border-radius: 10px; box-shadow: 0 10px 30px #0009; font-size: 10px; font-weight: 800; }
+.rowDeleteMenuItem svg { width: 12px; }
+.rowCategoryBar {
   grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: minmax(76px, .75fr) minmax(108px, 1fr) minmax(64px, .65fr);
+  min-width: 0;
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
-.rowAlertControls button {
-  min-width: 0;
-  min-height: 38px;
+.rowAlarmToggle {
+  flex: 0 0 auto;
+  min-height: 27px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
+  padding: 0 6px;
   color: #aab0bb;
-  background: #181b22;
-  border: 1px solid #30343e;
-  border-radius: 10px;
-  font-size: 11px;
+  background: #171a20;
+  border: 1px solid #2e323b;
+  border-radius: 9px;
+  font-size: 9px;
   font-weight: 800;
 }
-.rowAlertControls button > svg { width: 13px; }
+.rowAlarmToggle > svg { width: 11px; }
 .rowAlarmToggle > i {
   position: relative;
-  width: 28px;
-  height: 17px;
+  width: 24px;
+  height: 15px;
   background: #343944;
   border-radius: 99px;
 }
@@ -212,28 +216,28 @@
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 11px;
-  height: 11px;
+  width: 9px;
+  height: 9px;
   content: "";
   background: #9ba2ae;
   border-radius: 50%;
   transition: transform 150ms ease;
 }
-.rowAlertControls .rowAlarmToggleActive {
+.rowAlarmToggleActive {
   color: #dfffa0;
   background: #1e261c;
   border-color: #4e6148;
 }
 .rowAlarmToggleActive > i { background: var(--app-green); }
-.rowAlarmToggleActive > i::after { background: #0b0d11; transform: translateX(11px); }
-.rowCategoryButton { color: #d9dde6 !important; }
-.rowAlertControls .rowDeleteIcon { color: #b88a94; background: #21171a; border-color: #503038; }
+.rowAlarmToggleActive > i::after { background: #0b0d11; transform: translateX(9px); }
+.rowCategoryButton { flex: 0 0 auto; min-height: 29px; display: flex; align-items: center; gap: 4px; padding: 0 8px; color: #d9dde6; background: #181b22; border: 1px solid #30343e; border-radius: 9px; font-size: 9px; font-weight: 800; }
+.rowCategoryButton svg { width: 11px; }
 .rowCategoryTags, .detailCategoryTags {
-  grid-column: 1 / -1;
+  min-width: 0;
   display: flex;
+  align-items: center;
   gap: 5px;
   overflow-x: auto;
-  padding-bottom: 1px;
   scrollbar-width: none;
 }
 .rowCategoryTags::-webkit-scrollbar, .detailCategoryTags::-webkit-scrollbar { display: none; }
