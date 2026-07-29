@@ -25,13 +25,14 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 0 16px 11px;
+  gap: 8px;
+  padding: 0 12px 11px;
   background: rgb(5 5 5 / 72%);
   border-bottom: 1px solid var(--app-line);
   backdrop-filter: blur(20px) saturate(115%);
   -webkit-backdrop-filter: blur(20px) saturate(115%);
 }
-.logo { display: flex; align-items: center; gap: 9px; padding: 0; color: #fff; background: transparent; border: 0; text-align: left; }
+.logo { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0; color: #fff; background: transparent; border: 0; text-align: left; white-space: nowrap; }
 .brandActions { min-width: 0; display: flex; align-items: center; gap: 7px; }
 .brandMark { width: 31px; height: 31px; flex: 0 0 auto; }
 .logo > span { display: grid; gap: 1px; }
@@ -39,22 +40,26 @@
 .logo small { color: #747986; font-size: 8px; font-weight: 600; }
 .refreshButton { width: 32px; height: 32px; flex: 0 0 auto; display: grid; place-items: center; padding: 0; color: #b7b8b5; background: rgb(28 28 30 / 72%); border: 1px solid var(--app-line); border-radius: 10px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 .refreshButton svg { width: 14px; }
-.guideButton { height: 33px; display: flex; align-items: center; gap: 5px; padding: 0 9px; color: #bbbcb8; background: rgb(28 28 30 / 72%); border: 1px solid var(--app-line); border-radius: 10px; font-size: 10px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.guideButton { height: 33px; display: flex; flex: 0 0 auto; align-items: center; gap: 4px; padding: 0 8px; color: #bbbcb8; background: rgb(28 28 30 / 72%); border: 1px solid var(--app-line); border-radius: 10px; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 .guideButton svg { width: 14px; }
-.suggestButton { height: 33px; display: flex; align-items: center; gap: 5px; padding: 0 9px; color: #dbe2f6; background: #171b25; border: 1px solid #343b4d; border-radius: 10px; font-size: 10px; }
+.suggestButton { height: 33px; display: flex; flex: 0 0 auto; align-items: center; gap: 4px; padding: 0 8px; color: #dbe2f6; background: #171b25; border: 1px solid #343b4d; border-radius: 10px; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; }
 .suggestButton svg { width: 14px; }
-.headerActions { display: flex; align-items: center; gap: 6px; }
+.headerActions { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; }
 .headerActions .importButton {
   height: 32px;
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 5px;
-  padding: 0 9px;
+  gap: 4px;
+  padding: 0 8px;
   color: #dededb;
   background: rgb(28 28 30 / 72%);
   border: 1px solid var(--app-line);
   border-radius: 10px;
   font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 .headerActions button svg { width: 14px; }
 .headerActions .guideButton { color: #bbbcb8; background: rgb(28 28 30 / 72%); border-color: var(--app-line); }
@@ -545,11 +550,20 @@
 .unsupportedSection > button { min-height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #e8cad0; background: #241b20; border: 1px solid #4b353e; border-radius: 11px; font-size: 10px; font-weight: 800; }
 .unsupportedSection > button svg { width: 14px; }
 
+@media (max-width: 520px) {
+  .headerActions .importButton {
+    width: 33px;
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .headerActions .importButton span { display: none; }
+}
+
 @media (max-width: 410px) {
   .appHeader { padding-inline: 10px; }
-  .headerActions { gap: 4px; }
-  .headerActions button { width: 33px; padding-inline: 0; justify-content: center; }
-  .headerActions button span { display: none; }
+  .logo { gap: 7px; }
+  .logo strong { font-size: 14px; }
+  .suggestButton, .guideButton { padding-inline: 7px; font-size: 9px; }
 }
 .pickerTools { display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 0 17px 10px; }
 .pickerTools label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 7px; padding: 0 10px; background: rgb(255 255 255 / 5%); border: 1px solid var(--app-line); border-radius: 11px; }
@@ -720,8 +734,6 @@
   .guideCarousel { grid-template-columns: minmax(0, 145px) minmax(0, 1fr); gap: 9px; padding-inline: 36px; }
   .guideCaption h3 { font-size: 16px; }
   .guideCaption p { font-size: 9px; }
-  .headerActions .guideButton span { display: none; }
-  .headerActions .guideButton { width: 33px; justify-content: center; padding: 0; }
   .logo small { display: none; }
 }
 
