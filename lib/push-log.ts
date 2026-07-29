@@ -3,6 +3,7 @@ export type PushLogEntry = {
   title: string;
   body: string;
   url: string;
+  image?: string;
   receivedAt: number;
 };
 

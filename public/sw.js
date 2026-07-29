@@ -25,6 +25,8 @@ self.addEventListener("push", (event) => {
     ? `/open/chzzk/${encodeURIComponent(channelId)}?source=push`
     : payload.url || "/";
   const body = payload.body || "방송 정보가 변경되었습니다.";
+  const icon = safeNotificationImage(payload.icon, "/icon-192.png");
+  const image = safeNotificationImage(payload.image);
   const logId = typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2);
@@ -34,18 +36,31 @@ self.addEventListener("push", (event) => {
       title,
       body,
       url: targetPath,
+      image,
       receivedAt: Date.now()
     }).catch(() => undefined),
     self.registration.showNotification(title, {
       body,
-      icon: "/icon-192.png",
+      icon,
       badge: "/icon-192.png",
+      ...(image ? { image } : {}),
       tag: payload.tag || "gudegi-notification",
       data: { url: targetPath }
     }),
     notifyOpenClients()
   ]));
 });
+
+function safeNotificationImage(value, fallback) {
+  if (typeof value !== "string" || !value.trim()) return fallback;
+  try {
+    const url = new URL(value, self.location.origin);
+    if (url.origin === self.location.origin || url.protocol === "https:") return url.href;
+  } catch {
+    // Invalid remote image URLs fall back to the app icon.
+  }
+  return fallback;
+}
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
