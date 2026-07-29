@@ -44,6 +44,17 @@
   border-radius: 14px;
   backdrop-filter: blur(16px);
 }
+.installBreakdown { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.installBreakdown span { padding: 8px 10px; color: #8e96a5; background: #11141b; border: 1px solid #292e39; border-radius: 9px; font-size: 11px; }
+.installBreakdown strong { margin-left: 5px; color: #e6e9ef; }
+.logTable { max-height: 460px; overflow: auto; }
+.logTable code { color: #b9c4df; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.logTable pre { max-width: 520px; overflow: hidden; margin: 0; color: #a7afbd; font: 10px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: pre-wrap; overflow-wrap: anywhere; }
+.vercelDeployment { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; padding: 11px 13px; background: #11141b; border: 1px solid #292e39; border-radius: 11px; }
+.vercelDeployment > div { min-width: 0; display: grid; gap: 3px; }
+.vercelDeployment strong { font-size: 13px; }
+.vercelDeployment small { overflow: hidden; color: #727b8a; font: 9px ui-monospace, monospace; text-overflow: ellipsis; }
+.vercelDeployment a { flex: none; padding: 7px 9px; color: #111; background: #e7eaf0; border-radius: 8px; font-size: 10px; font-weight: 800; text-decoration: none; }
 .adminTabs button { flex: 0 0 auto; color: #8fa097; background: transparent; border: 1px solid transparent; }
 .adminTabs .adminTabActive { color: #07110d; background: var(--admin-green); }
 .panel[hidden], .metrics[hidden] { display: none; }

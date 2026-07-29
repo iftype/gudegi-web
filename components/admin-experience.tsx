@@ -5,6 +5,7 @@ import {
   Activity,
   AlertTriangle,
   BellRing,
+  Cloud,
   Cpu,
   Database,
   Gauge,
@@ -97,6 +98,9 @@ type Overview = {
     eventCount: number;
     visitorCount: number;
     returningVisitorCount: number;
+    pwaInstalledVisitorCount: number;
+    pwaAppOpenVisitorCount: number;
+    pwaPromptedVisitorCount: number;
     events: Array<{
       eventName: string;
       eventCount: number;
@@ -180,6 +184,13 @@ type Overview = {
         failures: number;
         averageLatencyMs: number;
       }>;
+      recentRequests: Array<{
+        at: number;
+        method: string;
+        route: string;
+        statusCode: number;
+        latencyMs: number;
+      }>;
     };
     chzzkApi: {
       callsLastMinute: number;
@@ -189,6 +200,28 @@ type Overview = {
       byKind: Array<{ kind: string; calls: number; failures: number }>;
     } | null;
   };
+};
+
+type VercelLogs = {
+  configured: boolean;
+  deployment: {
+    uid: string;
+    url: string;
+    name: string;
+    state: string;
+    created: number;
+    ready: number | null;
+  } | null;
+  logs: Array<{
+    id: string;
+    createdAt: number;
+    type: string;
+    message: string;
+    path: string | null;
+    method: string | null;
+    statusCode: number | null;
+    region: string | null;
+  }>;
 };
 
 async function adminApi<T>(path: string, init?: RequestInit): Promise<T> {
@@ -305,7 +338,9 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
   const [streamerQuery, setStreamerQuery] = useState("");
   const [streamerBusy, setStreamerBusy] = useState("");
   const [streamerResult, setStreamerResult] = useState("");
-  const [tab, setTab] = useState<"overview" | "streamers" | "requests" | "push" | "broadcasts">("overview");
+  const [tab, setTab] = useState<"logs" | "management" | "server">("logs");
+  const [vercelLogs, setVercelLogs] = useState<VercelLogs | null>(null);
+  const [vercelError, setVercelError] = useState("");
 
   const load = useCallback(async (manual = false) => {
     if (manual) setRefreshing(true);
@@ -324,6 +359,20 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
     }
   }, [onUnauthorized]);
 
+  const loadVercelLogs = useCallback(async () => {
+    try {
+      const result = await adminApi<{ data: VercelLogs }>("/vercel-logs");
+      setVercelLogs(result.data);
+      setVercelError("");
+    } catch (caught) {
+      if (caught instanceof Error && caught.message === "unauthorized") {
+        onUnauthorized();
+        return;
+      }
+      setVercelError("Vercel 로그를 불러오지 못했습니다.");
+    }
+  }, [onUnauthorized]);
+
   useEffect(() => {
     const initial = window.setTimeout(() => void load(), 0);
     const timer = window.setInterval(() => void load(), 15_000);
@@ -332,6 +381,16 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
       window.clearInterval(timer);
     };
   }, [load]);
+
+  useEffect(() => {
+    if (tab !== "server") return;
+    const initial = window.setTimeout(() => void loadVercelLogs(), 0);
+    const timer = window.setInterval(() => void loadVercelLogs(), 30_000);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(timer);
+    };
+  }, [loadVercelLogs, tab]);
 
   if (!overview) {
     return <main className={styles.loading}>{error || "서버 상태를 확인하고 있습니다."}</main>;
@@ -424,17 +483,15 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
 
       <nav className={styles.adminTabs} aria-label="관리 메뉴">
         {([
-          ["overview", "운영 현황"],
-          ["streamers", "수집 리스트"],
-          ["requests", "사용자 요청"],
-          ["push", "푸시"],
-          ["broadcasts", "방송 기록"]
+          ["logs", "로그 수집"],
+          ["management", "관리"],
+          ["server", "서버 로그"]
         ] as const).map(([value, label]) => (
           <button className={tab === value ? styles.adminTabActive : ""} key={value} onClick={() => setTab(value)}>{label}</button>
         ))}
       </nav>
 
-      <section className={styles.metrics} hidden={tab !== "overview"}>
+      <section className={styles.metrics} hidden={tab !== "server"}>
         <article>
           <span><Activity size={15} />수집 상태</span>
           <strong className={collectionHealthy ? styles.good : styles.warn}>
@@ -459,7 +516,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </article>
       </section>
 
-      <section className={styles.panel} hidden={tab !== "requests"}>
+      <section className={styles.panel} hidden={tab !== "logs"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>FOLLOW DEMAND</span><h2>팔로우 가져오기 수요</h2></div>
           <span className={styles.pill}>{followImportAttempts.length}명</span>
@@ -481,7 +538,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         ) : <p className={styles.empty}>아직 로그인 시도가 없습니다.</p>}
       </section>
 
-      <section className={styles.panel} hidden={tab !== "requests"}>
+      <section className={styles.panel} hidden={tab !== "management"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>STREAMER REQUESTS</span><h2>스트리머 추가 수요</h2></div>
           <span className={styles.pill}>{streamerRequestDemand.length}개 채널</span>
@@ -521,7 +578,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         ) : <p className={styles.empty}>아직 스트리머 추가 요청이 없습니다.</p>}
       </section>
 
-      <section className={styles.panel} hidden={tab !== "overview"}>
+      <section className={styles.panel} hidden={tab !== "server"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>COLLECTOR LOAD</span><h2>상위 50명 수집 현황</h2></div>
           <span className={styles.pill}>
@@ -554,7 +611,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel} hidden={tab !== "push"}>
+      <section className={styles.panel} hidden={tab !== "management"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>PUSH DELIVERY TEST</span><h2>테스트 메시지 보내기</h2></div>
           <span className={styles.pill}>연결 기기 {rows.pushSubscriptionCount ?? 0}대 · 최근 기기 1대로 발송</span>
@@ -596,7 +653,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         {testResult && <p className={styles.pushTestResult} role="status">{testResult}</p>}
       </section>
 
-      <section className={styles.panel} hidden={tab !== "streamers"}>
+      <section className={styles.panel} hidden={tab !== "management"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>STREAMER OPERATIONS</span><h2>추적 리스트 관리</h2></div>
           <span className={styles.pill}>
@@ -710,7 +767,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel} hidden={tab !== "overview"}>
+      <section className={styles.panel} hidden={tab !== "server"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>OPERATIONS</span><h2>API 호출·서버 부하·장애 감시</h2></div>
           <span className={styles.pill}>최근 1시간 롤링 지표</span>
@@ -768,7 +825,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel} hidden={tab !== "overview"}>
+      <section className={styles.panel} hidden={tab !== "logs"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>7 DAY FUNNEL</span><h2>커뮤니티 실험 지표</h2></div>
           <span className={styles.pill}>익명 방문자 · 이벤트 {analytics.eventCount.toLocaleString()}건</span>
@@ -781,8 +838,8 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
           </article>
           <article>
             <span><Smartphone size={14} />PWA 설치</span>
-            <strong>{formatRate(analyticsVisitors("pwa_installed"), analyticsVisitors("page_view"))}</strong>
-            <small>{analyticsVisitors("pwa_installed")}개 기기</small>
+            <strong>{formatRate(analytics.pwaInstalledVisitorCount, analyticsVisitors("page_view"))}</strong>
+            <small>{analytics.pwaInstalledVisitorCount}개 기기 · 홈 화면 실행 포함</small>
           </article>
           <article>
             <span><BellRing size={14} />알림 설정</span>
@@ -794,6 +851,11 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
             <strong>{formatRate(analytics.returningVisitorCount, analyticsVisitors("page_view"))}</strong>
             <small>{analytics.returningVisitorCount}개 기기 · 서로 다른 날짜</small>
           </article>
+        </div>
+        <div className={styles.installBreakdown}>
+          <span>설치 안내 실행 <strong>{analytics.pwaPromptedVisitorCount.toLocaleString()}</strong></span>
+          <span>홈 화면 앱 실행 <strong>{analytics.pwaAppOpenVisitorCount.toLocaleString()}</strong></span>
+          <span>설치 확인 기기 <strong>{analytics.pwaInstalledVisitorCount.toLocaleString()}</strong></span>
         </div>
         <div className={styles.tableWrap}>
           <table>
@@ -811,7 +873,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel} hidden={tab !== "overview"}>
+      <section className={styles.panel} hidden={tab !== "server"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>DATA FRESHNESS</span><h2>변경 기록 상태</h2></div>
           <span className={styles.pill}>채팅 미수집 · 가동 {Math.floor(system.uptimeSeconds / 3600)}시간</span>
@@ -827,7 +889,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel} hidden={tab !== "requests"}>
+      <section className={styles.panel} hidden={tab !== "logs"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>USER FEEDBACK</span><h2>서비스 피드백</h2></div>
           <span className={styles.pill}>최근 {feedback.length}건</span>
@@ -852,7 +914,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         ) : <p className={styles.empty}>아직 받은 피드백이 없습니다.</p>}
       </section>
 
-      <section className={styles.panel} hidden={tab !== "overview"}>
+      <section className={styles.panel} hidden={tab !== "server"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>LIVE TRACKING</span><h2>현재 방송</h2></div>
           <span className={styles.pill}>방송 중 {formatInterval(collector?.livePollIntervalMs ?? 0)} 주기</span>
@@ -877,7 +939,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         ) : <p className={styles.empty}>현재 수집 중인 방송이 없습니다.</p>}
       </section>
 
-      <section className={styles.panel} hidden={tab !== "streamers"}>
+      <section className={styles.panel} hidden={tab !== "management"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>TOP STREAMERS</span><h2>팔로워 상위 50명</h2></div>
           <span className={styles.pill}>순위 기준일 {formatTime(rankingSnapshotAt)}</span>
@@ -906,7 +968,7 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
         </div>
       </section>
 
-      <section className={styles.panel} hidden={tab !== "broadcasts"}>
+      <section className={styles.panel} hidden={tab !== "logs"}>
         <div className={styles.panelHeading}>
           <div><span className={styles.eyebrow}>RECENT BROADCASTS</span><h2>최근 방송</h2></div>
           <span className={styles.pill}>{rows.broadcastCount}개 기록</span>
@@ -924,6 +986,60 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
             </dl>
           </article>
         ))}</div>
+      </section>
+
+      <section className={styles.panel} hidden={tab !== "server"}>
+        <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>APPLICATION REQUESTS</span><h2>서버 요청 로그</h2></div>
+          <span className={styles.pill}>최근 {system.http.recentRequests.length}건</span>
+        </div>
+        <div className={`${styles.tableWrap} ${styles.logTable}`}>
+          <table>
+            <thead><tr><th>시각</th><th>메서드</th><th>경로</th><th>상태</th><th>응답 시간</th></tr></thead>
+            <tbody>{system.http.recentRequests.length ? system.http.recentRequests.map((item, index) => (
+              <tr key={`${item.at}-${index}`}>
+                <td>{formatTime(item.at)}</td>
+                <td><strong>{item.method}</strong></td>
+                <td><code>{item.route}</code></td>
+                <td className={item.statusCode >= 500 ? styles.errorText : ""}>{item.statusCode}</td>
+                <td>{Math.round(item.latencyMs)}ms</td>
+              </tr>
+            )) : <tr><td colSpan={5}>서버 재시작 후 요청 로그를 수집하고 있습니다.</td></tr>}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className={styles.panel} hidden={tab !== "server"}>
+        <div className={styles.panelHeading}>
+          <div><span className={styles.eyebrow}>VERCEL DEPLOYMENT</span><h2><Cloud size={18} /> Vercel 로그</h2></div>
+          <span className={styles.pill}>{vercelLogs?.deployment?.state ?? "확인 중"}</span>
+        </div>
+        {vercelError && <p className={styles.error}>{vercelError}</p>}
+        {vercelLogs && !vercelLogs.configured && (
+          <p className={styles.empty}>서버에 Vercel API 토큰을 설정하면 최근 운영 배포 로그가 표시됩니다.</p>
+        )}
+        {vercelLogs?.deployment && (
+          <div className={styles.vercelDeployment}>
+            <div><strong>{vercelLogs.deployment.name}</strong><small>{vercelLogs.deployment.uid}</small></div>
+            <a href={`https://${vercelLogs.deployment.url}`} target="_blank" rel="noreferrer">배포 열기</a>
+          </div>
+        )}
+        {vercelLogs?.configured && (
+          <div className={`${styles.tableWrap} ${styles.logTable}`}>
+            <table>
+              <thead><tr><th>시각</th><th>유형</th><th>요청</th><th>상태</th><th>메시지</th></tr></thead>
+              <tbody>{vercelLogs.logs.length ? vercelLogs.logs.map((item) => (
+                <tr key={item.id}>
+                  <td>{formatTime(item.createdAt)}</td>
+                  <td>{item.type}</td>
+                  <td><code>{[item.method, item.path].filter(Boolean).join(" ") || "-"}</code></td>
+                  <td>{item.statusCode ?? "-"}</td>
+                  <td><pre>{item.message || item.region || "-"}</pre></td>
+                </tr>
+              )) : <tr><td colSpan={5}>최근 운영 배포 로그가 없습니다.</td></tr>}</tbody>
+            </table>
+          </div>
+        )}
       </section>
     </main>
   );
