@@ -169,6 +169,8 @@ describe("mobile-first entry and guidance", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "라이브 스트리머 카테고리 선택" }));
+    const categoryDialog = screen.getByRole("dialog", { name: "카테고리 태그 선택" });
+    expect(categoryDialog.parentElement?.parentElement).toBe(document.body);
     expect(screen.getByRole("button", { name: "전체 체크 모든 방송 카테고리 알림" }))
       .toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: /저챗.*기타/ }));

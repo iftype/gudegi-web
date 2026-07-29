@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Search, X } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useMemo, useState } from "react";
 import type { CategoryFilter, LiveCategory } from "@/lib/types";
 import styles from "./mobile-app.module.css";
@@ -42,7 +43,7 @@ export function CategoryFilterSheet({
       : { allCategories: true, categoryKeys: [] });
   }
 
-  return (
+  return createPortal(
     <div className={styles.sheetBackdrop} role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
@@ -110,7 +111,8 @@ export function CategoryFilterSheet({
             : `${draft.categoryKeys.length}개 카테고리로 적용`}
         </button>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }
 
