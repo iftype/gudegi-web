@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, CheckCircle2, Plus, RefreshCw, Search, Send } from "lucide-react";
+import { Bell, CheckCircle2, Plus, RefreshCw, Search, Send, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AppUser } from "@/lib/auth-api";
 import type { PushPreference, Streamer } from "@/lib/types";
@@ -19,6 +19,7 @@ export function FollowTab({
   onChange,
   onChangeAll,
   onAdd = () => undefined,
+  onClearAll = () => undefined,
   onRemove,
   unsupportedRequests = [],
   onSuggest = () => undefined
@@ -37,6 +38,7 @@ export function FollowTab({
   ) => void;
   onChangeAll: (checked: boolean) => void;
   onAdd?: () => void;
+  onClearAll?: () => void;
   onRemove?: (channelId: string) => void;
   unsupportedRequests?: import("@/lib/types").UnsupportedStreamerRequest[];
   onSuggest?: () => void;
@@ -92,6 +94,11 @@ export function FollowTab({
           <i aria-hidden="true" />
         </label>
       </div>
+      {streamers.length > 0 && (
+        <button className={styles.clearAllAlertsButton} onClick={onClearAll}>
+          <Trash2 />알림 목록 전체 삭제
+        </button>
+      )}
       <div className={styles.followList}>
         {visible.map((streamer) => {
           const preference = preferenceByChannel.get(streamer.channelId)!;

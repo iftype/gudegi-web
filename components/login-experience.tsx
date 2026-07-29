@@ -26,6 +26,10 @@ export function LoginExperience() {
     setState("working");
     authApi.complete(code, oauthState).then(() => {
       window.localStorage.setItem("gudegi-entry-mode", "login");
+      if (!window.localStorage.getItem("gudegi-install-guide-seen")) {
+        window.localStorage.setItem("gudegi-active-tab", "settings");
+        window.localStorage.setItem("gudegi-open-install-guide", "1");
+      }
       trackEvent("chzzk_login_completed");
       router.replace("/");
     }).catch(() => {

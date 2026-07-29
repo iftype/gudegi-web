@@ -46,6 +46,7 @@ describe("mobile-first entry and guidance", () => {
   it("keeps ranking order while toggling alerts and supports select all", () => {
     const onChange = vi.fn();
     const onChangeAll = vi.fn();
+    const onClearAll = vi.fn();
     render(
       <FollowTab
         streamers={streamers}
@@ -60,6 +61,7 @@ describe("mobile-first entry and guidance", () => {
         onConnect={() => undefined}
         onChange={onChange}
         onChangeAll={onChangeAll}
+        onClearAll={onClearAll}
       />
     );
 
@@ -70,6 +72,8 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("checkbox", { name: /전체 선택/ }));
     expect(onChangeAll).toHaveBeenCalledWith(true);
+    fireEvent.click(screen.getByRole("button", { name: "알림 목록 전체 삭제" }));
+    expect(onClearAll).toHaveBeenCalledOnce();
   });
 
   it("shows only category and delete actions on alert rows", () => {
@@ -210,12 +214,14 @@ describe("mobile-first entry and guidance", () => {
 
   it("shows different Android and iPhone installation steps", () => {
     const onClose = vi.fn();
+    const onEnable = vi.fn();
     render(
       <GuideSheet
         initialPlatform="android"
         canPrompt={false}
         installed={false}
         onInstall={async () => false}
+        onEnable={onEnable}
         onClose={onClose}
       />
     );
@@ -236,6 +242,7 @@ describe("mobile-first entry and guidance", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "다음 단계" }));
     expect(screen.getByText("경고에서 설치 계속하기")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "설치 후 구데기 앱에서 알림 받기" })).toBeInTheDocument();
     expect(screen.getByAltText("경고에서 설치 계속하기 실제 기기 화면")).toHaveAttribute(
       "src",
       expect.stringContaining("samsung-7.jpg")

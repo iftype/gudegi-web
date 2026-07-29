@@ -32,6 +32,8 @@ import styles from "./mobile-app.module.css";
 
 type AppTab = "follow" | "streamers" | "settings";
 const TAB_STORAGE_KEY = "gudegi-active-tab";
+const GUIDE_PENDING_KEY = "gudegi-open-install-guide";
+const GUIDE_SEEN_KEY = "gudegi-install-guide-seen";
 
 export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   const queryClient = useQueryClient();
@@ -84,6 +86,12 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
       if (savedTab === "follow" || savedTab === "streamers" || savedTab === "settings") {
         setTab(savedTab);
       }
+      if (window.localStorage.getItem(GUIDE_PENDING_KEY) === "1") {
+        window.localStorage.removeItem(GUIDE_PENDING_KEY);
+        window.localStorage.setItem(TAB_STORAGE_KEY, "settings");
+        setTab("settings");
+        setGuideOpen(true);
+      }
       setGuestMode(mode === "guest");
       setEntryReady(true);
       if (!mode) trackEvent("onboarding_viewed");
@@ -103,6 +111,10 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
         <OnboardingGate
           onGuest={() => {
             window.localStorage.setItem("gudegi-entry-mode", "guest");
+            window.localStorage.setItem(TAB_STORAGE_KEY, "settings");
+            window.localStorage.setItem(GUIDE_SEEN_KEY, "1");
+            setTab("settings");
+            setGuideOpen(true);
             setGuestMode(true);
           }}
         />
@@ -133,9 +145,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
       window.localStorage.setItem("gudegi-entry-mode", "guest");
       window.localStorage.setItem(TAB_STORAGE_KEY, "settings");
       setGuestMode(true);
-      queryClient.setQueryData(["app-session"], null);
-      await session.refetch();
-      window.location.replace("/");
+      queryClient.clear();
+      window.location.replace(`/?logged_out=${Date.now()}`);
     } catch {
       setLogoutMessage("로그아웃하지 못했습니다. 네트워크를 확인하고 다시 눌러 주세요.");
     } finally {
@@ -198,6 +209,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onChange={preferences.updatePreference}
             onChangeAll={(checked) => preferences.updateAll(checked, personal.channelIds)}
             onAdd={() => setPickerOpen(true)}
+            onClearAll={() => void resetAlertList()}
             onRemove={personal.remove}
             unsupportedRequests={personal.unsupported}
             onSuggest={() => setSuggestionType("streamer_request")}
@@ -258,7 +270,11 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
           canPrompt={pwa.canPrompt}
           installed={pwa.installed}
           onInstall={pwa.install}
-          onClose={() => setGuideOpen(false)}
+          onEnable={connectPush}
+          onClose={() => {
+            window.localStorage.setItem(GUIDE_SEEN_KEY, "1");
+            setGuideOpen(false);
+          }}
         />
       )}
       {pickerOpen && (

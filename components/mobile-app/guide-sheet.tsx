@@ -89,13 +89,17 @@ const guides = {
 
 export function GuideSheet({
   initialPlatform,
+  canPrompt,
   installed,
+  onInstall,
+  onEnable,
   onClose
 }: {
   initialPlatform: MobilePlatform;
   canPrompt: boolean;
   installed: boolean;
   onInstall: () => Promise<boolean>;
+  onEnable: () => void;
   onClose: () => void;
 }) {
   const [platform, setPlatform] = useState<"android" | "ios">(
@@ -141,26 +145,26 @@ export function GuideSheet({
           </div>
         </div>
 
+        <div className={styles.guideNavigation}>
+          <button
+            type="button"
+            onClick={() => move(-1)}
+            disabled={stepIndex === 0}
+            aria-label="이전 단계"
+          ><ChevronLeft /></button>
+          <strong>{stepIndex + 1} / {steps.length}</strong>
+          <button
+            type="button"
+            onClick={() => move(1)}
+            disabled={stepIndex === steps.length - 1}
+            aria-label="다음 단계"
+          ><ChevronRight /></button>
+        </div>
+
         <div
           className={styles.guideCarousel}
           data-testid="guide-carousel"
         >
-          <button
-            type="button"
-            className={styles.guideArrowLeft}
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={(event) => { event.stopPropagation(); move(-1); }}
-            disabled={stepIndex === 0}
-            aria-label="이전 단계"
-          ><ChevronLeft /></button>
-          <button
-            type="button"
-            className={styles.guideArrowRight}
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={(event) => { event.stopPropagation(); move(1); }}
-            disabled={stepIndex === steps.length - 1}
-            aria-label="다음 단계"
-          ><ChevronRight /></button>
           <div className={styles.guideScreenshot} key={`${platform}-${stepIndex}`}>
             {step.imageSrc ? (
               <Image
@@ -210,6 +214,30 @@ export function GuideSheet({
           ))}</div>
         </div>
 
+        {stepIndex === steps.length - 1 && (
+          <button
+            type="button"
+            className={styles.installNow}
+            onClick={() => {
+              if (installed) {
+                onEnable();
+                onClose();
+                return;
+              }
+              if (canPrompt) {
+                void onInstall();
+                return;
+              }
+              onClose();
+            }}
+          >
+            {installed
+              ? <><BellRing />알림 받기</>
+              : canPrompt
+                ? <><Download />지금 앱 설치하기</>
+                : <><Smartphone />설치 후 구데기 앱에서 알림 받기</>}
+          </button>
+        )}
       </section>
     </div>
   );

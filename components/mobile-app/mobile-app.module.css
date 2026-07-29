@@ -134,6 +134,8 @@
 .personalListActions button { min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #dce3f5; background: #151923; border: 1px solid #343b50; border-radius: 13px; font-size: 10px; font-weight: 800; }
 .personalListActions button:last-child { color: #0b0c0f; background: var(--app-green); border-color: var(--app-green); }
 .personalListActions svg { width: 15px; }
+.clearAllAlertsButton { width: 100%; min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; margin: -1px 0 9px; color: #d998a2; background: #21171a; border: 1px solid #503038; border-radius: 11px; font-size: 9px; font-weight: 800; }
+.clearAllAlertsButton svg { width: 13px; }
 .personalEmpty { margin: 12px 0; padding: 22px 16px; text-align: center; color: #858c99; background: #101217; border: 1px dashed #343844; border-radius: 16px; font-size: 10px; line-height: 1.6; }
 .removeStreamer { position: absolute; top: 5px; right: 5px; z-index: 2; display: grid; place-items: center; width: 22px; height: 22px; color: #777f8e; background: #191c23; border: 0; border-radius: 50%; }
 .removeStreamer svg { width: 12px; }
@@ -587,7 +589,7 @@
 .choiceCheck svg { width: 11px; }
 .noResult { grid-column: 1 / -1; padding: 35px; color: #72847a; font-size: 10px; text-align: center; }
 
-.guideSheet { height: min(760px, 94dvh); max-height: 94dvh; grid-template-rows: auto auto auto auto minmax(0, 1fr) auto; }
+.guideSheet { height: min(760px, 94dvh); max-height: 94dvh; grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto; }
 .platformTabs { display: grid; grid-template-columns: 1fr 1fr; margin: 0 17px 10px; padding: 3px; background: rgb(255 255 255 / 4%); border: 1px solid var(--app-line); border-radius: 12px; }
 .platformTabs button { height: 34px; color: #777d89; background: transparent; border: 0; border-radius: 9px; font-size: 10px; font-weight: 700; }
 .platformTabs .platformActive { color: #07110c; background: var(--app-green); }
@@ -595,12 +597,12 @@
 .guideNotice > svg { width: 20px; }
 .guideNotice strong { font-size: 9px; }
 .guideNotice p { margin: 3px 0 0; color: #80889a; font-size: 7px; line-height: 1.45; }
-.guideCarousel { position: relative; min-height: 0; display: grid; grid-template-columns: minmax(0, 180px) minmax(0, 1fr); align-items: center; gap: 16px; padding: 0 42px; touch-action: pan-y; user-select: none; }
-.guideArrowLeft, .guideArrowRight { position: absolute; z-index: 2; top: 50%; display: grid; place-items: center; width: 32px; height: 42px; color: #bcc2ce; background: #181b22e8; border: 1px solid #343945; border-radius: 10px; transform: translateY(-50%); }
-.guideArrowLeft { left: 6px; }
-.guideArrowRight { right: 6px; }
-.guideArrowLeft:disabled, .guideArrowRight:disabled { opacity: .2; }
-.guideArrowLeft svg, .guideArrowRight svg { width: 15px; }
+.guideNavigation { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; gap: 8px; margin: 0 17px 8px; }
+.guideNavigation button { height: 34px; display: grid; place-items: center; color: #bcc2ce; background: #181b22; border: 1px solid #343945; border-radius: 10px; }
+.guideNavigation button:disabled { opacity: .2; }
+.guideNavigation button svg { width: 16px; }
+.guideNavigation strong { color: #8c929e; font: 700 9px ui-monospace, monospace; text-align: center; }
+.guideCarousel { min-height: 0; display: grid; grid-template-columns: minmax(0, 180px) minmax(0, 1fr); align-items: center; gap: 16px; padding: 0 17px; touch-action: pan-y; user-select: none; }
 .guideScreenshot { aspect-ratio: 9 / 19.5; overflow: hidden; color: #111; background: #050505; border: 4px solid #292929; border-radius: 24px; animation: guide-in 180ms ease-out both; }
 .guidePhoto { width: 100%; height: 100%; object-fit: contain; object-position: center; background: #050505; }
 .shotStatus, .shotBrowser { display: flex; align-items: center; justify-content: space-between; }

@@ -38,6 +38,12 @@ export async function proxyApi(
   for (const setCookie of upstream.headers.getSetCookie()) {
     responseHeaders.append("set-cookie", setCookie.replace(/;\s*Domain=[^;]+/gi, ""));
   }
+  if (apiPrefix === "auth" && request.method === "DELETE" && path.join("/") === "session") {
+    responseHeaders.append(
+      "set-cookie",
+      `trackline_user_session=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`
+    );
+  }
   return new Response(upstream.body, {
     status: upstream.status,
     headers: responseHeaders
