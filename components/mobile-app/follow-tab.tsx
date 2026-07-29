@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import type { AppUser } from "@/lib/auth-api";
 import type { PushPreference, Streamer } from "@/lib/types";
 import styles from "./mobile-app.module.css";
-import { SwipeableAlertRow } from "./swipeable-alert-row";
+import { AlertRow } from "./alert-row";
 
 export function FollowTab({
   streamers,
@@ -16,8 +16,7 @@ export function FollowTab({
   pushMessage,
   onConnect,
   onChange,
-  onChangeAll,
-  onDelete
+  onChangeAll
 }: {
   streamers: Streamer[];
   preferences: PushPreference[];
@@ -32,7 +31,6 @@ export function FollowTab({
     checked: boolean
   ) => void;
   onChangeAll: (checked: boolean) => void;
-  onDelete: (channelId: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const preferenceByChannel = useMemo(
@@ -89,12 +87,11 @@ export function FollowTab({
         {visible.map((streamer) => {
           const preference = preferenceByChannel.get(streamer.channelId)!;
           return (
-            <SwipeableAlertRow
+            <AlertRow
               key={streamer.channelId}
               streamer={streamer}
               preference={preference}
               onChange={onChange}
-              onDelete={onDelete}
             />
           );
         })}

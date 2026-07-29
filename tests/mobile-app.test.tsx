@@ -45,7 +45,6 @@ describe("mobile-first entry and guidance", () => {
   it("keeps ranking order while toggling alerts and supports select all", () => {
     const onChange = vi.fn();
     const onChangeAll = vi.fn();
-    const onDelete = vi.fn();
     render(
       <FollowTab
         streamers={streamers}
@@ -60,7 +59,6 @@ describe("mobile-first entry and guidance", () => {
         onConnect={() => undefined}
         onChange={onChange}
         onChangeAll={onChangeAll}
-        onDelete={onDelete}
       />
     );
 
@@ -72,12 +70,9 @@ describe("mobile-first entry and guidance", () => {
     expect(onChange).toHaveBeenCalledWith(streamers[0]!.channelId, "titleChanged", true);
     fireEvent.click(screen.getByRole("checkbox", { name: /전체 선택/ }));
     expect(onChangeAll).toHaveBeenCalledWith(true);
-    fireEvent.click(screen.getByRole("button", { name: /라이브 스트리머 알림 설정 삭제/ }));
-    expect(onDelete).toHaveBeenCalledWith(streamers[0]!.channelId);
   });
 
-  it("clears only alert preferences after a full left swipe", () => {
-    const onDelete = vi.fn();
+  it("keeps alert rows fixed without swipe-to-delete controls", () => {
     render(
       <FollowTab
         streamers={streamers}
@@ -94,18 +89,12 @@ describe("mobile-first entry and guidance", () => {
         onConnect={() => undefined}
         onChange={() => undefined}
         onChangeAll={() => undefined}
-        onDelete={onDelete}
       />
     );
 
-    const row = screen.getByRole("button", {
+    expect(screen.queryByRole("button", {
       name: /라이브 스트리머 알림 설정 삭제/
-    }).closest("article")!;
-    fireEvent.pointerDown(row, { clientX: 300, pointerId: 1 });
-    fireEvent.pointerMove(row, { clientX: 150, pointerId: 1 });
-    fireEvent.pointerUp(row, { clientX: 150, pointerId: 1 });
-
-    expect(onDelete).toHaveBeenCalledWith(streamers[0]!.channelId);
+    })).not.toBeInTheDocument();
     expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))
       .toEqual(["라이브 스트리머", "오프라인 스트리머"]);
   });

@@ -1,19 +1,14 @@
 "use client";
 
-import { Radio, Trash2 } from "lucide-react";
+import { Radio } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
 import type { PushPreference, Streamer } from "@/lib/types";
 import styles from "./mobile-app.module.css";
 
-const DELETE_ACTION_WIDTH = 78;
-const DELETE_SWIPE_THRESHOLD = 132;
-
-export function SwipeableAlertRow({
+export function AlertRow({
   streamer,
   preference,
-  onChange,
-  onDelete
+  onChange
 }: {
   streamer: Streamer;
   preference: PushPreference;
@@ -22,71 +17,12 @@ export function SwipeableAlertRow({
     key: "categoryChanged" | "titleChanged",
     checked: boolean
   ) => void;
-  onDelete: (channelId: string) => void;
 }) {
-  const [offset, setOffset] = useState(0);
-  const pointerStart = useRef<{
-    x: number;
-    offset: number;
-    captured: boolean;
-  } | null>(null);
-  const currentOffset = useRef(0);
   const active = preference.categoryChanged || preference.titleChanged;
 
-  function moveTo(nextOffset: number) {
-    currentOffset.current = nextOffset;
-    setOffset(nextOffset);
-  }
-
-  function clearAlerts() {
-    moveTo(0);
-    onDelete(streamer.channelId);
-  }
-
   return (
-    <article
-      className={`${styles.swipeRow} ${active ? styles.followActive : ""}`}
-      onPointerDown={(event) => {
-        pointerStart.current = { x: event.clientX, offset, captured: false };
-      }}
-      onPointerMove={(event) => {
-        if (!pointerStart.current) return;
-        const distance = event.clientX - pointerStart.current.x;
-        if (!pointerStart.current.captured && Math.abs(distance) > 8) {
-          event.currentTarget.setPointerCapture?.(event.pointerId);
-          pointerStart.current.captured = true;
-        }
-        moveTo(Math.max(
-          -DELETE_SWIPE_THRESHOLD - 12,
-          Math.min(0, pointerStart.current.offset + distance)
-        ));
-      }}
-      onPointerUp={() => {
-        pointerStart.current = null;
-        if (currentOffset.current <= -DELETE_SWIPE_THRESHOLD) {
-          clearAlerts();
-          return;
-        }
-        moveTo(currentOffset.current < -30 ? -DELETE_ACTION_WIDTH : 0);
-      }}
-      onPointerCancel={() => {
-        pointerStart.current = null;
-        moveTo(0);
-      }}
-    >
-      <button
-        type="button"
-        className={styles.swipeDelete}
-        onClick={clearAlerts}
-        aria-label={`${streamer.channelName} 알림 설정 삭제`}
-      >
-        <Trash2 />
-        <span>삭제</span>
-      </button>
-      <div
-        className={styles.swipeContent}
-        style={{ transform: `translateX(${offset}px)` }}
-      >
+    <article className={`${styles.alertRow} ${active ? styles.followActive : ""}`}>
+      <div className={styles.alertRowContent}>
         <span className={styles.rowAvatar}>
           {streamer.channelImageUrl
             ? <Image

@@ -128,24 +128,12 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
     })));
   }, [persist, preferences]);
 
-  const clearPreference = useCallback((channelId: string) => {
-    void persist(preferences.map((preference) => preference.channelId === channelId
-      ? {
-          ...preference,
-          enabled: false,
-          categoryChanged: false,
-          titleChanged: false
-        }
-      : preference));
-  }, [persist, preferences]);
-
   return {
     preferences,
     primaryChannelId,
     selectPrimary,
     updatePreference,
     updateAll,
-    clearPreference,
     ready,
     saveState
   };

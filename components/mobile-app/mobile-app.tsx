@@ -144,7 +144,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onConnect={push.active ? () => setTab("settings") : connectPush}
             onChange={preferences.updatePreference}
             onChangeAll={preferences.updateAll}
-            onDelete={preferences.clearPreference}
           />
         )}
         {tab === "streamers" && (
