@@ -1,8 +1,9 @@
 "use client";
 
-import { Bell, Ellipsis, ListFilter, Trash2 } from "lucide-react";
+import { Bell, Clock3, Ellipsis, ListFilter, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { formatDuration } from "@/lib/format";
 import type {
   CategoryFilter,
   LiveCategory,
@@ -34,23 +35,35 @@ export function AlertRow({
   return (
     <article className={`${styles.alertRow} ${preference.enabled ? styles.followActive : ""}`}>
       <div className={styles.alertRowContent}>
-        <span className={styles.rowAvatar}>
-          {streamer.channelImageUrl
-            ? <Image
-                src={streamer.channelImageUrl}
-                alt=""
-                width={42}
-                height={42}
-                sizes="42px"
-                loading="lazy"
-                style={{ width: "100%", height: "100%" }}
-              />
-            : streamer.channelName.slice(0, 1)}
-          {streamer.isLive && <i />}
+        <span className={styles.rowAvatarWrap}>
+          <span className={styles.rowAvatar}>
+            {streamer.channelImageUrl
+              ? <Image
+                  src={streamer.channelImageUrl}
+                  alt=""
+                  width={42}
+                  height={42}
+                  sizes="42px"
+                  loading="lazy"
+                  style={{ width: "100%", height: "100%" }}
+                />
+              : streamer.channelName.slice(0, 1)}
+          </span>
+          {streamer.isLive && <b>LIVE</b>}
         </span>
         <div className={styles.rowMain}>
           <div className={styles.rowTitleLine}>
-            <strong>{streamer.channelName}</strong>
+            <div className={styles.rowIdentity}>
+              <strong>{streamer.channelName}</strong>
+              {streamer.isLive && streamer.activeBroadcastStartedAt && (
+                <span className={styles.rowBroadcastTime}>
+                  <Clock3 />
+                  <span suppressHydrationWarning>
+                    {formatDuration(streamer.activeBroadcastStartedAt, null)}
+                  </span>
+                </span>
+              )}
+            </div>
             <div className={styles.rowHeaderActions}>
               <button
                 type="button"

@@ -4,6 +4,7 @@ import {
   Bell,
   CheckCircle2,
   CloudDownload,
+  ListFilter,
   Plus,
   RefreshCw,
   Search,
@@ -20,6 +21,7 @@ import type {
 } from "@/lib/types";
 import styles from "./mobile-app.module.css";
 import { AlertRow } from "./alert-row";
+import { CategoryFilterSheet } from "./category-filter-sheet";
 import { UnsupportedList } from "./unsupported-list";
 
 export function FollowTab({
@@ -34,6 +36,7 @@ export function FollowTab({
   onChange,
   onChangeAll,
   onCategoryFilterChange = () => undefined,
+  onCategoryFilterChangeAll = () => undefined,
   onAdd = () => undefined,
   onImport = () => undefined,
   onClearAll = () => undefined,
@@ -53,6 +56,7 @@ export function FollowTab({
   onChange: (channelId: string, key: "enabled", checked: boolean) => void;
   onChangeAll: (checked: boolean) => void;
   onCategoryFilterChange?: (channelId: string, value: CategoryFilter) => void;
+  onCategoryFilterChangeAll?: (value: CategoryFilter) => void;
   onAdd?: () => void;
   onImport?: () => void;
   onClearAll?: () => void;
@@ -62,6 +66,7 @@ export function FollowTab({
   onSuggestUnsupported?: (streamerName: string) => Promise<void>;
 }) {
   const [query, setQuery] = useState("");
+  const [allCategorySheetOpen, setAllCategorySheetOpen] = useState(false);
   const preferenceByChannel = useMemo(
     () => new Map(preferences.map((item) => [item.channelId, item])),
     [preferences]
@@ -71,6 +76,10 @@ export function FollowTab({
   ), [query, streamers]);
   const enabledCount = preferences.filter((item) => item.enabled).length;
   const allSelected = preferences.length > 0 && enabledCount === preferences.length;
+  const commonCategoryFilter = useMemo(
+    () => getCommonCategoryFilter(preferences),
+    [preferences]
+  );
 
   return (
     <section className={styles.tabScroll}>
@@ -116,6 +125,16 @@ export function FollowTab({
             placeholder="스트리머 검색"
           />
         </label>
+        <button
+          type="button"
+          className={styles.allCategoryFilterButton}
+          aria-label="전체 카테고리 필터"
+          disabled={!preferences.length}
+          onClick={() => setAllCategorySheetOpen(true)}
+        >
+          <ListFilter />
+          <span>전체 필터</span>
+        </button>
         <label className={styles.selectAll}>
           <span><strong>전체 선택</strong><small>{enabledCount}/{preferences.length}</small></span>
           <input
@@ -152,6 +171,27 @@ export function FollowTab({
         onSuggest={onSuggest}
         onSuggestUnsupported={onSuggestUnsupported}
       />
+      {allCategorySheetOpen && (
+        <CategoryFilterSheet
+          categories={categories}
+          value={commonCategoryFilter}
+          scope="all"
+          onApply={onCategoryFilterChangeAll}
+          onClose={() => setAllCategorySheetOpen(false)}
+        />
+      )}
     </section>
   );
+}
+
+function getCommonCategoryFilter(preferences: PushPreference[]): CategoryFilter {
+  const fallback: CategoryFilter = { allCategories: true, categoryKeys: [] };
+  const first = preferences[0]?.categoryFilter;
+  if (!first) return fallback;
+  const keys = [...first.categoryKeys].sort();
+  const matches = preferences.every((preference) => (
+    preference.categoryFilter.allCategories === first.allCategories
+    && JSON.stringify([...preference.categoryFilter.categoryKeys].sort()) === JSON.stringify(keys)
+  ));
+  return matches ? first : fallback;
 }

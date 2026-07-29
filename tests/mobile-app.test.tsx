@@ -26,7 +26,8 @@ const streamers: Streamer[] = [
     collectorState: "tracking",
     lastCheckedAt: null,
     followerCount: 10_000,
-    trackingRank: 1
+    trackingRank: 1,
+    activeBroadcastStartedAt: Date.now() - 90 * 60_000
   },
   {
     channelId: "b".repeat(32),
@@ -127,6 +128,8 @@ describe("mobile-first entry and guidance", () => {
       screen.getByLabelText("라이브 스트리머 선택 카테고리")
     );
     expect(alertButton).toHaveTextContent("알람");
+    expect(screen.getByText("LIVE")).toBeInTheDocument();
+    expect(screen.getByText("1시간 30분")).toBeInTheDocument();
     expect(screen.queryByText(/팔로워 순위/)).not.toBeInTheDocument();
     expect(screen.getAllByText("전체 카테고리")).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
@@ -136,6 +139,7 @@ describe("mobile-first entry and guidance", () => {
 
   it("defaults to all categories and applies a selected CHZZK category", () => {
     const onCategoryFilterChange = vi.fn();
+    const onCategoryFilterChangeAll = vi.fn();
     render(
       <FollowTab
         streamers={[streamers[0]!]}
@@ -177,6 +181,7 @@ describe("mobile-first entry and guidance", () => {
         onChange={() => undefined}
         onChangeAll={() => undefined}
         onCategoryFilterChange={onCategoryFilterChange}
+        onCategoryFilterChangeAll={onCategoryFilterChangeAll}
       />
     );
 
@@ -194,6 +199,15 @@ describe("mobile-first entry and guidance", () => {
         categoryKeys: ["ETC:talk"]
       }
     );
+
+    fireEvent.click(screen.getByRole("button", { name: "전체 카테고리 필터" }));
+    expect(screen.getByRole("dialog", { name: "전체 카테고리 필터" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /리그 오브 레전드.*게임/ }));
+    fireEvent.click(screen.getByRole("button", { name: "1개 카테고리를 모두 적용" }));
+    expect(onCategoryFilterChangeAll).toHaveBeenCalledWith({
+      allCategories: false,
+      categoryKeys: ["GAME:League_of_Legends"]
+    });
   });
 
   it("shows unsupported personal streamers separately and routes them to suggestions", () => {

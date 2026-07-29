@@ -14,6 +14,7 @@ export type Streamer = {
   profileCheckedAt?: number | null;
   currentTitle?: string | null;
   currentCategory?: string | null;
+  activeBroadcastStartedAt?: number | null;
 };
 
 export type Broadcast = {

@@ -9,11 +9,13 @@ import styles from "./mobile-app.module.css";
 export function CategoryFilterSheet({
   categories,
   value,
+  scope = "single",
   onApply,
   onClose
 }: {
   categories: LiveCategory[];
   value: CategoryFilter;
+  scope?: "single" | "all";
   onApply: (value: CategoryFilter) => void;
   onClose: () => void;
 }) {
@@ -51,11 +53,14 @@ export function CategoryFilterSheet({
         className={`${styles.sheet} ${styles.categoryFilterSheet}`}
         role="dialog"
         aria-modal="true"
-        aria-label="카테고리 태그 선택"
+        aria-label={scope === "all" ? "전체 카테고리 필터" : "카테고리 태그 선택"}
       >
         <div className={styles.sheetHandle} />
         <header className={styles.sheetHeader}>
-          <div><span>CHZZK CATEGORY</span><h2>카테고리 태그 선택</h2></div>
+          <div>
+            <span>CHZZK CATEGORY</span>
+            <h2>{scope === "all" ? "전체 카테고리 필터" : "카테고리 태그 선택"}</h2>
+          </div>
           <button onClick={onClose} aria-label="닫기"><X /></button>
         </header>
         <div className={styles.categoryFilterTools}>
@@ -106,9 +111,13 @@ export function CategoryFilterSheet({
             onClose();
           }}
         >
-          {draft.allCategories
-            ? "전체 체크로 적용"
-            : `${draft.categoryKeys.length}개 카테고리로 적용`}
+          {scope === "all"
+            ? draft.allCategories
+              ? "전체 카테고리로 모두 적용"
+              : `${draft.categoryKeys.length}개 카테고리를 모두 적용`
+            : draft.allCategories
+              ? "전체 체크로 적용"
+              : `${draft.categoryKeys.length}개 카테고리로 적용`}
         </button>
       </section>
     </div>,

@@ -188,6 +188,17 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
       : preference));
   }, [persist, preferences]);
 
+  const updateCategoryFilterAll = useCallback((
+    channelIds: string[],
+    next: CategoryFilter
+  ) => {
+    const targets = new Set(channelIds);
+    const categoryFilter = normalizeCategoryFilter(next);
+    return persist(preferences.map((preference) => targets.has(preference.channelId)
+      ? { ...preference, categoryFilter }
+      : preference));
+  }, [persist, preferences]);
+
   const updateAll = useCallback((checked: boolean, channelIds?: string[]) => {
     const targets = channelIds ? new Set(channelIds) : null;
     void persist(preferences.map((preference) => targets && !targets.has(preference.channelId)
@@ -234,6 +245,7 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
     updatePreference,
     updateAll,
     updateCategoryFilter,
+    updateCategoryFilterAll,
     enableNewStreamer,
     clear,
     ready,

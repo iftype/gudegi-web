@@ -122,10 +122,13 @@
 .followImportButton { color: #aeb7ca; background: #141822; border: 1px solid #30394d; }
 .followImportButton svg { width: 11px; }
 .followPushMessage { margin: -2px 3px 9px; color: #c3c9d4; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
-.followTools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-bottom: 9px; }
+.followTools { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 7px; margin-bottom: 9px; }
 .inlineSearch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 0; padding: 0 11px; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .inlineSearch svg { width: 15px; color: #767c88; }
 .inlineSearch input { min-width: 0; height: 44px; color: #f2f3f6; background: transparent; border: 0; outline: 0; font-size: 16px; }
+.allCategoryFilterButton { min-width: 72px; min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; color: #cbd4c6; background: #172019; border: 1px solid #344437; border-radius: 13px; font-size: 9px; font-weight: 800; }
+.allCategoryFilterButton svg { width: 12px; }
+.allCategoryFilterButton:disabled { cursor: default; opacity: .42; }
 .followList { display: grid; gap: 8px; }
 .personalListActions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 9px 0; }
 .personalListActions button { min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #dce3f5; background: #151923; border: 1px solid #343b50; border-radius: 13px; font-size: 12px; font-weight: 800; }
@@ -169,11 +172,16 @@
   border-radius: 50%;
   font-weight: 800;
 }
+.rowAvatarWrap { position: relative; width: 42px; height: 48px; display: grid; place-items: start center; }
 .rowAvatar { width: 42px; height: 42px; }
-.rowAvatar i, .inlineStreamerPicker button > span i { position: absolute; right: 0; bottom: 1px; width: 9px; height: 9px; background: #ff5f78; border: 2px solid #101217; border-radius: 50%; }
+.rowAvatarWrap > b { position: absolute; bottom: 0; left: 50%; z-index: 1; padding: 2px 5px; color: #fff; background: #ef4763; border: 2px solid #151619; border-radius: 99px; font: 800 7px/1 "DM Mono", monospace; letter-spacing: .04em; transform: translateX(-50%); }
+.inlineStreamerPicker button > span i { position: absolute; right: 0; bottom: 1px; width: 9px; height: 9px; background: #ff5f78; border: 2px solid #101217; border-radius: 50%; }
 .rowMain { min-width: 0; display: grid; gap: 7px; }
 .rowTitleLine { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.rowTitleLine > strong { min-width: 0; overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.rowIdentity { min-width: 0; display: flex; align-items: center; gap: 6px; }
+.rowIdentity > strong { min-width: 0; overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.rowBroadcastTime { flex: 0 0 auto; display: flex; align-items: center; gap: 3px; color: #8f9b92; font-size: 9px; font-weight: 700; white-space: nowrap; }
+.rowBroadcastTime svg { width: 10px; }
 .rowHeaderActions { flex: 0 0 auto; display: flex; align-items: center; gap: 3px; }
 .rowMoreMenu { position: relative; z-index: 3; }
 .rowMoreButton { width: 27px; height: 27px; display: grid; place-items: center; padding: 0; color: #777e8a; background: transparent; border: 0; border-radius: 8px; }
@@ -249,7 +257,7 @@
   font-size: 9px;
   font-weight: 750;
 }
-.selectAll { min-width: 106px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px; color: #dededb; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; cursor: pointer; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.selectAll { min-width: 96px; display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 8px; color: #dededb; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; cursor: pointer; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .selectAll > span { display: grid; gap: 1px; }
 .selectAll strong { font-size: 11px; }
 .selectAll small { color: #717986; font-size: 9px; }
