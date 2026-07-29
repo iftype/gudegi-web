@@ -43,10 +43,10 @@
 .logo small { color: #747986; font-size: 8px; font-weight: 600; }
 .refreshButton { width: 32px; height: 32px; flex: 0 0 auto; display: grid; place-items: center; padding: 0; color: #b7b8b5; background: rgb(28 28 30 / 72%); border: 1px solid var(--app-line); border-radius: 10px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 .refreshButton svg { width: 14px; }
-.guideButton { height: 33px; display: flex; flex: 0 0 auto; align-items: center; gap: 4px; padding: 0 7px; color: #bbbcb8; background: rgb(28 28 30 / 72%); border: 1px solid var(--app-line); border-radius: 10px; font-size: 8px; font-weight: 700; line-height: 1; white-space: nowrap; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-.guideButton svg { width: 14px; }
-.suggestButton { height: 33px; display: flex; flex: 0 0 auto; align-items: center; gap: 4px; padding: 0 7px; color: #dbe2f6; background: #171b25; border: 1px solid #343b4d; border-radius: 10px; font-size: 8px; font-weight: 700; line-height: 1; white-space: nowrap; }
-.suggestButton svg { width: 14px; }
+.guideButton { height: 29px; display: flex; flex: 0 0 auto; align-items: center; gap: 3px; padding: 0 6px; color: #aaa; background: rgb(28 28 30 / 72%); border: 1px solid var(--app-line); border-radius: 9px; font-size: 6px; font-weight: 700; line-height: 1; white-space: nowrap; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.guideButton svg { width: 11px; }
+.suggestButton { height: 29px; display: flex; flex: 0 0 auto; align-items: center; gap: 3px; padding: 0 6px; color: #bfc6d8; background: #171b25; border: 1px solid #343b4d; border-radius: 9px; font-size: 6px; font-weight: 700; line-height: 1; white-space: nowrap; }
+.suggestButton svg { width: 11px; }
 .headerActions { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; }
 .headerActions .importButton {
   height: 29px;
@@ -582,7 +582,7 @@
   .appHeader { padding-inline: 10px; }
   .logo { gap: 7px; }
   .logo strong { font-size: 14px; }
-  .suggestButton, .guideButton { padding-inline: 6px; font-size: 7px; }
+  .suggestButton, .guideButton { padding-inline: 5px; font-size: 6px; }
 }
 .pickerTools { display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 0 17px 10px; }
 .pickerTools label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 7px; padding: 0 10px; background: rgb(255 255 255 / 5%); border: 1px solid var(--app-line); border-radius: 11px; }

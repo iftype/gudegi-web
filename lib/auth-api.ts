@@ -41,7 +41,7 @@ export const authApi = {
     }
   ),
   me: () => request<{ data: { user: AppUser } }>("/me"),
-  logout: () => request<void>("/session", { method: "DELETE" }),
+  logout: () => request<void>("/logout", { method: "POST" }),
   preferences: () => request<{ data: { channels: PushPreference[] } }>("/preferences"),
   myStreamers: () => request<{
     data: {
