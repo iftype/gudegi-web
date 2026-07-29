@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Analytics } from "@vercel/analytics/next";
 import { BrandMark } from "@/components/brand-mark";
 import { Providers } from "./providers";
 import { PwaRegistration } from "@/components/pwa-registration";
@@ -69,7 +68,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <p>치지직 공식 서비스가 아니며, 19세 방송과 채팅은 수집하지 않습니다.</p>
           </footer>
         </Providers>
-        <Analytics />
       </body>
     </html>
   );

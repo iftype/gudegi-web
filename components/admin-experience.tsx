@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   Activity,
   AlertTriangle,
-  BellRing,
   Cloud,
   Cpu,
   Database,
@@ -280,11 +279,6 @@ function relativeFuture(value: number | null, now: number) {
 function formatInterval(value: number) {
   if (value < 60_000) return `${Math.round(value / 1000)}초`;
   return `${Math.round(value / 60_000)}분`;
-}
-
-function formatRate(value: number, total: number) {
-  if (!total) return "0%";
-  return `${Math.round(value / total * 100)}%`;
 }
 
 function Login({ onSuccess }: { onSuccess: () => void }) {
@@ -827,49 +821,20 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
 
       <section className={styles.panel} hidden={tab !== "logs"}>
         <div className={styles.panelHeading}>
-          <div><span className={styles.eyebrow}>7 DAY FUNNEL</span><h2>커뮤니티 실험 지표</h2></div>
-          <span className={styles.pill}>익명 방문자 · 이벤트 {analytics.eventCount.toLocaleString()}건</span>
+          <div><span className={styles.eyebrow}>SELF-HOSTED ANALYTICS</span><h2>서비스 이용 현황</h2></div>
+          <span className={styles.pill}>최근 7일 · 자체 익명 집계</span>
         </div>
         <div className={styles.freshnessGrid}>
           <article>
-            <span><Users size={14} />방문자</span>
+            <span><Users size={14} />서비스 접속</span>
             <strong>{analyticsVisitors("page_view").toLocaleString()}</strong>
-            <small>최근 7일 고유 기기</small>
+            <small>고유 기기 수</small>
           </article>
           <article>
             <span><Smartphone size={14} />PWA 설치</span>
-            <strong>{formatRate(analytics.pwaInstalledVisitorCount, analyticsVisitors("page_view"))}</strong>
-            <small>{analytics.pwaInstalledVisitorCount}개 기기 · 홈 화면 실행 포함</small>
+            <strong>{analytics.pwaInstalledVisitorCount.toLocaleString()}</strong>
+            <small>설치 완료 또는 홈 화면 실행 기기</small>
           </article>
-          <article>
-            <span><BellRing size={14} />알림 설정</span>
-            <strong>{formatRate(analyticsVisitors("notification_enabled"), analyticsVisitors("page_view"))}</strong>
-            <small>{analyticsVisitors("notification_enabled")}개 기기</small>
-          </article>
-          <article>
-            <span><RefreshCw size={14} />재방문</span>
-            <strong>{formatRate(analytics.returningVisitorCount, analyticsVisitors("page_view"))}</strong>
-            <small>{analytics.returningVisitorCount}개 기기 · 서로 다른 날짜</small>
-          </article>
-        </div>
-        <div className={styles.installBreakdown}>
-          <span>설치 안내 실행 <strong>{analytics.pwaPromptedVisitorCount.toLocaleString()}</strong></span>
-          <span>홈 화면 앱 실행 <strong>{analytics.pwaAppOpenVisitorCount.toLocaleString()}</strong></span>
-          <span>설치 확인 기기 <strong>{analytics.pwaInstalledVisitorCount.toLocaleString()}</strong></span>
-        </div>
-        <div className={styles.tableWrap}>
-          <table>
-            <thead><tr><th>유입 출처</th><th>고유 방문자</th><th>전체 대비</th></tr></thead>
-            <tbody>
-              {analytics.sources.length ? analytics.sources.map((source) => (
-                <tr key={source.source}>
-                  <td><strong>{source.source}</strong></td>
-                  <td>{source.visitorCount.toLocaleString()}</td>
-                  <td>{formatRate(source.visitorCount, analyticsVisitors("page_view"))}</td>
-                </tr>
-              )) : <tr><td colSpan={3}>아직 수집된 방문 데이터가 없습니다.</td></tr>}
-            </tbody>
-          </table>
         </div>
       </section>
 

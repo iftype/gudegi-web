@@ -23,7 +23,11 @@ export type AnalyticsEventName =
   | "pwa_guide_opened";
 
 const ANONYMOUS_ID_KEY = "trackline-anonymous-id";
-const ACQUISITION_SOURCE_KEY = "trackline-acquisition-source";
+const SELF_HOSTED_EVENTS = new Set<AnalyticsEventName>([
+  "page_view",
+  "pwa_installed",
+  "pwa_app_opened"
+]);
 
 export function getAnonymousId() {
   const existing = window.localStorage.getItem(ANONYMOUS_ID_KEY);
@@ -33,35 +37,15 @@ export function getAnonymousId() {
   return id;
 }
 
-function getAcquisitionSource() {
-  const existing = window.localStorage.getItem(ACQUISITION_SOURCE_KEY);
-  if (existing) return existing;
-  const query = new URLSearchParams(window.location.search);
-  const tagged = query.get("utm_source")?.trim() || query.get("source")?.trim();
-  let source = tagged?.slice(0, 80) || "direct";
-  if (!tagged && document.referrer) {
-    try {
-      const referrer = new URL(document.referrer);
-      if (referrer.origin !== window.location.origin) source = referrer.hostname.slice(0, 80);
-    } catch {
-      source = "direct";
-    }
-  }
-  window.localStorage.setItem(ACQUISITION_SOURCE_KEY, source);
-  return source;
-}
-
 export function trackEvent(
   eventName: AnalyticsEventName,
-  options: { channelId?: string; source?: string; path?: string } = {}
+  _options: { channelId?: string; source?: string; path?: string } = {}
 ) {
-  if (typeof window === "undefined") return;
+  void _options;
+  if (typeof window === "undefined" || !SELF_HOSTED_EVENTS.has(eventName)) return;
   void api.trackAnalytics({
     anonymousId: getAnonymousId(),
-    eventName,
-    source: options.source ?? getAcquisitionSource(),
-    channelId: options.channelId,
-    path: options.path ?? window.location.pathname
+    eventName
   }).catch(() => {
     // 분석 실패가 사용자의 주요 기능을 막지 않게 한다.
   });

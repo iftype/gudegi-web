@@ -44,9 +44,6 @@
   border-radius: 14px;
   backdrop-filter: blur(16px);
 }
-.installBreakdown { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.installBreakdown span { padding: 8px 10px; color: #8e96a5; background: #11141b; border: 1px solid #292e39; border-radius: 9px; font-size: 11px; }
-.installBreakdown strong { margin-left: 5px; color: #e6e9ef; }
 .logTable { max-height: 460px; overflow: auto; }
 .logTable code { color: #b9c4df; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
 .logTable pre { max-width: 520px; overflow: hidden; margin: 0; color: #a7afbd; font: 10px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: pre-wrap; overflow-wrap: anywhere; }

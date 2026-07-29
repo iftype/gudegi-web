@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { api } from "@/lib/api";
+import { trackEvent } from "@/lib/analytics";
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  window.localStorage.clear();
 });
 
 describe("API mutations", () => {
@@ -35,5 +37,28 @@ describe("API mutations", () => {
 
     const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
     expect(new Headers(init.headers).get("content-type")).toBe("application/json");
+  });
+
+  it("sends only self-hosted access and PWA counters without browsing details", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetchMock);
+    window.localStorage.setItem(
+      "trackline-anonymous-id",
+      "11111111-1111-4111-8111-111111111111"
+    );
+
+    trackEvent("page_view", {
+      source: "external.example",
+      path: "/private-path",
+      channelId: "channel"
+    });
+    trackEvent("notification_enabled");
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(init.body))).toEqual({
+      anonymousId: "11111111-1111-4111-8111-111111111111",
+      eventName: "page_view"
+    });
   });
 });
