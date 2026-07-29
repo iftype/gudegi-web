@@ -576,9 +576,18 @@
 .categoryFilterTools > button small { color: #838b98; font-size: 10px; }
 .categoryFilterTools > button > i, .categoryChoices button > i { display: grid; place-items: center; width: 21px; height: 21px; color: #0a0c0f; background: #2a3039; border-radius: 7px; }
 .categoryFilterTools > button > i svg, .categoryChoices button > i svg { width: 13px; }
-.categoryFilterTools .categoryFilterSelected { color: #09100c; background: var(--app-green); border-color: var(--app-green); }
-.categoryFilterTools .categoryFilterSelected small { color: #284234; }
-.categoryFilterTools .categoryFilterSelected > i, .categoryChoiceSelected > i { background: #f4f7f2; }
+.categoryFilterTools .categoryFilterSelected {
+  color: #f3f6f4;
+  background: #17211c;
+  border-color: var(--app-green);
+  box-shadow: inset 0 0 0 1px rgb(0 230 118 / 16%);
+}
+.categoryFilterTools .categoryFilterSelected strong { color: #f3f6f4; font-size: 13px; }
+.categoryFilterTools .categoryFilterSelected small { color: #9caea4; font-size: 10px; }
+.categoryFilterTools .categoryFilterSelected > i, .categoryChoiceSelected > i {
+  color: #07110b;
+  background: var(--app-green);
+}
 .categoryFilterTools label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 7px; padding: 0 10px; background: rgb(255 255 255 / 5%); border: 1px solid var(--app-line); border-radius: 11px; }
 .categoryFilterTools label svg { width: 14px; color: #75887e; }
 .categoryFilterTools input { min-width: 0; height: 43px; color: #eef2ef; background: transparent; border: 0; outline: 0; font-size: 16px; }
@@ -588,8 +597,15 @@
 .categoryChoices strong, .categoryChoices small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .categoryChoices strong { font-size: 12px; }
 .categoryChoices small { color: #737b88; font-size: 9px; }
-.categoryChoices .categoryChoiceSelected { color: #07110b; background: var(--app-green); border-color: var(--app-green); }
-.categoryChoices .categoryChoiceSelected small { color: #2e4939; }
+.categoryChoices .categoryChoiceSelected {
+  color: #f3f6f4;
+  background: #17211c;
+  border-color: var(--app-green);
+  box-shadow: inset 0 0 0 1px rgb(0 230 118 / 14%);
+}
+.categoryChoices .categoryChoiceSelected strong { color: #f3f6f4; font-size: 12px; }
+.categoryChoices .categoryChoiceSelected small { color: #9caea4; font-size: 9px; }
+.categoryFilterTools > button:active, .categoryChoices > button:active { transform: none; }
 .categoryFilterApply {
   position: relative;
   z-index: 1;
