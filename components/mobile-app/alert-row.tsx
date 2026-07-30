@@ -11,7 +11,7 @@ import type {
   Streamer
 } from "@/lib/types";
 import { CategoryFilterSheet } from "./category-filter-sheet";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 export function AlertRow({
   streamer,
@@ -19,7 +19,8 @@ export function AlertRow({
   categories,
   onChange,
   onCategoryFilterChange,
-  onRemove
+  onRemove,
+  onOpenDetail
 }: {
   streamer: Streamer;
   preference: PushPreference;
@@ -27,6 +28,7 @@ export function AlertRow({
   onChange: (channelId: string, key: "enabled", checked: boolean) => void;
   onCategoryFilterChange: (channelId: string, value: CategoryFilter) => void;
   onRemove?: (channelId: string) => void;
+  onOpenDetail?: (channelId: string) => void;
 }) {
   const [categorySheetOpen, setCategorySheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,7 +38,26 @@ export function AlertRow({
     <article className={`${styles.alertRow} ${preference.enabled ? styles.followActive : ""}`}>
       <div className={styles.alertRowContent}>
         <span className={styles.rowAvatarWrap}>
-          <span className={styles.rowAvatar}>
+          {streamer.isLive ? (
+            <a
+              className={styles.rowAvatar}
+              href={`/open/chzzk/${encodeURIComponent(streamer.channelId)}`}
+              aria-label={`${streamer.channelName} 방송 보기`}
+            >
+              {streamer.channelImageUrl
+                ? <Image
+                    src={streamer.channelImageUrl}
+                    alt=""
+                    width={42}
+                    height={42}
+                    sizes="42px"
+                    loading="lazy"
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                : streamer.channelName.slice(0, 1)}
+            </a>
+          ) : (
+            <span className={styles.rowAvatar}>
             {streamer.channelImageUrl
               ? <Image
                   src={streamer.channelImageUrl}
@@ -48,13 +69,22 @@ export function AlertRow({
                   style={{ width: "100%", height: "100%" }}
                 />
               : streamer.channelName.slice(0, 1)}
-          </span>
+            </span>
+          )}
           {streamer.isLive && <b>LIVE</b>}
         </span>
         <div className={styles.rowMain}>
           <div className={styles.rowTitleLine}>
             <div className={styles.rowIdentity}>
-              <strong>{streamer.channelName}</strong>
+              {onOpenDetail ? (
+                <button
+                  type="button"
+                  className={styles.rowNameButton}
+                  onClick={() => onOpenDetail(streamer.channelId)}
+                >
+                  {streamer.channelName}
+                </button>
+              ) : <strong>{streamer.channelName}</strong>}
               {streamer.isLive && streamer.activeBroadcastStartedAt && (
                 <span className={styles.rowBroadcastTime}>
                   <Clock3 />

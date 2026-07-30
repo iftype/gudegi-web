@@ -9,16 +9,17 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://gudegi.vercel.app"),
   title: {
-    default: "치지직 카테고리 변경 알림 | 구데기",
+    default: "치지직 카테고리 변경 알림·알람 | 구데기",
     template: "%s · 구데기"
   },
-  description: "구데기는 치지직 스트리머의 카테고리와 방송 제목 변경을 기록하고 휴대폰으로 알려주는 서비스입니다.",
+  description: "치지직 카테고리 알림(알람) 서비스 구데기입니다. 스트리머의 카테고리와 방송 제목이 바뀌는 순간을 기록해 휴대폰으로 알려드립니다.",
   keywords: [
     "치지직",
     "구데기",
     "치지직 구데기",
     "치지직 알림",
     "치지직 카테고리 알림",
+    "치지직 카테고리 알람",
     "치지직 방제 변경",
     "치지직 다시보기"
   ],
@@ -42,8 +43,8 @@ export const metadata: Metadata = {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
   },
   openGraph: {
-    title: "치지직 카테고리 변경 알림 | 구데기",
-    description: "치지직 스트리머의 카테고리와 방송 제목 변경을 기록하고 휴대폰으로 알려드립니다.",
+    title: "치지직 카테고리 변경 알림·알람 | 구데기",
+    description: "치지직 카테고리 알림으로 스트리머의 카테고리와 방송 제목이 바뀌는 순간을 휴대폰에서 확인하세요.",
     url: "/",
     siteName: "구데기",
     type: "website",
@@ -52,8 +53,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "치지직 카테고리 변경 알림 | 구데기",
-    description: "치지직 스트리머의 카테고리와 방송 제목 변경을 기록하고 휴대폰으로 알려드립니다.",
+    title: "치지직 카테고리 변경 알림·알람 | 구데기",
+    description: "치지직 카테고리 알림으로 스트리머의 카테고리와 방송 제목이 바뀌는 순간을 휴대폰에서 확인하세요.",
     images: ["/og-gudegi.png"]
   }
 };

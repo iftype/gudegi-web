@@ -19,7 +19,7 @@ import type {
   PushPreference,
   Streamer
 } from "@/lib/types";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 import { AlertRow } from "./alert-row";
 import { CategoryFilterSheet } from "./category-filter-sheet";
 import { UnsupportedList } from "./unsupported-list";
@@ -30,7 +30,6 @@ export function FollowTab({
   user,
   pushActive,
   pushBusy,
-  pushMessage,
   categories = [],
   onConnect,
   onChange,
@@ -43,14 +42,14 @@ export function FollowTab({
   onRemove,
   unsupportedRequests = [],
   onSuggest = () => undefined,
-  onSuggestUnsupported = async () => undefined
+  onSuggestUnsupported = async () => undefined,
+  onOpenDetail
 }: {
   streamers: Streamer[];
   preferences: PushPreference[];
   user: AppUser | null;
   pushActive: boolean;
   pushBusy: boolean;
-  pushMessage: string;
   categories?: LiveCategory[];
   onConnect: () => void;
   onChange: (channelId: string, key: "enabled", checked: boolean) => void;
@@ -64,6 +63,7 @@ export function FollowTab({
   unsupportedRequests?: import("@/lib/types").UnsupportedStreamerRequest[];
   onSuggest?: () => void;
   onSuggestUnsupported?: (streamerName: string) => Promise<void>;
+  onOpenDetail?: (channelId: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const [allCategorySheetOpen, setAllCategorySheetOpen] = useState(false);
@@ -71,9 +71,12 @@ export function FollowTab({
     () => new Map(preferences.map((item) => [item.channelId, item])),
     [preferences]
   );
-  const visible = useMemo(() => streamers.filter(
-    (streamer) => streamer.channelName.toLowerCase().includes(query.trim().toLowerCase())
-  ), [query, streamers]);
+  const visible = useMemo(() => streamers
+    .filter((streamer) => streamer.channelName.toLowerCase().includes(query.trim().toLowerCase()))
+    .map((streamer, index) => ({ streamer, index }))
+    .sort((left, right) => Number(right.streamer.isLive) - Number(left.streamer.isLive)
+      || left.index - right.index)
+    .map(({ streamer }) => streamer), [query, streamers]);
   const enabledCount = preferences.filter((item) => item.enabled).length;
   const allSelected = preferences.length > 0 && enabledCount === preferences.length;
   const commonCategoryFilter = useMemo(
@@ -100,7 +103,6 @@ export function FollowTab({
           <strong>{pushActive ? "기기 알림 연결됨" : "이 기기에서 알림 받기"}</strong>
         </button>
       </header>
-      {pushMessage && <p className={styles.followPushMessage}>{pushMessage}</p>}
       {(!user || streamers.length > 0) && (
         <div className={styles.followListManagement}>
           {!user && (
@@ -156,6 +158,7 @@ export function FollowTab({
               onChange={onChange}
               onCategoryFilterChange={onCategoryFilterChange}
               onRemove={onRemove}
+              onOpenDetail={onOpenDetail}
             />
           );
         })}

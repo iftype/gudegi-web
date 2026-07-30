@@ -1,9 +1,13 @@
+:global(body:has(.standalone-route)) {
+  background: #141517;
+}
+
 .app {
   --app-green: #f1f2ed;
   --app-lime: #d7ff66;
-  --app-bg: #050505;
-  --app-card: rgb(23 23 25 / 78%);
-  --app-line: rgb(255 255 255 / 11%);
+  --app-bg: #141517;
+  --app-card: #202224;
+  --app-line: #2e3033;
   width: min(100%, 560px);
   height: 100dvh;
   min-height: 560px;
@@ -30,7 +34,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 0 12px 11px;
-  background: rgb(5 5 5 / 72%);
+  background: rgb(20 21 23 / 92%);
   border-bottom: 1px solid var(--app-line);
   backdrop-filter: blur(20px) saturate(115%);
   -webkit-backdrop-filter: blur(20px) saturate(115%);
@@ -111,9 +115,9 @@
 .followPushBanner strong { font-size: 13px; }
 .followPushBanner small { color: #7e8594; font-size: 10px; }
 .followPushBannerAttention {
-  background: #202720;
-  border-color: #566956;
-  box-shadow: 0 0 0 1px rgb(215 255 102 / 8%), 0 0 18px rgb(215 255 102 / 8%);
+  background: #00ffa3;
+  border-color: #00ffa3;
+  box-shadow: none;
 }
 .followPushBannerAttention > svg:first-child { color: var(--app-lime); }
 .followListManagement { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: -1px 0 9px; }
@@ -431,7 +435,7 @@
   backdrop-filter: blur(20px) saturate(115%);
   -webkit-backdrop-filter: blur(20px) saturate(115%);
 }
-.liveCard { background: rgb(24 24 25 / 82%); border-color: rgb(215 255 102 / 28%); }
+.liveCard { background: rgb(24 24 25 / 82%); border-color: #303030; }
 .statusTop { display: flex; align-items: center; justify-content: space-between; }
 .statusTop > span { display: inline-flex; align-items: center; gap: 5px; color: #83978b; font: 500 10px "DM Mono", monospace; letter-spacing: .1em; }
 .liveCard .statusTop > span { color: var(--app-green); }
@@ -468,7 +472,7 @@
 .homeAlertCta > div { display: grid; gap: 2px; }
 .homeAlertCta strong { font-size: 13px; }
 .homeAlertCta small { color: #5f6963; font-size: 10px; }
-.homeAlertActive { color: #fff; background: #202021; border-color: rgb(215 255 102 / 34%); }
+.homeAlertActive { color: #fff; background: #202021; border-color: #363636; }
 .homeAlertActive small { color: #91a99b; }
 .quickGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .quickGrid button { min-height: 72px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 9px; padding: 10px; color: #e4e4e1; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 15px; text-align: left; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
@@ -578,9 +582,9 @@
 .categoryFilterTools > button > i svg, .categoryChoices button > i svg { width: 13px; }
 .categoryFilterTools .categoryFilterSelected {
   color: #f3f6f4;
-  background: #17211c;
-  border-color: var(--app-green);
-  box-shadow: inset 0 0 0 1px rgb(0 230 118 / 16%);
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 28%);
+  box-shadow: none;
 }
 .categoryFilterTools .categoryFilterSelected strong { color: #f3f6f4; font-size: 13px; }
 .categoryFilterTools .categoryFilterSelected small { color: #9caea4; font-size: 10px; }
@@ -599,9 +603,9 @@
 .categoryChoices small { color: #737b88; font-size: 9px; }
 .categoryChoices .categoryChoiceSelected {
   color: #f3f6f4;
-  background: #17211c;
-  border-color: var(--app-green);
-  box-shadow: inset 0 0 0 1px rgb(0 230 118 / 14%);
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 28%);
+  box-shadow: none;
 }
 .categoryChoices .categoryChoiceSelected strong { color: #f3f6f4; font-size: 12px; }
 .categoryChoices .categoryChoiceSelected small { color: #9caea4; font-size: 9px; }
@@ -817,21 +821,29 @@
 .calendarLoading svg { width: 15px; animation: spin .8s linear infinite; }
 
 /* who.tech-inspired system: quiet surfaces, subtle dividers, compact controls. */
-.app {
+.app,
+.sheetBackdrop {
   --app-green: #ededed;
   --app-lime: #ededed;
-  --app-bg: #000;
-  --app-card: #0d0d0d;
-  --app-line: #1c1c1c;
-  --app-surface-alt: #111;
+  --app-bg: #141517;
+  --app-card: #202224;
+  --app-line: #2e3033;
+  --app-surface-alt: #21242a;
   --app-text: #ededed;
   --app-text-secondary: #888;
   --app-text-muted: #555;
+  --app-accent: #00ffa3;
+  --app-accent-strong: #00ffa3;
+  --app-accent-bg: #00ffa3;
+  --app-warning: #f2c66d;
+  --app-warning-bg: #f2c66d;
+  --app-danger: #ed7b8a;
+  --app-danger-bg: #ed7b8a;
   --app-radius-panel: 8px;
-  --app-radius-control: 4px;
-  --app-type-micro: 10px;
-  --app-type-caption: 11px;
-  --app-type-body: 13px;
+  --app-radius-control: 6px;
+  --app-type-micro: 9px;
+  --app-type-caption: 10px;
+  --app-type-body: 12px;
   color: var(--app-text);
   border-inline-color: var(--app-line);
 }
@@ -847,12 +859,12 @@
 .appHeader {
   height: calc(57px + env(safe-area-inset-top));
   padding: 0 12px 9px;
-  background: rgb(0 0 0 / 92%);
+  background: rgb(20 21 23 / 94%);
   border-color: var(--app-line);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
-.logo strong { font-size: 17px; line-height: 1.1; letter-spacing: -.025em; }
+.logo strong { font-size: 16px; line-height: 1.1; letter-spacing: -.025em; }
 .logo small { color: var(--app-text-muted); font-size: var(--app-type-micro); white-space: nowrap; }
 .refreshButton,
 .guideButton,
@@ -877,12 +889,12 @@
 .tabIntro > span,
 .sheetHeader span,
 .alertView > header span {
-  color: var(--app-green);
+  color: var(--app-accent);
   font-size: var(--app-type-micro);
   font-weight: 600;
   letter-spacing: .1em;
 }
-.tabIntro h1 { margin-top: 7px; font-size: 24px; line-height: 1.2; letter-spacing: -.035em; }
+.tabIntro h1 { margin-top: 7px; font-size: 22px; line-height: 1.2; letter-spacing: -.03em; }
 .tabIntro p { color: var(--app-text-secondary); font-size: var(--app-type-body); line-height: 1.5; }
 
 .followIntro {
@@ -899,31 +911,33 @@
 }
 .followIntro .followPushBanner {
   width: auto;
-  min-width: 124px;
-  min-height: 36px;
-  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 136px;
+  min-height: 40px;
+  display: flex;
+  justify-content: center;
   gap: 6px;
   margin: 0;
-  padding: 7px 9px;
+  padding: 8px 11px;
   color: var(--app-text-secondary);
-  background: transparent;
-  border-color: var(--app-line);
+  background: var(--app-card);
+  border: 0;
   border-radius: var(--app-radius-control);
+  text-align: center;
 }
 .followIntro .followPushBanner > svg:first-child { width: 14px; color: var(--app-text-muted); }
 .followIntro .followPushBanner strong {
-  font-size: var(--app-type-micro);
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 750;
   line-height: 1.2;
   white-space: nowrap;
 }
 .followPushBannerAttention {
-  color: var(--app-green) !important;
-  background: rgb(255 255 255 / 5%) !important;
-  border-color: rgb(255 255 255 / 22%) !important;
+  color: #06120c !important;
+  background: var(--app-accent-bg) !important;
+  border: 0 !important;
   box-shadow: none;
 }
-.followPushBannerAttention > svg:first-child { color: var(--app-green) !important; }
+.followPushBannerAttention > svg:first-child { color: #06120c !important; }
 
 .app .inlineSearch input::placeholder,
 .categoryFilterTools input::placeholder,
@@ -940,15 +954,19 @@
 .personalListActions button,
 .followImportButton {
   color: var(--app-text-secondary);
-  background: transparent;
-  border-color: var(--app-line);
+  background: var(--app-card);
+  border: 0;
   border-radius: var(--app-radius-control);
   box-shadow: none;
 }
+.followListManagement > button {
+  min-height: 34px;
+  font-size: var(--app-type-caption);
+  font-weight: 600;
+}
 .personalListActions button:last-child {
-  color: var(--app-green);
-  background: rgb(255 255 255 / 6%);
-  border-color: rgb(255 255 255 / 20%);
+  color: var(--app-text);
+  background: #2e3033;
 }
 .app .inlineSearch,
 .app .selectAll,
@@ -960,18 +978,18 @@
 .inlineSearch,
 .selectAll {
   background: var(--app-card);
-  border-color: var(--app-line);
+  border: 0;
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-.inlineSearch input { height: 38px; font-size: 14px; }
+.inlineSearch input { height: 38px; font-size: 13px; }
 .inlineSearch svg { color: var(--app-text-muted); }
 .allCategoryFilterButton {
   min-width: 68px;
   color: var(--app-text-secondary);
-  background: transparent;
-  border-color: var(--app-line);
+  background: var(--app-card);
+  border: 0;
   font-size: var(--app-type-micro);
   font-weight: 600;
   white-space: nowrap;
@@ -1006,7 +1024,7 @@
   gap: 0;
   overflow: hidden;
   background: var(--app-card);
-  border: 1px solid var(--app-line);
+  border: 0;
   border-radius: var(--app-radius-panel);
 }
 .alertRow,
@@ -1025,45 +1043,48 @@
 .followList > .followActive { border-color: transparent; }
 .followActive .alertRowContent { background: rgb(255 255 255 / 3%); }
 .streamerIndex > article { padding: 7px 9px; }
+.rowIdentity > strong { font-size: 14px; }
+.streamerIndex strong { font-size: 13px; }
 .streamerIndex button,
 .rowCategoryButton,
 .streamerPickerHeading button {
   color: var(--app-text-secondary);
-  background: transparent;
-  border-color: var(--app-line);
+  background: #2e3033;
+  border: 0;
   border-radius: var(--app-radius-control);
   font-size: var(--app-type-caption);
   font-weight: 500;
 }
 .streamerIndex .streamerRowActions .alertAdded,
 .streamerPickerHeading .pickerFilterActive {
-  color: var(--app-green);
-  background: rgb(255 255 255 / 6%);
-  border-color: rgb(255 255 255 / 20%);
+  color: var(--app-accent);
+  background: #2e3033;
 }
 
 .rowAlarmToggle {
   color: var(--app-text-muted);
-  background: transparent;
-  border-color: var(--app-line);
+  background: #2e3033;
+  border: 0;
   border-radius: var(--app-radius-control);
   box-shadow: none;
 }
 .rowAlarmToggle:hover { color: var(--app-text-secondary); background: var(--app-surface-alt); }
 .rowAlarmToggle:active { box-shadow: none; transform: none; }
 .rowAlarmToggleActive {
-  color: var(--app-green);
-  background: rgb(255 255 255 / 6%);
-  border-color: rgb(255 255 255 / 20%);
+  color: var(--app-accent);
+  background: #2e3033;
   box-shadow: none;
   transform: none;
 }
-.rowAlarmToggleActive > svg { fill: rgb(255 255 255 / 8%); }
+.rowAlarmToggleActive > svg {
+  color: var(--app-accent);
+  fill: none;
+}
 .rowCategoryTags span,
 .detailCategoryTags span {
   color: #aaa;
-  background: rgb(255 255 255 / 5%);
-  border-color: rgb(255 255 255 / 12%);
+  background: #2e3033;
+  border: 0;
   border-radius: var(--app-radius-control);
 }
 
@@ -1082,7 +1103,7 @@
 .personalEmpty,
 .unsupportedSection {
   background: var(--app-card);
-  border-color: var(--app-line);
+  border: 0;
   border-radius: var(--app-radius-panel);
   box-shadow: none;
   backdrop-filter: none;
@@ -1102,8 +1123,8 @@
 .resetAlertsButton,
 .quickGrid button {
   color: var(--app-text-secondary);
-  background: transparent;
-  border-color: var(--app-line);
+  background: #2e3033;
+  border: 0;
   border-radius: var(--app-radius-control);
   box-shadow: none;
   backdrop-filter: none;
@@ -1111,9 +1132,8 @@
 }
 .deviceActions .primarySettingAction,
 .quickGrid .quickActive {
-  color: var(--app-green);
-  background: rgb(255 255 255 / 6%);
-  border-color: rgb(255 255 255 / 20%);
+  color: var(--app-text);
+  background: #333538;
 }
 .deviceHeading small,
 .accountCard small,
@@ -1121,19 +1141,19 @@
 .notificationLog article p { color: var(--app-text-secondary); }
 
 .sheet {
-  background: #080808;
-  border-color: var(--app-line);
+  background: #202224;
+  border-color: #2e3033;
   border-radius: 12px 12px 0 0;
   box-shadow: 0 -16px 48px rgb(0 0 0 / 56%);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-.sheetHandle { background: #333; }
+.sheetHandle { background: #3d3d3d; }
 .sheetHeader > button,
 .pickerTools > button,
 .guideNavigation button {
   color: var(--app-text-secondary);
-  background: transparent;
+  background: #2e3033;
   border-color: var(--app-line);
   border-radius: var(--app-radius-control);
 }
@@ -1142,7 +1162,7 @@
 .suggestionForm input,
 .suggestionForm textarea {
   background: var(--app-card);
-  border-color: var(--app-line);
+  border: 1px solid var(--app-line);
   border-radius: var(--app-radius-control);
 }
 .categoryFilterTools > button,
@@ -1150,19 +1170,48 @@
 .streamerChoices > button {
   color: var(--app-text-secondary);
   background: var(--app-card);
-  border-color: var(--app-line);
+  border: 1px solid var(--app-line);
   border-radius: var(--app-radius-control);
   box-shadow: none;
 }
 .categoryFilterTools .categoryFilterSelected,
 .categoryChoices .categoryChoiceSelected {
-  color: var(--app-text);
-  background: rgb(255 255 255 / 6%);
-  border-color: rgb(255 255 255 / 28%);
+  color: #00ffa3;
+  background: #21242a;
+  border-color: #2e3033;
   box-shadow: none;
 }
+.categoryFilterTools .categoryFilterSelected strong,
+.categoryChoices .categoryChoiceSelected strong {
+  color: #00ffa3;
+}
+.categoryFilterTools .categoryFilterSelected small,
+.categoryChoices .categoryChoiceSelected small {
+  color: #9aa0a8;
+}
 .categoryFilterTools .categoryFilterSelected > i,
-.categoryChoiceSelected > i,
+.categoryChoices .categoryChoiceSelected > i {
+  color: #06120c;
+  background: #00ffa3;
+  border: 0;
+  border-radius: var(--app-radius-control);
+}
+.categoryChoices .categoryChoiceSelected {
+  color: var(--app-text);
+  background: #2e3033;
+  border-color: #3a3c40;
+}
+.categoryChoices .categoryChoiceSelected strong {
+  color: var(--app-text);
+}
+.categoryChoices .categoryChoiceSelected small {
+  color: var(--app-text-secondary);
+}
+.categoryChoices .categoryChoiceSelected > i {
+  color: #00ffa3;
+  background: #333538;
+  border: 1px solid #414348;
+}
 .choiceCheck {
   color: #080808;
   background: var(--app-green);
@@ -1170,8 +1219,8 @@
   border-radius: var(--app-radius-control);
 }
 .choiceCheck:empty {
-  background: #222;
-  border: 1px solid #333;
+  background: #2e3033;
+  border: 1px solid #3a3c40;
 }
 .categoryFilterTools > button > i,
 .categoryChoices button > i {
@@ -1195,6 +1244,17 @@
   border-radius: var(--app-radius-control);
   box-shadow: none;
 }
+.categoryFilterApply {
+  color: #06120c;
+  background: #00ffa3;
+  border-color: #00ffa3;
+  font-size: 12px;
+  font-weight: 800;
+}
+.categoryFilterApply:active {
+  background: #00d98b;
+  border-color: #00d98b;
+}
 
 .calendarView { border-radius: var(--app-radius-panel); }
 .calendarView > header,
@@ -1203,8 +1263,8 @@
 .calendarView > header button,
 .calendarCategoryFilter select {
   color: var(--app-text-secondary);
-  background: transparent;
-  border-color: var(--app-line);
+  background: #2e3033;
+  border: 0;
   border-radius: var(--app-radius-control);
 }
 .compactCalendar > div { border-radius: var(--app-radius-control); }
@@ -1222,14 +1282,14 @@
 .suggestionTypes button { border-radius: 2px; }
 .suggestionTypes .suggestionTypeActive {
   color: var(--app-text);
-  background: #1a1a1a;
+  background: #2e3033;
 }
 
 .bottomNav {
   min-height: 57px;
   margin: 0;
   padding: 4px 18px calc(4px + env(safe-area-inset-bottom));
-  background: rgb(5 5 5 / 96%);
+  background: rgb(20 21 23 / 96%);
   border: 0;
   border-top: 1px solid var(--app-line);
   border-radius: 0;
@@ -1238,7 +1298,169 @@
   -webkit-backdrop-filter: blur(12px);
 }
 .bottomNav button { color: var(--app-text-muted); font-size: var(--app-type-caption); }
-.bottomNav .navActive { color: var(--app-green); }
+.bottomNav .navActive { color: var(--app-accent); }
+
+.clearAllAlertsButton {
+  color: var(--app-danger) !important;
+  background: #181314 !important;
+}
+
+.deviceAttention .deviceHeading > span {
+  color: #171005;
+  background: var(--app-warning-bg);
+}
+.deviceConnected .deviceHeading > span {
+  color: #06120c;
+  background: var(--app-accent-bg);
+}
+
+.pushToast {
+  position: fixed;
+  z-index: 140;
+  right: 16px;
+  bottom: calc(74px + env(safe-area-inset-bottom));
+  left: 16px;
+  width: min(calc(100% - 32px), 420px);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  color: var(--app-text);
+  background: #202224;
+  border: 1px solid #2e3033;
+  border-radius: var(--app-radius-panel);
+  box-shadow: 0 10px 34px rgb(0 0 0 / 55%);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.pushToast svg { width: 16px; flex: 0 0 auto; color: var(--app-accent-strong); }
+
+.pushNoticeBackdrop {
+  position: fixed;
+  z-index: 150;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 70%);
+}
+.pushNoticeDialog {
+  width: min(100%, 360px);
+  padding: 16px;
+  color: var(--app-text);
+  background: #202224;
+  border: 1px solid #2e3033;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 60%);
+}
+.pushNoticeDialog > span {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 12px;
+  color: #171005;
+  background: var(--app-warning-bg);
+  border-radius: 8px;
+}
+.pushNoticeDialog > span svg { width: 17px; }
+.pushNoticeDialog strong { display: block; font-size: 14px; }
+.pushNoticeDialog p { margin: 7px 0 15px; color: var(--app-text-secondary); font-size: 12px; line-height: 1.6; word-break: keep-all; }
+.pushNoticeActions { display: flex; justify-content: flex-end; gap: 6px; }
+.pushNoticeActions button {
+  min-height: 36px;
+  padding: 0 12px;
+  color: var(--app-text-secondary);
+  background: #191919;
+  border: 0;
+  border-radius: var(--app-radius-control);
+  font-size: 11px;
+  font-weight: 600;
+}
+.pushNoticeActions .pushNoticePrimary {
+  color: #061110;
+  background: var(--app-accent);
+}
+
+.rowNameButton {
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rowNameButton:hover { text-decoration: underline; text-underline-offset: 3px; }
+.rowAvatar[href], .detailAvatar[href] { cursor: pointer; }
+.rowAvatar[href]:focus-visible,
+.detailAvatar[href]:focus-visible,
+.calendarDayButton:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 2px; }
+
+.compactCalendar > .calendarDayButton {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 0;
+  color: #9baca2;
+  background: transparent;
+  border: 0;
+  border-radius: var(--app-radius-control);
+  font: 500 11px "DM Mono", monospace;
+}
+.compactCalendar > .calendarDayButton:disabled { cursor: default; }
+.compactCalendar > .selectedBroadcastDay {
+  box-shadow: inset 0 0 0 2px var(--app-accent);
+}
+
+.dayBroadcastRecord { align-items: start !important; }
+.categoryTimeline {
+  display: flex !important;
+  gap: 6px !important;
+  margin-top: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.categoryTimeline::-webkit-scrollbar { display: none; }
+.categoryTimeline > div {
+  min-width: 116px !important;
+  display: grid !important;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px !important;
+  padding: 5px;
+  background: #191a1c;
+  border-radius: var(--app-radius-control);
+}
+.timelinePoster {
+  width: 30px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--app-text-secondary);
+  background: #2e3033;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.timelinePoster img { object-fit: cover; }
+.categoryTimeline > div > span:last-child { min-width: 0; display: grid; gap: 2px; }
+.categoryTimeline strong {
+  overflow: hidden;
+  font-size: 10px !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.categoryTimeline small { color: #8d939c !important; font-size: 9px !important; }
 
 .followListManagement > button,
 .rowBroadcastTime,

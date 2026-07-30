@@ -4,7 +4,7 @@ import { CircleSlash2, RefreshCw, Send } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import type { UnsupportedStreamerRequest } from "@/lib/types";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 export function UnsupportedList({
   requests,

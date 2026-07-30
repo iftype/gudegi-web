@@ -15,7 +15,7 @@ import Image from "next/image";
 import { useState } from "react";
 import type { MobilePlatform } from "@/lib/device";
 import { GUIDE_SCREENSHOTS } from "./guide-assets";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 const guides = {
   ios: [

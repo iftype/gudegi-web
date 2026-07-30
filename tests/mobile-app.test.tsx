@@ -3,7 +3,9 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GuideSheet } from "@/components/mobile-app/guide-sheet";
 import { FollowTab } from "@/components/mobile-app/follow-tab";
+import { createPushNotice } from "@/components/mobile-app/mobile-app";
 import { OnboardingGate } from "@/components/mobile-app/onboarding-gate";
+import { SettingsTab } from "@/components/mobile-app/settings-tab";
 import { StreamersTab } from "@/components/mobile-app/streamers-tab";
 import { SuggestionSheet } from "@/components/mobile-app/suggestion-sheet";
 import { api } from "@/lib/api";
@@ -45,6 +47,21 @@ const streamers: Streamer[] = [
 const allCategoryFilter = { allCategories: true as const, categoryKeys: [] as string[] };
 
 describe("mobile-first entry and guidance", () => {
+  it("uses a toast for push success and a modal for actionable failures", () => {
+    expect(createPushNotice("연결됐습니다. 테스트 알림을 확인해 주세요.")).toEqual({
+      kind: "toast",
+      message: "연결됐습니다. 테스트 알림을 확인해 주세요.",
+      title: "완료",
+      showGuide: false
+    });
+    expect(createPushNotice("알림 권한이 꺼져 있습니다. 휴대폰 설정에서 허용해 주세요.")).toEqual({
+      kind: "dialog",
+      message: "알림 권한이 꺼져 있습니다. 휴대폰 설정에서 허용해 주세요.",
+      title: "알림 권한을 확인해 주세요",
+      showGuide: false
+    });
+  });
+
   it("keeps ranking order while toggling alerts and supports select all", () => {
     const onChange = vi.fn();
     const onChangeAll = vi.fn();
@@ -59,7 +76,6 @@ describe("mobile-first entry and guidance", () => {
         user={null}
         pushActive
         pushBusy={false}
-        pushMessage=""
         onConnect={() => undefined}
         onChange={onChange}
         onChangeAll={onChangeAll}
@@ -87,6 +103,7 @@ describe("mobile-first entry and guidance", () => {
 
   it("shows alert, category, tag, and delete actions on alert rows", () => {
     const onRemove = vi.fn();
+    const onOpenDetail = vi.fn();
     render(
       <FollowTab
         streamers={streamers}
@@ -101,11 +118,11 @@ describe("mobile-first entry and guidance", () => {
         user={null}
         pushActive
         pushBusy={false}
-        pushMessage=""
         onConnect={() => undefined}
         onChange={() => undefined}
         onChangeAll={() => undefined}
         onRemove={onRemove}
+        onOpenDetail={onOpenDetail}
       />
     );
 
@@ -134,6 +151,10 @@ describe("mobile-first entry and guidance", () => {
     expect(alertButton).toHaveAttribute("aria-pressed", "true");
     expect(alertButton.querySelector(".lucide-bell-ring")).toBeInTheDocument();
     expect(screen.getByText("LIVE")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "라이브 스트리머 방송 보기" }))
+      .toHaveAttribute("href", `/open/chzzk/${streamers[0]!.channelId}`);
+    fireEvent.click(screen.getByRole("button", { name: "라이브 스트리머" }));
+    expect(onOpenDetail).toHaveBeenCalledWith(streamers[0]!.channelId);
     expect(screen.getByText("1시간 30분")).toBeInTheDocument();
     expect(screen.queryByText(/팔로워 순위/)).not.toBeInTheDocument();
     expect(screen.getAllByText("전체 카테고리")).toHaveLength(2);
@@ -159,7 +180,6 @@ describe("mobile-first entry and guidance", () => {
         user={null}
         pushActive
         pushBusy={false}
-        pushMessage=""
         categories={[
           {
             categoryKey: "ETC:talk",
@@ -225,7 +245,6 @@ describe("mobile-first entry and guidance", () => {
         user={{ channelId: "c".repeat(32) }}
         pushActive={false}
         pushBusy={false}
-        pushMessage=""
         onConnect={() => undefined}
         onChange={() => undefined}
         onChangeAll={() => undefined}
@@ -273,6 +292,35 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.queryByRole("textbox", { name: "원하는 점" })).not.toBeInTheDocument();
   });
 
+  it("routes settings feedback through the in-app suggestion action", () => {
+    const onFeedback = vi.fn();
+    render(
+      <SettingsTab
+        user={null}
+        installed={false}
+        pushActive={false}
+        pushBusy={false}
+        permission="default"
+        targetCount={0}
+        logs={[]}
+        logoutBusy={false}
+        logoutMessage=""
+        onEnable={() => undefined}
+        onDisable={() => undefined}
+        onTest={() => undefined}
+        onGuide={() => undefined}
+        onFeedback={onFeedback}
+        onLogout={() => undefined}
+        onClearLogs={() => undefined}
+        onResetAlerts={() => undefined}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "피드백 보내기" }));
+    expect(onFeedback).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("link", { name: "피드백 보내기" })).not.toBeInTheDocument();
+  });
+
   it("opens streamer detail only from an explicit button and provides back", async () => {
     const onSelect = vi.fn();
     vi.spyOn(api, "streamerBroadcasts").mockResolvedValue({ data: [] });
@@ -289,7 +337,16 @@ describe("mobile-first entry and guidance", () => {
           vodUrl: null,
           thumbnailUrl: null,
           channelImageUrl: null,
-          categoryImageUrl: null
+          categoryImageUrl: null,
+          categoryTimeline: [{
+            category: "리그 오브 레전드",
+            detectedAt: Date.parse("2026-07-29T10:00:00+09:00"),
+            categoryImageUrl: "https://example.test/lol.png"
+          }, {
+            category: "talk",
+            detectedAt: Date.parse("2026-07-29T12:30:00+09:00"),
+            categoryImageUrl: "https://example.test/talk.png"
+          }]
         }],
         categoryDurations: [],
         totalDurationMs: 0,
@@ -312,6 +369,8 @@ describe("mobile-first entry and guidance", () => {
       </QueryClientProvider>
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "라이브 스트리머 방송 보기" }))
+      .toHaveAttribute("href", `/open/chzzk/${streamers[0]!.channelId}`);
     const streamerSearch = screen.getByPlaceholderText("스트리머 검색 후 알림 추가");
     fireEvent.change(streamerSearch, { target: { value: "오프라인" } });
     expect(screen.queryByText("라이브 스트리머")).not.toBeInTheDocument();
@@ -321,6 +380,15 @@ describe("mobile-first entry and guidance", () => {
     expect(await screen.findByText("방송일 1일 · 다시보기 0개")).toBeInTheDocument();
     expect(screen.getAllByText("talk").length).toBeGreaterThan(0);
     expect(screen.getByRole("combobox", { name: "다시보기 필터" })).toBeInTheDocument();
+    expect(screen.getByText("달력에서 방송한 날짜를 선택해 주세요.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "2026-07-29 방송 기록 보기" }));
+    expect(screen.getByText("방송 중")).toBeInTheDocument();
+    expect(screen.getAllByText("리그 오브 레전드").length).toBeGreaterThan(0);
+    expect(screen.getByText(`${new Intl.DateTimeFormat("ko-KR", {
+      timeZone: "Asia/Seoul",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(Date.parse("2026-07-29T12:30:00+09:00"))} 전환`)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /스트리머 목록/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "알림 받기" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "카테고리" })).not.toBeInTheDocument();

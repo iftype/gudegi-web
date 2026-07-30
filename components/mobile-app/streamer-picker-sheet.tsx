@@ -4,7 +4,7 @@ import { Check, Radio, Search, X } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { Streamer } from "@/lib/types";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 export function StreamerPickerSheet({
   streamers,

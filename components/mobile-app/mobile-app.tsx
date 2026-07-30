@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  AlertTriangle,
+  CheckCircle2,
   CircleHelp,
   Heart,
   MessageSquarePlus,
@@ -27,9 +29,15 @@ import { STREAMER_IMPORT_KEY, usePersonalStreamers } from "./use-personal-stream
 import { usePushLogs } from "./use-push-logs";
 import { usePushSubscription } from "./use-push-subscription";
 import { usePwaInstall } from "./use-pwa-install";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 type AppTab = "follow" | "streamers" | "settings";
+type PushNotice = {
+  kind: "toast" | "dialog";
+  message: string;
+  title: string;
+  showGuide: boolean;
+};
 const TAB_STORAGE_KEY = "gudegi-active-tab";
 const GUIDE_PENDING_KEY = "gudegi-open-install-guide";
 const GUIDE_SEEN_KEY = "gudegi-install-guide-seen";
@@ -43,6 +51,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   const [guestMode, setGuestMode] = useState(false);
   const [logoutBusy, setLogoutBusy] = useState(false);
   const [logoutMessage, setLogoutMessage] = useState("");
+  const [dismissedPushMessage, setDismissedPushMessage] = useState("");
+  const [streamerDetailChannelId, setStreamerDetailChannelId] = useState<string | null>(null);
 
   const session = useQuery({
     queryKey: ["app-session"],
@@ -68,7 +78,17 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
   });
   const pwa = usePwaInstall();
   const push = usePushSubscription(preferences.preferences);
+  const clearPushMessage = push.clearMessage;
+  const pushMessage = push.message;
+  const pushConnecting = push.connecting;
+  const pushTesting = push.testing;
   const pushLogs = usePushLogs();
+  const pushNotice = pushMessage
+    && pushMessage !== dismissedPushMessage
+    && !pushConnecting
+    && !pushTesting
+    ? createPushNotice(pushMessage)
+    : null;
 
   const selectedStreamer = useMemo(() => {
     return personal.supportedStreamers.find((streamer) => streamer.channelId === preferences.primaryChannelId)
@@ -103,6 +123,29 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (
+      !pushMessage
+      || pushMessage === dismissedPushMessage
+      || pushConnecting
+      || pushTesting
+    ) return;
+    const notice = createPushNotice(pushMessage);
+    if (notice.kind !== "toast") return;
+    const currentMessage = pushMessage;
+    const timer = window.setTimeout(() => {
+      setDismissedPushMessage(currentMessage);
+      clearPushMessage();
+    }, 3200);
+    return () => window.clearTimeout(timer);
+  }, [
+    dismissedPushMessage,
+    clearPushMessage,
+    pushConnecting,
+    pushMessage,
+    pushTesting
+  ]);
 
   const showOnboarding = entryReady
     && !session.isLoading
@@ -214,7 +257,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             user={user}
             pushActive={push.active}
             pushBusy={push.connecting}
-            pushMessage={push.message}
             categories={categories.data?.data ?? []}
             onConnect={push.active ? () => selectTab("settings") : connectPush}
             onChange={preferences.updatePreference}
@@ -231,6 +273,11 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onSuggest={() => setSuggestionType("streamer_request")}
             onSuggestUnsupported={async (streamerName) => {
               await api.submitFeedback({ category: "streamer_request", streamerName });
+            }}
+            onOpenDetail={(channelId) => {
+              preferences.selectPrimary(channelId);
+              setStreamerDetailChannelId(channelId);
+              selectTab("streamers");
             }}
           />
         )}
@@ -250,6 +297,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onSuggestUnsupported={async (streamerName) => {
               await api.submitFeedback({ category: "streamer_request", streamerName });
             }}
+            openDetail={streamerDetailChannelId === selectedStreamer.channelId}
+            onCloseDetail={() => setStreamerDetailChannelId(null)}
           />
         )}
         {tab === "settings" && (
@@ -258,7 +307,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             installed={pwa.installed}
             pushActive={push.active}
             pushBusy={push.connecting || push.testing}
-            pushMessage={push.message}
             permission={push.permission}
             targetCount={preferences.preferences.filter((item) =>
               item.enabled && (item.liveStarted || item.categoryChanged)
@@ -270,6 +318,7 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onDisable={() => void push.disable()}
             onTest={() => void push.test()}
             onGuide={() => setGuideOpen(true)}
+            onFeedback={() => setSuggestionType("idea")}
             onLogout={() => void logout()}
             onClearLogs={() => void pushLogs.clear()}
             onResetAlerts={() => void resetAlertList()}
@@ -279,9 +328,27 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
 
       <nav className={styles.bottomNav} aria-label="앱 메뉴">
         <TabButton active={tab === "follow"} onClick={() => selectTab("follow")} icon={<Heart />} label="알림 관리" />
-        <TabButton active={tab === "streamers"} onClick={() => selectTab("streamers")} icon={<UsersRound />} label="스트리머" />
+        <TabButton active={tab === "streamers"} onClick={() => {
+          setStreamerDetailChannelId(null);
+          selectTab("streamers");
+        }} icon={<UsersRound />} label="스트리머" />
         <TabButton active={tab === "settings"} onClick={() => selectTab("settings")} icon={<Settings />} label="설정" badge={push.active} />
       </nav>
+
+      {pushNotice && (
+        <PushFeedback
+          notice={pushNotice}
+          onClose={() => {
+            setDismissedPushMessage(pushNotice.message);
+            clearPushMessage();
+          }}
+          onGuide={() => {
+            setDismissedPushMessage(pushNotice.message);
+            clearPushMessage();
+            setGuideOpen(true);
+          }}
+        />
+      )}
 
       {guideOpen && (
         <GuideSheet
@@ -305,6 +372,54 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
       )}
     </main>
   );
+}
+
+function PushFeedback({
+  notice,
+  onClose,
+  onGuide
+}: {
+  notice: PushNotice;
+  onClose: () => void;
+  onGuide: () => void;
+}) {
+  if (notice.kind === "toast") {
+    return (
+      <div className={styles.pushToast} role="status" aria-live="polite">
+        <CheckCircle2 />
+        <span>{notice.message}</span>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.pushNoticeBackdrop} role="presentation">
+      <section className={styles.pushNoticeDialog} role="dialog" aria-modal="true" aria-label={notice.title}>
+        <span><AlertTriangle /></span>
+        <strong>{notice.title}</strong>
+        <p>{notice.message}</p>
+        <div className={styles.pushNoticeActions}>
+          {notice.showGuide && <button onClick={onGuide}>설치 방법</button>}
+          <button className={styles.pushNoticePrimary} onClick={onClose}>확인</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export function createPushNotice(message: string): PushNotice {
+  const success = message.includes("연결됐습니다")
+    || message.includes("보냈습니다")
+    || message.includes("알림을 껐습니다");
+  if (success) {
+    return { kind: "toast", message, title: "완료", showGuide: false };
+  }
+  const permissionRelated = message.includes("권한") || message.includes("허용");
+  return {
+    kind: "dialog",
+    message,
+    title: permissionRelated ? "알림 권한을 확인해 주세요" : "알림 연결을 확인해 주세요",
+    showGuide: message.includes("설치") || message.includes("PWA") || message.includes("브라우저")
+  };
 }
 
 function TabButton({

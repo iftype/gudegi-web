@@ -1,14 +1,12 @@
 "use client";
 
 import { ArrowLeft, BellPlus, CalendarDays, Check, ExternalLink, Film, Radio, Search, Send } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { useMemo, useState } from "react";
-import { api } from "@/lib/api";
-import type { Streamer } from "@/lib/types";
-import { CompactCalendar } from "./compact-calendar";
+import { useCallback, useMemo, useState } from "react";
+import type { CalendarBroadcast, Streamer } from "@/lib/types";
+import { CompactCalendar, type CalendarDaySelection } from "./compact-calendar";
 import { UnsupportedList } from "./unsupported-list";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 export function StreamersTab({
   streamers,
@@ -19,7 +17,9 @@ export function StreamersTab({
   onAddToAlerts,
   onRemoveFromAlerts,
   onSuggest = () => undefined,
-  onSuggestUnsupported = async () => undefined
+  onSuggestUnsupported = async () => undefined,
+  openDetail = false,
+  onCloseDetail
 }: {
   streamers: Streamer[];
   selected: Streamer;
@@ -30,16 +30,17 @@ export function StreamersTab({
   onRemoveFromAlerts: (channelId: string) => void;
   onSuggest?: () => void;
   onSuggestUnsupported?: (streamerName: string) => Promise<void>;
+  openDetail?: boolean;
+  onCloseDetail?: () => void;
 }) {
   const [liveOnly, setLiveOnly] = useState(false);
   const [query, setQuery] = useState("");
-  const [detailOpen, setDetailOpen] = useState(false);
-  const broadcasts = useQuery({
-    queryKey: ["streamer-broadcasts", selected.channelId],
-    queryFn: ({ signal }) => api.streamerBroadcasts(selected.channelId, signal),
-    staleTime: 60_000,
-    enabled: detailOpen
-  });
+  const [detailOpen, setDetailOpen] = useState(openDetail);
+  const [selectedDay, setSelectedDay] = useState<CalendarDaySelection | null>(null);
+  const effectiveDetailOpen = detailOpen || openDetail;
+  const selectCalendarDay = useCallback((selection: CalendarDaySelection | null) => {
+    setSelectedDay(selection);
+  }, []);
   const liveStreamers = streamers.filter((streamer) => streamer.isLive);
   const selection = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -48,7 +49,7 @@ export function StreamersTab({
       && (!normalized || streamer.channelName.toLowerCase().includes(normalized))
     ));
   }, [liveOnly, query, streamers]);
-  if (!detailOpen) {
+  if (!effectiveDetailOpen) {
     return (
       <section className={`${styles.tabScroll} ${styles.streamerTab}`}>
         <header className={styles.tabIntro}>
@@ -74,7 +75,27 @@ export function StreamersTab({
         <div className={styles.streamerIndex} aria-label="스트리머 목록">
           {selection.length > 0 ? selection.map((streamer) => (
             <article key={streamer.channelId}>
-              <span className={styles.rowAvatar}>
+              {streamer.isLive ? (
+                <a
+                  className={styles.rowAvatar}
+                  href={`/open/chzzk/${encodeURIComponent(streamer.channelId)}`}
+                  aria-label={`${streamer.channelName} 방송 보기`}
+                >
+                  {streamer.channelImageUrl
+                    ? <Image
+                        src={streamer.channelImageUrl}
+                        alt=""
+                        width={46}
+                        height={46}
+                        sizes="46px"
+                        loading="lazy"
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    : streamer.channelName.slice(0, 1)}
+                  <i />
+                </a>
+              ) : (
+                <span className={styles.rowAvatar}>
                 {streamer.channelImageUrl
                   ? <Image
                       src={streamer.channelImageUrl}
@@ -86,8 +107,8 @@ export function StreamersTab({
                       style={{ width: "100%", height: "100%" }}
                     />
                   : streamer.channelName.slice(0, 1)}
-                {streamer.isLive && <i />}
-              </span>
+                </span>
+              )}
               <div>
                 <strong>{streamer.channelName}</strong>
                 <small>{streamer.isLive
@@ -107,6 +128,7 @@ export function StreamersTab({
                 </button>
                 <button aria-label={`${streamer.channelName} 상세 보기`} onClick={() => {
                   onSelect(streamer.channelId);
+                  setSelectedDay(null);
                   setDetailOpen(true);
                 }}><CalendarDays />상세</button>
               </div>
@@ -131,12 +153,34 @@ export function StreamersTab({
 
   return (
     <section className={`${styles.tabScroll} ${styles.streamerTab}`}>
-      <button className={styles.detailBack} onClick={() => setDetailOpen(false)}>
+      <button className={styles.detailBack} onClick={() => {
+        setDetailOpen(false);
+        onCloseDetail?.();
+      }}>
         <ArrowLeft /> 스트리머 목록
       </button>
       <article className={styles.streamerDetail}>
         <div className={styles.streamerDetailHeading}>
-          <span className={styles.detailAvatar}>
+          {selected.isLive ? (
+            <a
+              className={styles.detailAvatar}
+              href={`/open/chzzk/${encodeURIComponent(selected.channelId)}`}
+              aria-label={`${selected.channelName} 방송 보기`}
+            >
+              {selected.channelImageUrl
+                ? <Image
+                    src={selected.channelImageUrl}
+                    alt=""
+                    width={58}
+                    height={58}
+                    sizes="58px"
+                    priority
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                : selected.channelName.slice(0, 1)}
+            </a>
+          ) : (
+            <span className={styles.detailAvatar}>
             {selected.channelImageUrl
               ? <Image
                   src={selected.channelImageUrl}
@@ -148,7 +192,8 @@ export function StreamersTab({
                   style={{ width: "100%", height: "100%" }}
                 />
               : selected.channelName.slice(0, 1)}
-          </span>
+            </span>
+          )}
           <div>
             <span className={selected.isLive ? styles.liveLabel : styles.offlineLabel}>
               {selected.isLive ? <><Radio /> LIVE</> : "OFFLINE"}
@@ -161,30 +206,80 @@ export function StreamersTab({
         {selected.currentTitle && <p className={styles.currentTitle}>{selected.currentTitle}</p>}
       </article>
 
-      <CompactCalendar streamer={selected} />
+      <CompactCalendar streamer={selected} onDaySelect={selectCalendarDay} />
 
       <section className={styles.vodSection}>
-        <header><div><Film /><strong>최근 다시보기</strong></div><span>{broadcasts.data?.data.length ?? 0}개 기록</span></header>
+        <header>
+          <div><Film /><strong>{selectedDay ? formatSelectedDate(selectedDay.date) : "날짜별 다시보기"}</strong></div>
+          <span>{selectedDay?.broadcasts.length ?? 0}개 기록</span>
+        </header>
         <div>
-          {(broadcasts.data?.data ?? []).slice(0, 4).map((broadcast) => (
-            <article key={broadcast.id}>
+          {(selectedDay?.broadcasts ?? []).map((broadcast) => (
+            <article className={styles.dayBroadcastRecord} key={broadcast.id}>
               <div>
                 <strong>{broadcast.title}</strong>
                 <small>{new Intl.DateTimeFormat("ko-KR", {
+                  timeZone: "Asia/Seoul",
                   month: "long",
                   day: "numeric",
                   hour: "2-digit",
                   minute: "2-digit"
                 }).format(broadcast.startedAt)} · {broadcast.category || "미분류"}</small>
+                <CategoryTimeline broadcast={broadcast} />
               </div>
               {broadcast.vodUrl
                 ? <a href={broadcast.vodUrl} target="_blank" rel="noreferrer">다시보기</a>
                 : <span>연결 대기</span>}
             </article>
           ))}
-          {!broadcasts.isLoading && !broadcasts.data?.data.length && <p>아직 수집된 방송 기록이 없습니다.</p>}
+          {!selectedDay && <p>달력에서 방송한 날짜를 선택해 주세요.</p>}
         </div>
       </section>
     </section>
+  );
+}
+
+function formatSelectedDate(date: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric"
+  }).format(new Date(`${date}T12:00:00+09:00`));
+}
+
+function CategoryTimeline({ broadcast }: { broadcast: CalendarBroadcast }) {
+  const timeline = broadcast.categoryTimeline?.length
+    ? broadcast.categoryTimeline
+    : [{
+        category: broadcast.category || "미분류",
+        detectedAt: broadcast.startedAt,
+        categoryImageUrl: broadcast.categoryImageUrl ?? null
+      }];
+  return (
+    <div className={styles.categoryTimeline} aria-label={`${broadcast.title} 카테고리 전환 기록`}>
+      {timeline.map((item, index) => (
+        <div key={`${item.detectedAt}-${item.category}-${index}`}>
+          <span className={styles.timelinePoster}>
+            {item.categoryImageUrl
+              ? <Image
+                  src={item.categoryImageUrl}
+                  alt=""
+                  width={30}
+                  height={38}
+                  sizes="30px"
+                  style={{ width: "100%", height: "100%" }}
+                />
+              : item.category.slice(0, 1)}
+          </span>
+          <span>
+            <strong>{item.category}</strong>
+            <small>{new Intl.DateTimeFormat("ko-KR", {
+              timeZone: "Asia/Seoul",
+              hour: "2-digit",
+              minute: "2-digit"
+            }).format(item.detectedAt)} 전환</small>
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }

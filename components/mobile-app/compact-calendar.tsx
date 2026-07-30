@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import type { CalendarBroadcast, Streamer } from "@/lib/types";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 const KOREA_TIMEZONE = "Asia/Seoul";
 
@@ -36,9 +36,21 @@ function monthCells(month: string) {
   });
 }
 
-export function CompactCalendar({ streamer }: { streamer: Streamer }) {
+export type CalendarDaySelection = {
+  date: string;
+  broadcasts: CalendarBroadcast[];
+};
+
+export function CompactCalendar({
+  streamer,
+  onDaySelect
+}: {
+  streamer: Streamer;
+  onDaySelect?: (selection: CalendarDaySelection | null) => void;
+}) {
   const [month, setMonth] = useState(currentMonth);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const monthly = useQuery({
     queryKey: ["mobile-month", streamer.channelId, month],
     queryFn: ({ signal }) => api.monthlyStreamer(streamer.channelId, month, signal),
@@ -46,7 +58,7 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
   });
   const cells = useMemo(() => monthCells(month), [month]);
   const categoryOptions = useMemo(() => Array.from(new Set(
-    (monthly.data?.data.broadcasts ?? []).map((broadcast) => broadcast.category || "미분류")
+    (monthly.data?.data.broadcasts ?? []).flatMap(broadcastCategories)
   )).sort((left, right) => left.localeCompare(right, "ko-KR")), [monthly.data]);
   const effectiveCategory = selectedCategory === "all"
     || categoryOptions.includes(selectedCategory)
@@ -55,7 +67,7 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
   const filteredBroadcasts = useMemo(() => (
     (monthly.data?.data.broadcasts ?? []).filter((broadcast) => (
       effectiveCategory === "all"
-      || (broadcast.category || "미분류") === effectiveCategory
+      || broadcastCategories(broadcast).includes(effectiveCategory)
     ))
   ), [effectiveCategory, monthly.data]);
   const broadcastsByDay = useMemo(() => {
@@ -80,22 +92,41 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
     () => [...statusByDay.values()].filter((status) => status === "broadcast").length,
     [statusByDay]
   );
+  function selectDay(day: number, broadcasts: CalendarBroadcast[]) {
+    const date = `${month}-${String(day).padStart(2, "0")}`;
+    setSelectedDate(date);
+    onDaySelect?.({ date, broadcasts });
+  }
+
+  function changeMonth(amount: number) {
+    setMonth((value) => shiftMonth(value, amount));
+    setSelectedDate(null);
+    onDaySelect?.(null);
+  }
 
   return (
     <section className={styles.calendarView}>
       <header>
         <div><span>{streamer.channelName}</span><strong>{month.replace("-", ".")}</strong></div>
         <div>
-          <button onClick={() => setMonth((value) => shiftMonth(value, -1))} aria-label="이전 달"><ChevronLeft /></button>
-          <button onClick={() => setMonth(currentMonth())}>오늘</button>
-          <button onClick={() => setMonth((value) => shiftMonth(value, 1))} aria-label="다음 달"><ChevronRight /></button>
+          <button onClick={() => changeMonth(-1)} aria-label="이전 달"><ChevronLeft /></button>
+          <button onClick={() => {
+            setMonth(currentMonth());
+            setSelectedDate(null);
+            onDaySelect?.(null);
+          }}>오늘</button>
+          <button onClick={() => changeMonth(1)} aria-label="다음 달"><ChevronRight /></button>
         </div>
       </header>
       <label className={styles.calendarCategoryFilter}>
         <span>다시보기 필터</span>
         <select
           value={effectiveCategory}
-          onChange={(event) => setSelectedCategory(event.target.value)}
+          onChange={(event) => {
+            setSelectedCategory(event.target.value);
+            setSelectedDate(null);
+            onDaySelect?.(null);
+          }}
         >
           <option value="all">전체 카테고리</option>
           {categoryOptions.map((category) => (
@@ -117,7 +148,22 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
             const categoryImage = broadcasts.find((item) => item.categoryImageUrl)?.categoryImageUrl;
             const category = broadcasts.find((item) => item.category)?.category;
             return (
-              <div className={!day ? styles.outsideDay : hasBroadcast ? styles.broadcastDay : ""} key={index}>
+              <button
+                type="button"
+                disabled={!day || !hasBroadcast}
+                aria-label={day && hasBroadcast ? `${month}-${String(day).padStart(2, "0")} 방송 기록 보기` : undefined}
+                aria-pressed={Boolean(day && selectedDate === `${month}-${String(day).padStart(2, "0")}`)}
+                className={[
+                  styles.calendarDayButton,
+                  !day ? styles.outsideDay : "",
+                  hasBroadcast ? styles.broadcastDay : "",
+                  day && selectedDate === `${month}-${String(day).padStart(2, "0")}`
+                    ? styles.selectedBroadcastDay
+                    : ""
+                ].filter(Boolean).join(" ")}
+                key={index}
+                onClick={() => day && hasBroadcast && selectDay(day, broadcasts)}
+              >
                 {day && <>
                   <span>{day}</span>
                   {categoryImage && <Image
@@ -130,7 +176,7 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
                   {hasBroadcast && !categoryImage && <i>{broadcasts.length > 1 ? broadcasts.length : ""}</i>}
                   {broadcasts.length > 1 && categoryImage && <b>{broadcasts.length}</b>}
                 </>}
-              </div>
+              </button>
             );
           })}
         </div>
@@ -143,4 +189,9 @@ export function CompactCalendar({ streamer }: { streamer: Streamer }) {
       </footer>
     </section>
   );
+}
+
+function broadcastCategories(broadcast: CalendarBroadcast) {
+  const timeline = broadcast.categoryTimeline?.map((item) => item.category) ?? [];
+  return timeline.length ? timeline : [broadcast.category || "미분류"];
 }

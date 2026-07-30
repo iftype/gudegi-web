@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "구데기 · 원하는 방송만 골라보기",
     short_name: "구데기",
-    description: "스트리머 VOD 달력과 카테고리 변경 알림",
+    description: "치지직 스트리머 VOD 달력과 카테고리 변경 알림·알람",
     id: "/",
     start_url: "/",
     scope: "/",

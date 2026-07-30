@@ -4,7 +4,7 @@ import { Bell, ListFilter } from "lucide-react";
 import { useState } from "react";
 import type { CategoryFilter, LiveCategory, PushPreference } from "@/lib/types";
 import { CategoryFilterSheet } from "./category-filter-sheet";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 export function AlertToggleGrid({
   preference,

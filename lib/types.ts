@@ -51,6 +51,12 @@ export type CalendarBroadcast = {
   thumbnailUrl: string | null;
   channelImageUrl: string | null;
   categoryImageUrl?: string | null;
+  metadataEvents?: MetadataEvent[];
+  categoryTimeline?: Array<{
+    category: string;
+    detectedAt: number;
+    categoryImageUrl: string | null;
+  }>;
 };
 
 export type CategoryDuration = {

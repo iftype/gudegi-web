@@ -16,14 +16,13 @@ import {
 } from "lucide-react";
 import type { AppUser } from "@/lib/auth-api";
 import type { PushLogEntry } from "@/lib/push-log";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 export function SettingsTab({
   user,
   installed,
   pushActive,
   pushBusy,
-  pushMessage,
   permission,
   targetCount,
   logs,
@@ -33,6 +32,7 @@ export function SettingsTab({
   onDisable,
   onTest,
   onGuide,
+  onFeedback,
   onLogout,
   onClearLogs,
   onResetAlerts
@@ -41,7 +41,6 @@ export function SettingsTab({
   installed: boolean;
   pushActive: boolean;
   pushBusy: boolean;
-  pushMessage: string;
   permission: NotificationPermission | "unsupported";
   targetCount: number;
   logs: PushLogEntry[];
@@ -51,6 +50,7 @@ export function SettingsTab({
   onDisable: () => void;
   onTest: () => void;
   onGuide: () => void;
+  onFeedback: () => void;
   onLogout: () => void;
   onClearLogs: () => void;
   onResetAlerts: () => void;
@@ -63,7 +63,7 @@ export function SettingsTab({
         <p>이 기기의 알림 상태를 확인하고 실제 푸시를 시험해 보세요.</p>
       </header>
 
-      <article className={styles.deviceCard}>
+      <article className={`${styles.deviceCard} ${pushActive ? styles.deviceConnected : styles.deviceAttention}`}>
         <div className={styles.deviceHeading}>
           <span>{pushActive ? <CheckCircle2 /> : <Smartphone />}</span>
           <div>
@@ -84,7 +84,6 @@ export function SettingsTab({
           </button>
           {pushActive && <button onClick={onDisable}><BellOff />알림 끄기</button>}
         </div>
-        {pushMessage && <p className={styles.settingMessage}>{pushMessage}</p>}
       </article>
 
       <article className={styles.accountCard}>
@@ -133,7 +132,7 @@ export function SettingsTab({
 
       <div className={styles.settingLinks}>
         <button onClick={onGuide}><CircleHelp />설치 및 사용 방법</button>
-        <a href="/feedback"><MessageSquareText />피드백 보내기</a>
+        <button onClick={onFeedback}><MessageSquareText />피드백 보내기</button>
         <a href="/privacy"><ShieldCheck />개인정보처리방침</a>
       </div>
     </section>

@@ -4,7 +4,7 @@ import { Check, Search, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useMemo, useState } from "react";
 import type { CategoryFilter, LiveCategory } from "@/lib/types";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 export function CategoryFilterSheet({
   categories,

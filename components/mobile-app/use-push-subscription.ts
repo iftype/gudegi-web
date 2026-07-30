@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { trackEvent } from "@/lib/analytics";
 import type { PushPreference } from "@/lib/types";
@@ -28,6 +28,7 @@ export function usePushSubscription(preferences: PushPreference[]) {
   const capable = typeof window !== "undefined"
     && "serviceWorker" in navigator
     && "Notification" in window;
+  const clearMessage = useCallback(() => setMessage(""), []);
 
   useEffect(() => {
     if (!subscriptionId || !("serviceWorker" in navigator)) return;
@@ -200,6 +201,7 @@ export function usePushSubscription(preferences: PushPreference[]) {
     testing,
     permission,
     message,
+    clearMessage,
     enable,
     disable,
     test

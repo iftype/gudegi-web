@@ -4,7 +4,7 @@ import { CheckCircle2, LoaderCircle, Send, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { api } from "@/lib/api";
 import { getAnonymousId } from "@/lib/analytics";
-import styles from "./mobile-app.module.css";
+import styles from "./mobile-app-chzzk-v7.module.css";
 
 export function SuggestionSheet({
   initialType,
