@@ -1,6 +1,16 @@
 "use client";
 
-import { Bell, BellRing, Clock3, Ellipsis, ListFilter, Trash2 } from "lucide-react";
+import {
+  Bell,
+  BellRing,
+  Clock3,
+  Ellipsis,
+  ListFilter,
+  Plus,
+  SlidersHorizontal,
+  Trash2,
+  X
+} from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { formatDuration } from "@/lib/format";
@@ -19,18 +29,26 @@ export function AlertRow({
   categories,
   onChange,
   onCategoryFilterChange,
+  onKeywordsChange,
   onRemove,
   onOpenDetail
 }: {
   streamer: Streamer;
   preference: PushPreference;
   categories: LiveCategory[];
-  onChange: (channelId: string, key: "enabled", checked: boolean) => void;
+  onChange: (
+    channelId: string,
+    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
+    checked: boolean
+  ) => void;
   onCategoryFilterChange: (channelId: string, value: CategoryFilter) => void;
+  onKeywordsChange: (channelId: string, keywords: string[]) => void;
   onRemove?: (channelId: string) => void;
   onOpenDetail?: (channelId: string) => void;
 }) {
   const [categorySheetOpen, setCategorySheetOpen] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [keywordDraft, setKeywordDraft] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const tags = getCategoryTags(preference.categoryFilter, categories);
 
@@ -148,9 +166,82 @@ export function AlertRow({
             <div className={styles.rowCategoryTags} aria-label={`${streamer.channelName} 선택 카테고리`}>
               {tags.map((tag) => <span key={tag.key}>{tag.label}</span>)}
             </div>
+            <button
+              type="button"
+              className={styles.rowRuleButton}
+              aria-expanded={rulesOpen}
+              aria-label={`${streamer.channelName} 알림 조건`}
+              onClick={() => setRulesOpen((open) => !open)}
+            >
+              <SlidersHorizontal />조건
+            </button>
           </div>
         </div>
       </div>
+      {rulesOpen && (
+        <div className={styles.rowRulePanel}>
+          <div className={styles.rowRuleToggles}>
+            {([
+              ["liveStarted", "방송 시작"],
+              ["titleChanged", "방제 변경"],
+              ["categoryChanged", "카테고리 변경"]
+            ] as const).map(([key, label]) => (
+              <button
+                type="button"
+                key={key}
+                className={preference[key] ? styles.rowRuleSelected : ""}
+                aria-pressed={preference[key]}
+                aria-label={`${streamer.channelName} ${label} 알림`}
+                onClick={() => onChange(streamer.channelId, key, !preference[key])}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <form
+            className={styles.rowKeywordForm}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const keyword = keywordDraft.normalize("NFKC").trim().replace(/\s+/g, " ");
+              if (keyword.length < 2 || preference.keywords.length >= 10) return;
+              if (!preference.keywords.some((item) =>
+                item.toLocaleLowerCase("ko-KR") === keyword.toLocaleLowerCase("ko-KR"))) {
+                onKeywordsChange(streamer.channelId, [...preference.keywords, keyword]);
+              }
+              setKeywordDraft("");
+            }}
+          >
+            <input
+              value={keywordDraft}
+              maxLength={40}
+              aria-label={`${streamer.channelName} 키워드`}
+              placeholder="방제 키워드 입력 (예: 합방)"
+              onChange={(event) => setKeywordDraft(event.target.value)}
+            />
+            <button
+              type="submit"
+              aria-label={`${streamer.channelName} 키워드 추가`}
+              disabled={keywordDraft.trim().length < 2 || preference.keywords.length >= 10}
+            ><Plus /></button>
+          </form>
+          <div className={styles.rowKeywordList}>
+            {preference.keywords.map((keyword) => (
+              <button
+                type="button"
+                key={keyword.toLocaleLowerCase("ko-KR")}
+                aria-label={`${keyword} 키워드 삭제`}
+                onClick={() => onKeywordsChange(
+                  streamer.channelId,
+                  preference.keywords.filter((item) => item !== keyword)
+                )}
+              >
+                #{keyword}<X />
+              </button>
+            ))}
+            {!preference.keywords.length && <small>등록한 단어가 방제에 포함되면 알려드려요.</small>}
+          </div>
+        </div>
+      )}
       {categorySheetOpen && (
         <CategoryFilterSheet
           categories={categories}

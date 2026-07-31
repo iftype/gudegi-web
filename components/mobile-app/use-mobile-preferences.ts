@@ -29,6 +29,19 @@ function normalizeCategoryFilter(
   };
 }
 
+function normalizeKeywords(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const keywords = new Map<string, string>();
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const keyword = item.normalize("NFKC").trim().replace(/\s+/g, " ").slice(0, 40);
+    const normalized = keyword.toLocaleLowerCase("ko-KR");
+    if (normalized.length >= 2 && !keywords.has(normalized)) keywords.set(normalized, keyword);
+    if (keywords.size >= 10) break;
+  }
+  return [...keywords.values()];
+}
+
 function readLegacyCategoryFilter() {
   try {
     return normalizeCategoryFilter(JSON.parse(
@@ -46,15 +59,18 @@ function readGuestPreferences() {
       Partial<PushPreference> & Pick<PushPreference, "channelId">
     >;
     return stored.map((preference) => {
-      const enabled = Boolean(
-        preference.enabled || preference.liveStarted || preference.categoryChanged
-      );
+      const legacyEnabled = Boolean(preference.enabled);
+      const liveStarted = preference.liveStarted ?? legacyEnabled;
+      const categoryChanged = preference.categoryChanged ?? legacyEnabled;
+      const titleChanged = Boolean(preference.titleChanged);
+      const keywords = normalizeKeywords(preference.keywords);
       return {
         channelId: preference.channelId,
-        enabled,
-        liveStarted: enabled,
-        categoryChanged: enabled,
-        titleChanged: false,
+        enabled: Boolean(liveStarted || categoryChanged || titleChanged || keywords.length),
+        liveStarted,
+        categoryChanged,
+        titleChanged,
+        keywords,
         categoryFilter: normalizeCategoryFilter(
           preference.categoryFilter,
           legacyCategoryFilter
@@ -84,14 +100,20 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
       setReady(false);
       authApi.preferences().then(async (result) => {
         if (cancelled) return;
-        let channels = result.data.channels.map((preference) => ({
-          ...preference,
-          enabled: Boolean(preference.enabled),
-          liveStarted: Boolean(preference.enabled),
-          categoryChanged: Boolean(preference.enabled),
-          titleChanged: false,
-          categoryFilter: normalizeCategoryFilter(preference.categoryFilter)
-        }));
+        let channels = result.data.channels.map((preference) => {
+          const keywords = normalizeKeywords(preference.keywords);
+          return {
+            ...preference,
+            keywords,
+            enabled: Boolean(
+              preference.liveStarted
+              || preference.categoryChanged
+              || preference.titleChanged
+              || keywords.length
+            ),
+            categoryFilter: normalizeCategoryFilter(preference.categoryFilter)
+          };
+        });
         if (window.localStorage.getItem(PREFERENCE_IMPORT_KEY) === "1") {
           const byChannel = new Map(channels.map((item) => [item.channelId, item]));
           for (const guest of readGuestPreferences()) {
@@ -122,12 +144,16 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
     return streamers.map((streamer) => {
       const current = byChannel.get(streamer.channelId);
       if (current) {
+        const keywords = normalizeKeywords(current.keywords);
         return {
           ...current,
-          enabled: Boolean(current.enabled),
-          liveStarted: Boolean(current.enabled),
-          categoryChanged: Boolean(current.enabled),
-          titleChanged: false,
+          keywords,
+          enabled: Boolean(
+            current.liveStarted
+            || current.categoryChanged
+            || current.titleChanged
+            || keywords.length
+          ),
           categoryFilter: normalizeCategoryFilter(current.categoryFilter)
         };
       }
@@ -137,6 +163,7 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
         liveStarted: false,
         categoryChanged: false,
         titleChanged: false,
+        keywords: [],
         categoryFilter: DEFAULT_CATEGORY_FILTER
       };
     });
@@ -164,16 +191,46 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
 
   const updatePreference = useCallback((
     channelId: string,
-    key: "enabled",
+    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
     checked: boolean
   ) => {
-    void persist(preferences.map((preference) => preference.channelId === channelId
-      ? {
+    void persist(preferences.map((preference) => {
+      if (preference.channelId !== channelId) return preference;
+      if (key === "enabled") {
+        return {
           ...preference,
           enabled: checked,
           liveStarted: checked,
           categoryChanged: checked,
-          titleChanged: false
+          titleChanged: checked,
+          ...(checked ? {} : { keywords: [] })
+        };
+      }
+      const next = { ...preference, [key]: checked };
+      return {
+        ...next,
+        enabled: Boolean(
+          next.liveStarted
+          || next.categoryChanged
+          || next.titleChanged
+          || next.keywords.length
+        )
+      };
+    }));
+  }, [persist, preferences]);
+
+  const updateKeywords = useCallback((channelId: string, keywords: string[]) => {
+    const normalized = normalizeKeywords(keywords);
+    return persist(preferences.map((preference) => preference.channelId === channelId
+      ? {
+          ...preference,
+          keywords: normalized,
+          enabled: Boolean(
+            preference.liveStarted
+            || preference.categoryChanged
+            || preference.titleChanged
+            || normalized.length
+          )
         }
       : preference));
   }, [persist, preferences]);
@@ -208,7 +265,8 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
           enabled: checked,
           liveStarted: checked,
           categoryChanged: checked,
-          titleChanged: false
+          titleChanged: checked,
+          ...(checked ? {} : { keywords: [] })
         }));
   }, [persist, preferences]);
 
@@ -221,7 +279,8 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
           enabled: false,
           liveStarted: false,
           categoryChanged: false,
-          titleChanged: false
+          titleChanged: false,
+          keywords: []
         }));
   }, [persist, preferences]);
 
@@ -232,7 +291,8 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
           enabled: true,
           liveStarted: true,
           categoryChanged: true,
-          titleChanged: false,
+          titleChanged: true,
+          keywords: [],
           categoryFilter: DEFAULT_CATEGORY_FILTER
         }
       : preference));
@@ -243,6 +303,7 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
     primaryChannelId,
     selectPrimary,
     updatePreference,
+    updateKeywords,
     updateAll,
     updateCategoryFilter,
     updateCategoryFilterAll,

@@ -61,13 +61,16 @@ export const authApi = {
     body: JSON.stringify({
       channels: preferences
         .filter((preference) => (
-          preference.enabled || !preference.categoryFilter.allCategories
+          preference.enabled
+          || preference.keywords.length > 0
+          || !preference.categoryFilter.allCategories
         ))
-        .map(({ channelId, liveStarted, categoryChanged, titleChanged, categoryFilter }) => ({
+        .map(({ channelId, liveStarted, categoryChanged, titleChanged, keywords, categoryFilter }) => ({
           channelId,
           liveStarted,
           categoryChanged,
           titleChanged,
+          keywords,
           categoryFilter
         }))
     })

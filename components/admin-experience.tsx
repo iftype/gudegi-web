@@ -159,7 +159,6 @@ type Overview = {
       checksLastMinute: number;
       checksLastHour: number;
       failuresLastHour: number;
-      pendingVodMatchCount: number;
       nextDueAt: number | null;
       lastCycleStartedAt: number | null;
       lastCycleCompletedAt: number | null;
@@ -493,7 +492,6 @@ function Dashboard({ onUnauthorized }: { onUnauthorized: () => void }) {
           <small>
             추적 {collector?.trackedCount ?? 0}/{collector?.maxActiveStreamers ?? 0}
             {" · "}LIVE {collector?.activeCount ?? 0}
-            {" · "}VOD 대기 {collector?.pendingVodMatchCount ?? 0}
           </small>
         </article>
         <article>

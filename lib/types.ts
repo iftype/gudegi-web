@@ -83,6 +83,7 @@ export type PushPreference = {
   liveStarted: boolean;
   categoryChanged: boolean;
   titleChanged: boolean;
+  keywords: string[];
   categoryFilter: CategoryFilter;
 };
 

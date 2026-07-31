@@ -54,6 +54,7 @@ describe("API mutations", () => {
         liveStarted: true,
         categoryChanged: true,
         titleChanged: false,
+        keywords: ["합방"],
         categoryFilter: {
           allCategories: false,
           categoryKeys: ["ETC:talk"]
@@ -68,6 +69,7 @@ describe("API mutations", () => {
         liveStarted: true,
         categoryChanged: true,
         titleChanged: false,
+        keywords: ["합방"],
         categoryFilter: {
           allCategories: false,
           categoryKeys: ["ETC:talk"]

@@ -11,6 +11,7 @@ const preferences: PushPreference[] = [{
   liveStarted: true,
   categoryChanged: true,
   titleChanged: true,
+  keywords: [],
   categoryFilter: { allCategories: true, categoryKeys: [] }
 }];
 

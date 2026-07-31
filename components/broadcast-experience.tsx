@@ -43,7 +43,7 @@ export function BroadcastExperience({ broadcastId }: { broadcastId: string }) {
         </div>
         {item.vodUrl
           ? <a className="button primary" href={item.vodUrl} target="_blank" rel="noreferrer">치지직에서 다시보기 <ExternalLink size={16} /></a>
-          : <span className="vod-pending"><Clock3 size={15} /> VOD 연결 대기 중</span>}
+          : <span className="vod-pending"><Clock3 size={15} /> 연결된 다시보기 없음</span>}
       </section>
 
       <section className="detail-stats">

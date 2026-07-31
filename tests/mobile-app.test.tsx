@@ -70,8 +70,8 @@ describe("mobile-first entry and guidance", () => {
       <FollowTab
         streamers={streamers}
         preferences={[
-          { channelId: streamers[0]!.channelId, enabled: false, liveStarted: false, categoryChanged: false, titleChanged: false, categoryFilter: allCategoryFilter },
-          { channelId: streamers[1]!.channelId, enabled: true, liveStarted: true, categoryChanged: true, titleChanged: true, categoryFilter: allCategoryFilter }
+          { channelId: streamers[0]!.channelId, enabled: false, liveStarted: false, categoryChanged: false, titleChanged: false, keywords: [], categoryFilter: allCategoryFilter },
+          { channelId: streamers[1]!.channelId, enabled: true, liveStarted: true, categoryChanged: true, titleChanged: true, keywords: [], categoryFilter: allCategoryFilter }
         ]}
         user={null}
         pushActive
@@ -104,6 +104,8 @@ describe("mobile-first entry and guidance", () => {
   it("shows alert, category, tag, and delete actions on alert rows", () => {
     const onRemove = vi.fn();
     const onOpenDetail = vi.fn();
+    const onChange = vi.fn();
+    const onKeywordsChange = vi.fn();
     render(
       <FollowTab
         streamers={streamers}
@@ -113,14 +115,16 @@ describe("mobile-first entry and guidance", () => {
           liveStarted: true,
           categoryChanged: true,
           titleChanged: true,
+          keywords: [],
           categoryFilter: allCategoryFilter
         }))}
         user={null}
         pushActive
         pushBusy={false}
         onConnect={() => undefined}
-        onChange={() => undefined}
+        onChange={onChange}
         onChangeAll={() => undefined}
+        onKeywordsChange={onKeywordsChange}
         onRemove={onRemove}
         onOpenDetail={onOpenDetail}
       />
@@ -158,7 +162,21 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.getByText("1시간 30분")).toBeInTheDocument();
     expect(screen.queryByText(/팔로워 순위/)).not.toBeInTheDocument();
     expect(screen.getAllByText("전체 카테고리")).toHaveLength(2);
-    expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "라이브 스트리머 알림 조건" }));
+    const titleAlert = screen.getByRole("button", {
+      name: "라이브 스트리머 방제 변경 알림"
+    });
+    fireEvent.click(titleAlert);
+    expect(onChange).toHaveBeenCalledWith(
+      streamers[0]!.channelId,
+      "titleChanged",
+      false
+    );
+    fireEvent.change(screen.getByLabelText("라이브 스트리머 키워드"), {
+      target: { value: "합방" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "라이브 스트리머 키워드 추가" }));
+    expect(onKeywordsChange).toHaveBeenCalledWith(streamers[0]!.channelId, ["합방"]);
     expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))
       .toEqual(["라이브 스트리머", "오프라인 스트리머"]);
   });
@@ -175,6 +193,7 @@ describe("mobile-first entry and guidance", () => {
           liveStarted: true,
           categoryChanged: true,
           titleChanged: false,
+          keywords: [],
           categoryFilter: allCategoryFilter
         }]}
         user={null}

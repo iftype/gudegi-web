@@ -68,7 +68,9 @@ export function usePushSubscription(preferences: PushPreference[]) {
 
   async function enable() {
     const selected = preferences.filter(
-      (item) => item.enabled && (item.liveStarted || item.categoryChanged || item.titleChanged)
+      (item) => item.enabled && (
+        item.liveStarted || item.categoryChanged || item.titleChanged || item.keywords.length > 0
+      )
     );
     if (!selected.length) {
       setMessage("먼저 스트리머와 알림 종류를 선택해 주세요.");

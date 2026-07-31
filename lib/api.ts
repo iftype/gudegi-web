@@ -73,12 +73,13 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({
         channels: channels
-          .filter((channel) => channel.enabled)
-          .map(({ channelId, liveStarted, categoryChanged, titleChanged, categoryFilter }) => ({
+          .filter((channel) => channel.enabled || channel.keywords.length > 0)
+          .map(({ channelId, liveStarted, categoryChanged, titleChanged, keywords, categoryFilter }) => ({
             channelId,
             liveStarted,
             categoryChanged,
             titleChanged,
+            keywords,
             categoryFilter
           }))
       })

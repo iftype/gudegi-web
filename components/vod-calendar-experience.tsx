@@ -227,7 +227,7 @@ function DayStatus({ status }: {
   status: "broadcast" | "no_broadcast" | "uncollected" | "monitoring";
 }) {
   const label = status === "broadcast"
-    ? "VOD 연결 대기"
+    ? "방송 기록"
     : status === "no_broadcast"
       ? "방송 안 함"
       : status === "monitoring"

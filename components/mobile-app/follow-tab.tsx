@@ -36,6 +36,7 @@ export function FollowTab({
   onChangeAll,
   onCategoryFilterChange = () => undefined,
   onCategoryFilterChangeAll = () => undefined,
+  onKeywordsChange = () => undefined,
   onAdd = () => undefined,
   onImport = () => undefined,
   onClearAll = () => undefined,
@@ -52,10 +53,15 @@ export function FollowTab({
   pushBusy: boolean;
   categories?: LiveCategory[];
   onConnect: () => void;
-  onChange: (channelId: string, key: "enabled", checked: boolean) => void;
+  onChange: (
+    channelId: string,
+    key: "enabled" | "liveStarted" | "categoryChanged" | "titleChanged",
+    checked: boolean
+  ) => void;
   onChangeAll: (checked: boolean) => void;
   onCategoryFilterChange?: (channelId: string, value: CategoryFilter) => void;
   onCategoryFilterChangeAll?: (value: CategoryFilter) => void;
+  onKeywordsChange?: (channelId: string, keywords: string[]) => void;
   onAdd?: () => void;
   onImport?: () => void;
   onClearAll?: () => void;
@@ -91,8 +97,8 @@ export function FollowTab({
           <span>MY ALERTS</span>
           <h1>알림 관리</h1>
           <p>{user
-            ? `계정에 저장한 ${enabledCount}명의 카테고리 알림을 관리합니다.`
-            : `이 기기에 저장한 ${enabledCount}명의 카테고리 알림을 관리합니다.`}</p>
+            ? `계정에 저장한 ${enabledCount}명의 맞춤 알림을 관리합니다.`
+            : `이 기기에 저장한 ${enabledCount}명의 맞춤 알림을 관리합니다.`}</p>
         </div>
         <button
           className={`${styles.followPushBanner} ${!pushActive ? styles.followPushBannerAttention : ""}`}
@@ -157,6 +163,7 @@ export function FollowTab({
               categories={categories}
               onChange={onChange}
               onCategoryFilterChange={onCategoryFilterChange}
+              onKeywordsChange={onKeywordsChange}
               onRemove={onRemove}
               onOpenDetail={onOpenDetail}
             />

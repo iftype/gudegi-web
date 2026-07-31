@@ -265,6 +265,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
               void preferences.updateCategoryFilter(channelId, value)}
             onCategoryFilterChangeAll={(value) =>
               void preferences.updateCategoryFilterAll(personal.channelIds, value)}
+            onKeywordsChange={(channelId, keywords) =>
+              void preferences.updateKeywords(channelId, keywords)}
             onAdd={() => selectTab("streamers")}
             onImport={() => void startLogin()}
             onClearAll={() => void resetAlertList()}
@@ -309,7 +311,12 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             pushBusy={push.connecting || push.testing}
             permission={push.permission}
             targetCount={preferences.preferences.filter((item) =>
-              item.enabled && (item.liveStarted || item.categoryChanged)
+              item.enabled && (
+                item.liveStarted
+                || item.categoryChanged
+                || item.titleChanged
+                || item.keywords.length > 0
+              )
             ).length}
             logs={pushLogs.logs}
             logoutBusy={logoutBusy}
