@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { authApi, type AppUser } from "@/lib/auth-api";
-import type { CategoryFilter, PushPreference, Streamer } from "@/lib/types";
+import type { AlertRules, CategoryFilter, PushPreference, Streamer } from "@/lib/types";
 
 const STORAGE_KEY = "trackline-push-preferences";
 const LEGACY_CATEGORY_FILTER_KEY = "gudegi-category-filter";
@@ -219,17 +219,20 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
     }));
   }, [persist, preferences]);
 
-  const updateKeywords = useCallback((channelId: string, keywords: string[]) => {
-    const normalized = normalizeKeywords(keywords);
+  const updateRules = useCallback((channelId: string, rules: AlertRules) => {
+    const keywords = normalizeKeywords(rules.keywords);
     return persist(preferences.map((preference) => preference.channelId === channelId
       ? {
           ...preference,
-          keywords: normalized,
+          liveStarted: rules.liveStarted,
+          categoryChanged: rules.categoryChanged,
+          titleChanged: rules.titleChanged,
+          keywords,
           enabled: Boolean(
-            preference.liveStarted
-            || preference.categoryChanged
-            || preference.titleChanged
-            || normalized.length
+            rules.liveStarted
+            || rules.categoryChanged
+            || rules.titleChanged
+            || keywords.length
           )
         }
       : preference));
@@ -303,7 +306,7 @@ export function useMobilePreferences(streamers: Streamer[], user: AppUser | null
     primaryChannelId,
     selectPrimary,
     updatePreference,
-    updateKeywords,
+    updateRules,
     updateAll,
     updateCategoryFilter,
     updateCategoryFilterAll,

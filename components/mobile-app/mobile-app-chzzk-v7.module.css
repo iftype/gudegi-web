@@ -236,23 +236,22 @@
 .rowAlarmToggleActive > svg { fill: rgb(215 221 212 / 10%); }
 .rowCategoryButton { flex: 0 0 auto; min-height: 29px; display: flex; align-items: center; gap: 4px; padding: 0 8px; color: #d9dde6; background: #181b22; border: 1px solid #30343e; border-radius: 9px; font-size: 9px; font-weight: 800; }
 .rowCategoryButton svg { width: 11px; }
-.rowRuleButton { flex: 0 0 auto; min-height: 29px; display: flex; align-items: center; gap: 4px; padding: 0 8px; color: #c4c9d2; background: #20232a; border: 1px solid #363b45; border-radius: 9px; font-size: 9px; font-weight: 800; }
-.rowRuleButton svg { width: 11px; }
-.rowRulePanel { display: grid; gap: 8px; padding: 9px; background: rgb(0 0 0 / 18%); border-top: 1px solid var(--app-line); }
-.rowRuleToggles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-.rowRuleToggles button { min-height: 34px; padding: 0 5px; color: #828995; background: #1c1f25; border: 1px solid #30343d; border-radius: 9px; font-size: 10px; font-weight: 750; }
-.rowRuleToggles .rowRuleSelected { color: #10120f; background: var(--app-green); border-color: var(--app-green); }
-.rowKeywordForm { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 5px; }
-.rowKeywordForm input { min-width: 0; height: 38px; padding: 0 10px; color: #eef1f5; background: #181a20; border: 1px solid #30343d; border-radius: 10px; outline: 0; font-size: 16px; }
-.rowKeywordForm input:focus { border-color: #667068; }
-.rowKeywordForm button { display: grid; place-items: center; color: #0b0d0a; background: var(--app-green); border: 0; border-radius: 10px; }
-.rowKeywordForm button:disabled { color: #666c75; background: #292c33; }
-.rowKeywordForm button svg { width: 15px; }
-.rowKeywordList { min-height: 24px; display: flex; align-items: center; gap: 5px; overflow-x: auto; scrollbar-width: none; }
-.rowKeywordList::-webkit-scrollbar { display: none; }
-.rowKeywordList button { flex: 0 0 auto; min-height: 25px; display: flex; align-items: center; gap: 3px; padding: 0 7px; color: #b7d6bc; background: #172019; border: 1px solid #344437; border-radius: 99px; font-size: 9px; font-weight: 750; }
-.rowKeywordList button svg { width: 10px; }
-.rowKeywordList small { color: #747b86; font-size: 9px; }
+.rowRuleIconButton {
+  flex: 0 0 auto;
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: #8b929d;
+  background: #20232a;
+  border: 1px solid #363b45;
+  border-radius: 10px;
+}
+.rowRuleIconButton:hover,
+.rowRuleIconButton[aria-expanded="true"] { color: var(--app-green); background: #272a30; border-color: #4a504b; }
+.rowRuleIconButton:focus-visible { outline: 2px solid var(--app-green); outline-offset: 2px; }
+.rowRuleIconButton svg { width: 16px; height: 16px; stroke-width: 2; }
 .rowCategoryTags, .detailCategoryTags {
   min-width: 0;
   display: flex;
@@ -648,6 +647,102 @@
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
+.alertRuleSheet {
+  height: min(670px, 90dvh);
+  max-height: 90dvh;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+.alertRuleContent {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 2px 17px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.alertRuleChoices { display: grid; gap: 7px; }
+.alertRuleChoices > button {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  color: var(--app-text-secondary);
+  background: var(--app-card);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-control);
+  text-align: left;
+}
+.alertRuleChoices > button > i,
+.alertRuleChoices > button > b {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--app-radius-control);
+}
+.alertRuleChoices > button > i { color: #8d949e; background: #2e3033; }
+.alertRuleChoices > button > i svg { width: 14px; height: 14px; }
+.alertRuleChoices > button > span { min-width: 0; display: grid; gap: 3px; }
+.alertRuleChoices > button strong { color: var(--app-text); font-size: var(--app-type-body); }
+.alertRuleChoices > button small { color: var(--app-text-secondary); font-size: var(--app-type-micro); }
+.alertRuleChoices > button > b {
+  width: 22px;
+  height: 22px;
+  background: #2e3033;
+  border: 1px solid #3a3c40;
+}
+.alertRuleChoices > button > b svg { width: 13px; }
+.alertRuleChoices .alertRuleChoiceSelected {
+  color: var(--app-text);
+  background: #2e3033;
+  border-color: #3a3c40;
+}
+.alertRuleChoices .alertRuleChoiceSelected > i { color: #00ffa3; background: #333538; }
+.alertRuleChoices .alertRuleChoiceSelected > b { color: #06120c; background: #00ffa3; border-color: #00ffa3; }
+.alertKeywordSection {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  background: var(--app-card);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-panel);
+}
+.alertKeywordSection > header {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+.alertKeywordSection > header > span { width: 30px; height: 30px; display: grid; place-items: center; color: #00ffa3; background: #2e3033; border-radius: var(--app-radius-control); }
+.alertKeywordSection > header svg { width: 15px; }
+.alertKeywordSection > header > div { display: grid; gap: 2px; }
+.alertKeywordSection > header strong { color: var(--app-text); font-size: var(--app-type-body); }
+.alertKeywordSection > header small { color: var(--app-text-secondary); font-size: var(--app-type-micro); }
+.alertKeywordSection > header em { color: #00ffa3; font: 700 10px "DM Mono", monospace; }
+.alertKeywordSection form { display: grid; grid-template-columns: minmax(0, 1fr) 42px; gap: 7px; }
+.alertKeywordSection input {
+  min-width: 0;
+  height: 42px;
+  padding: 0 11px;
+  color: var(--app-text);
+  background: #202224;
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-control);
+  outline: 0;
+  font-size: 16px;
+}
+.alertKeywordSection input:focus { border-color: #5b625e; }
+.alertKeywordSection form button { display: grid; place-items: center; color: #06120c; background: #00ffa3; border: 0; border-radius: var(--app-radius-control); }
+.alertKeywordSection form button:disabled { color: #747980; background: #2e3033; }
+.alertKeywordSection form button svg { width: 16px; }
+.alertKeywordList { min-height: 28px; display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.alertKeywordList::-webkit-scrollbar { display: none; }
+.alertKeywordList > button { flex: 0 0 auto; min-height: 27px; display: flex; align-items: center; gap: 4px; padding: 0 8px; color: #b8d8c4; background: #202b25; border: 1px solid #385044; border-radius: 99px; font-size: 10px; font-weight: 750; }
+.alertKeywordList > button svg { width: 10px; }
+.alertKeywordList > small { color: var(--app-text-secondary); font-size: var(--app-type-micro); }
 .suggestionSheet { max-height: min(88dvh, 680px); }
 .suggestionForm { display: grid; gap: 12px; padding: 4px 17px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; }
 .suggestionTypes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; background: #101217; border-radius: 12px; }

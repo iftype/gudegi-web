@@ -105,7 +105,7 @@ describe("mobile-first entry and guidance", () => {
     const onRemove = vi.fn();
     const onOpenDetail = vi.fn();
     const onChange = vi.fn();
-    const onKeywordsChange = vi.fn();
+    const onRulesChange = vi.fn();
     render(
       <FollowTab
         streamers={streamers}
@@ -124,7 +124,7 @@ describe("mobile-first entry and guidance", () => {
         onConnect={() => undefined}
         onChange={onChange}
         onChangeAll={() => undefined}
-        onKeywordsChange={onKeywordsChange}
+        onRulesChange={onRulesChange}
         onRemove={onRemove}
         onOpenDetail={onOpenDetail}
       />
@@ -135,6 +135,7 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.getByRole("button", { name: "라이브 스트리머 카테고리 선택" }))
       .toBeInTheDocument();
     const alertButton = screen.getByRole("button", { name: "라이브 스트리머 알림 받기" });
+    const ruleButton = screen.getByRole("button", { name: "라이브 스트리머 알림 조건" });
     const categoryButton = screen.getByRole("button", { name: "라이브 스트리머 카테고리 선택" });
     const moreButton = screen.getByRole("button", { name: "라이브 스트리머 더보기" });
     expect(screen.queryByRole("button", {
@@ -153,6 +154,7 @@ describe("mobile-first entry and guidance", () => {
       screen.getByLabelText("라이브 스트리머 선택 카테고리")
     );
     expect(alertButton).toHaveAttribute("aria-pressed", "true");
+    expect(alertButton.parentElement).toContainElement(ruleButton);
     expect(alertButton.querySelector(".lucide-bell-ring")).toBeInTheDocument();
     expect(screen.getByText("LIVE")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "라이브 스트리머 방송 보기" }))
@@ -162,21 +164,24 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.getByText("1시간 30분")).toBeInTheDocument();
     expect(screen.queryByText(/팔로워 순위/)).not.toBeInTheDocument();
     expect(screen.getAllByText("전체 카테고리")).toHaveLength(2);
-    fireEvent.click(screen.getByRole("button", { name: "라이브 스트리머 알림 조건" }));
+    fireEvent.click(ruleButton);
+    expect(screen.getByRole("dialog", { name: "라이브 스트리머 알림 조건" }))
+      .toBeInTheDocument();
     const titleAlert = screen.getByRole("button", {
       name: "라이브 스트리머 방제 변경 알림"
     });
     fireEvent.click(titleAlert);
-    expect(onChange).toHaveBeenCalledWith(
-      streamers[0]!.channelId,
-      "titleChanged",
-      false
-    );
     fireEvent.change(screen.getByLabelText("라이브 스트리머 키워드"), {
       target: { value: "합방" }
     });
     fireEvent.click(screen.getByRole("button", { name: "라이브 스트리머 키워드 추가" }));
-    expect(onKeywordsChange).toHaveBeenCalledWith(streamers[0]!.channelId, ["합방"]);
+    fireEvent.click(screen.getByRole("button", { name: "알림 조건 적용" }));
+    expect(onRulesChange).toHaveBeenCalledWith(streamers[0]!.channelId, {
+      liveStarted: true,
+      categoryChanged: true,
+      titleChanged: false,
+      keywords: ["합방"]
+    });
     expect(screen.getAllByText(/스트리머$/).map((element) => element.textContent))
       .toEqual(["라이브 스트리머", "오프라인 스트리머"]);
   });

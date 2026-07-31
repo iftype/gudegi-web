@@ -14,6 +14,7 @@ import {
 import { useMemo, useState } from "react";
 import type { AppUser } from "@/lib/auth-api";
 import type {
+  AlertRules,
   CategoryFilter,
   LiveCategory,
   PushPreference,
@@ -36,7 +37,7 @@ export function FollowTab({
   onChangeAll,
   onCategoryFilterChange = () => undefined,
   onCategoryFilterChangeAll = () => undefined,
-  onKeywordsChange = () => undefined,
+  onRulesChange = () => undefined,
   onAdd = () => undefined,
   onImport = () => undefined,
   onClearAll = () => undefined,
@@ -61,7 +62,7 @@ export function FollowTab({
   onChangeAll: (checked: boolean) => void;
   onCategoryFilterChange?: (channelId: string, value: CategoryFilter) => void;
   onCategoryFilterChangeAll?: (value: CategoryFilter) => void;
-  onKeywordsChange?: (channelId: string, keywords: string[]) => void;
+  onRulesChange?: (channelId: string, value: AlertRules) => void;
   onAdd?: () => void;
   onImport?: () => void;
   onClearAll?: () => void;
@@ -163,7 +164,7 @@ export function FollowTab({
               categories={categories}
               onChange={onChange}
               onCategoryFilterChange={onCategoryFilterChange}
-              onKeywordsChange={onKeywordsChange}
+              onRulesChange={onRulesChange}
               onRemove={onRemove}
               onOpenDetail={onOpenDetail}
             />

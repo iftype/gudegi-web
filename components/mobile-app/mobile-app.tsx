@@ -265,8 +265,8 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
               void preferences.updateCategoryFilter(channelId, value)}
             onCategoryFilterChangeAll={(value) =>
               void preferences.updateCategoryFilterAll(personal.channelIds, value)}
-            onKeywordsChange={(channelId, keywords) =>
-              void preferences.updateKeywords(channelId, keywords)}
+            onRulesChange={(channelId, value) =>
+              void preferences.updateRules(channelId, value)}
             onAdd={() => selectTab("streamers")}
             onImport={() => void startLogin()}
             onClearAll={() => void resetAlertList()}

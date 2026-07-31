@@ -87,6 +87,11 @@ export type PushPreference = {
   categoryFilter: CategoryFilter;
 };
 
+export type AlertRules = Pick<
+  PushPreference,
+  "liveStarted" | "categoryChanged" | "titleChanged" | "keywords"
+>;
+
 export type CategoryFilter = {
   allCategories: boolean;
   categoryKeys: string[];
