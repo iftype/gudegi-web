@@ -381,7 +381,9 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.getAllByText("talk").length).toBeGreaterThan(0);
     expect(screen.getByRole("combobox", { name: "다시보기 필터" })).toBeInTheDocument();
     expect(screen.getByText("달력에서 방송한 날짜를 선택해 주세요.")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "2026-07-29 방송 기록 보기" }));
+    const visibleMonth = new Date();
+    const visibleDate = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, "0")}-29`;
+    fireEvent.click(screen.getByRole("button", { name: `${visibleDate} 방송 기록 보기` }));
     expect(screen.getByText("방송 중")).toBeInTheDocument();
     expect(screen.getAllByText("리그 오브 레전드").length).toBeGreaterThan(0);
     expect(screen.getByText(`${new Intl.DateTimeFormat("ko-KR", {
