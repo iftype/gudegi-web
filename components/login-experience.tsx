@@ -19,11 +19,19 @@ export function LoginExperience() {
   const code = search.get("code");
   const oauthState = search.get("state");
   const oauthError = search.get("error");
+  const nativeFlow = search.get("native") === "1" || oauthState?.startsWith("native.") === true;
 
   useEffect(() => {
     if (!code || !oauthState || attempted.current) return;
     attempted.current = true;
     setState("working");
+    if (oauthState.startsWith("native.")) {
+      const callback = new URL("gudegi://auth/callback");
+      callback.searchParams.set("code", code);
+      callback.searchParams.set("state", oauthState);
+      window.location.replace(callback.toString());
+      return;
+    }
     authApi.complete(code, oauthState).then(() => {
       window.localStorage.setItem("gudegi-entry-mode", "login");
       if (!window.localStorage.getItem("gudegi-install-guide-seen")) {
@@ -44,7 +52,7 @@ export function LoginExperience() {
     window.localStorage.setItem(PREFERENCE_IMPORT_KEY, "1");
     window.localStorage.setItem(STREAMER_IMPORT_KEY, "1");
     try {
-      const result = await authApi.begin();
+      const result = await authApi.begin(nativeFlow);
       trackEvent("chzzk_login_started");
       window.location.assign(result.data.authorizationUrl);
     } catch {
@@ -68,8 +76,10 @@ export function LoginExperience() {
         ) : (
           <>
             <span className={styles.icon}><ShieldCheck /></span>
-            <h1>{oauthError ? "로그인이 취소됐어요" : "내 목록을 계정에 저장하세요"}</h1>
-            <p>치지직은 실제 팔로잉 목록 조회를 지원하지 않아, 로그인 후 지원 스트리머를 직접 선택합니다.</p>
+            <h1>{oauthError ? "로그인이 취소됐어요" : nativeFlow ? "앱으로 내 목록 가져오기" : "내 목록을 계정에 저장하세요"}</h1>
+            <p>{nativeFlow
+              ? "치지직 로그인 후 구데기 계정에 저장한 스트리머와 알림 설정을 앱으로 한 번 가져옵니다."
+              : "치지직은 실제 팔로잉 목록 조회를 지원하지 않아, 로그인 후 지원 스트리머를 직접 선택합니다."}</p>
             <button onClick={() => void startLogin()} disabled={state === "working"}>
               {state === "working" ? <LoaderCircle className={styles.spin} /> : <ExternalLink />}
               치지직으로 로그인
