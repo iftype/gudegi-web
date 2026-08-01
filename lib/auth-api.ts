@@ -31,7 +31,9 @@ export const authApi = {
       officialFollowingImportSupported: false;
     };
   }>("/config"),
-  begin: () => request<{ data: { authorizationUrl: string } }>("/chzzk/start"),
+  begin: (native = false) => request<{ data: { authorizationUrl: string } }>(
+    `/chzzk/start${native ? "?native=1" : ""}`
+  ),
   complete: (code: string, state: string) => request<{ data: { user: AppUser } }>(
     "/chzzk/callback",
     {
