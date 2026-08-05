@@ -94,9 +94,8 @@ describe("mobile-first entry and guidance", () => {
     expect(screen.queryByRole("button", { name: /제목 변경 알림/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("checkbox", { name: /전체 선택/ }));
     expect(onChangeAll).toHaveBeenCalledWith(true);
-    const importButton = screen.getByRole("button", { name: "팔로우 불러오기" });
     const clearButton = screen.getByRole("button", { name: "알림 목록 전체삭제" });
-    expect(importButton.parentElement).toBe(clearButton.parentElement);
+    expect(screen.queryByRole("button", { name: "팔로우 불러오기" })).not.toBeInTheDocument();
     fireEvent.click(clearButton);
     expect(onClearAll).toHaveBeenCalledOnce();
   });

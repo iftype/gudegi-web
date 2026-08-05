@@ -123,8 +123,6 @@
 .followListManagement { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: -1px 0 9px; }
 .followListManagement > button { min-width: 0; min-height: 32px; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 9px; font-size: 9px; font-weight: 750; }
 .followListManagement > button:only-child { grid-column: 1 / -1; }
-.followImportButton { color: #aeb7ca; background: #141822; border: 1px solid #30394d; }
-.followImportButton svg { width: 11px; }
 .followPushMessage { margin: -2px 3px 9px; color: #c3c9d4; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
 .followTools { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 7px; margin-bottom: 9px; }
 .inlineSearch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 0; padding: 0 11px; background: var(--app-card); border: 1px solid var(--app-line); border-radius: 13px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
@@ -951,8 +949,7 @@
 
 .followTools { gap: 6px; margin-bottom: 10px; }
 .followListManagement > button,
-.personalListActions button,
-.followImportButton {
+.personalListActions button {
   color: var(--app-text-secondary);
   background: var(--app-card);
   border: 0;

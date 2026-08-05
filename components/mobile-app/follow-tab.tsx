@@ -3,7 +3,6 @@
 import {
   Bell,
   CheckCircle2,
-  CloudDownload,
   ListFilter,
   Plus,
   RefreshCw,
@@ -37,7 +36,6 @@ export function FollowTab({
   onCategoryFilterChange = () => undefined,
   onCategoryFilterChangeAll = () => undefined,
   onAdd = () => undefined,
-  onImport = () => undefined,
   onClearAll = () => undefined,
   onRemove,
   unsupportedRequests = [],
@@ -57,7 +55,6 @@ export function FollowTab({
   onCategoryFilterChange?: (channelId: string, value: CategoryFilter) => void;
   onCategoryFilterChangeAll?: (value: CategoryFilter) => void;
   onAdd?: () => void;
-  onImport?: () => void;
   onClearAll?: () => void;
   onRemove?: (channelId: string) => void;
   unsupportedRequests?: import("@/lib/types").UnsupportedStreamerRequest[];
@@ -103,18 +100,11 @@ export function FollowTab({
           <strong>{pushActive ? "기기 알림 연결됨" : "이 기기에서 알림 받기"}</strong>
         </button>
       </header>
-      {(!user || streamers.length > 0) && (
+      {streamers.length > 0 && (
         <div className={styles.followListManagement}>
-          {!user && (
-            <button className={styles.followImportButton} onClick={onImport}>
-              <CloudDownload />팔로우 불러오기
-            </button>
-          )}
-          {streamers.length > 0 && (
-            <button className={styles.clearAllAlertsButton} onClick={onClearAll}>
-              <Trash2 />알림 목록 전체삭제
-            </button>
-          )}
+          <button className={styles.clearAllAlertsButton} onClick={onClearAll}>
+            <Trash2 />알림 목록 전체삭제
+          </button>
         </div>
       )}
       <div className={styles.followTools}>

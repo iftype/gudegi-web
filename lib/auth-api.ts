@@ -28,7 +28,6 @@ export const authApi = {
     data: {
       configured: boolean;
       redirectUri: string;
-      officialFollowingImportSupported: false;
     };
   }>("/config"),
   begin: (native = false) => request<{ data: { authorizationUrl: string } }>(

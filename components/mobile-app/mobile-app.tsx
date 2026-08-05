@@ -24,8 +24,7 @@ import { SettingsTab } from "./settings-tab";
 import { StreamersTab } from "./streamers-tab";
 import { SuggestionSheet } from "./suggestion-sheet";
 import { useMobilePreferences } from "./use-mobile-preferences";
-import { PREFERENCE_IMPORT_KEY } from "./use-mobile-preferences";
-import { STREAMER_IMPORT_KEY, usePersonalStreamers } from "./use-personal-streamers";
+import { usePersonalStreamers } from "./use-personal-streamers";
 import { usePushLogs } from "./use-push-logs";
 import { usePushSubscription } from "./use-push-subscription";
 import { usePwaInstall } from "./use-pwa-install";
@@ -173,17 +172,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
     return <main className={`${styles.app} mobile-app-shell standalone-route`}><div className={styles.appLoading}><RefreshCw />구데기를 준비하고 있습니다.</div></main>;
   }
 
-  async function startLogin() {
-    window.localStorage.setItem(PREFERENCE_IMPORT_KEY, "1");
-    window.localStorage.setItem(STREAMER_IMPORT_KEY, "1");
-    try {
-      const result = await authApi.begin();
-      window.location.assign(result.data.authorizationUrl);
-    } catch {
-      window.location.assign("/login");
-    }
-  }
-
   async function logout() {
     setLogoutBusy(true);
     setLogoutMessage("");
@@ -266,7 +254,6 @@ export function MobileApp({ streamers }: { streamers: Streamer[] }) {
             onCategoryFilterChangeAll={(value) =>
               void preferences.updateCategoryFilterAll(personal.channelIds, value)}
             onAdd={() => selectTab("streamers")}
-            onImport={() => void startLogin()}
             onClearAll={() => void resetAlertList()}
             onRemove={(channelId) => void removeFromAlerts(channelId)}
             unsupportedRequests={personal.unsupported}
